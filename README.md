@@ -8,7 +8,9 @@ Este projeto consiste em um backend com NestJS, um frontend web com React e um f
 
 - Rodar normalemente: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
-- Parar: docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+- Para os contêineres: CTRL + C e ENTER
+
+- Parar de desenvolver: docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
 
 ## Como rodar em ambiente de produção
 
@@ -16,7 +18,9 @@ Este projeto consiste em um backend com NestJS, um frontend web com React e um f
 
 - Rodar normalmente: docker-compose up
 
-- Parar: docker-compose down
+- Para os contêineres: CTRL + C e ENTER
+
+- Parar de desenvolver: docker-compose down
 
 ## Migrations do Banco de Dados
 
