@@ -1,8 +1,18 @@
-# Meu Projeto
+# Requisitos
 
-Este projeto consiste em um backend com NestJS, um frontend web com React e um frontend mobile com React Native.
+- [Docker](https://www.docker.com/) instalado, para rodar o projeto.
+- [PostMan](https://www.postman.com/downloads/) instalado, para testar API.
 
-## Como rodar em ambiente de desenvolvimento
+# Papéis
+
+- Caio: back-end, dev-ops e suporte no front-end (web e mobile);
+- Arthur: back-end e suporte no web;
+- Sabrina: mobile;
+- Gustavo: mobile e suporte back-end;
+- Higor: web;
+- Antônio: web;
+
+## Como rodar em ambiente de desenvolvimento (atualiza em tempo real a aplicação)
 
 - Rodar na primeira vez: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
