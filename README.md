@@ -32,11 +32,11 @@
 
 - Parar de desenvolver: docker-compose down
 
-## Migrations do Banco de Dados
+## Banco de Dados
 
-Para criar e aplicar as migrations do banco de dados, execute o seguinte comando:
+Para criar as entidades do banco de dados, execute o seguinte comando com os containers rodando:
 
-docker-compose exec backend npx prisma migrate dev --name init-migration
+docker-compose exec backend npx prisma generate
 
 ## Remover dados inúteis do Docker que podem ocupar muito espaço
 
