@@ -1,122 +1,212 @@
-import { useState, useEffect } from 'react';
-import { getTodosUsuarios, atualizarUsuario, criarUsuario, deletarUsuario, getUsuarioPorId } from '../services/usuariosService';
+import { useState, useEffect, useCallback } from "react";
+import { AxiosError } from "axios";
+
+import {
+  getTodosUsuarios,
+  atualizarUsuario,
+  criarUsuario,
+  deletarUsuario,
+  getUsuarioPorId,
+} from "../services/usuariosService";
+import type { Usuario, RespostaApi } from "../utils/types";
 
 export function useGetTodosUsuarios() {
-  const [usuarios, setUsuarios]: any = useState(null);
-  const [loading, setLoading]: any = useState(true);
-  const [error, setError]: any = useState();
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string[] | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsuarios = async () => {
+      setLoading(true);
+      setErro(null);
+      setMensagemSucesso(null);
+
       try {
-        setLoading(true);
-        const data = await getTodosUsuarios();
-        setUsuarios(data);
-      } catch (err) {
-        setError(err);
+        const response = await getTodosUsuarios();
+
+        const respostaApi = response.data;
+
+        if (respostaApi.sucesso && respostaApi.dados) {
+          setUsuarios(respostaApi.dados);
+          setMensagemSucesso(respostaApi.mensagem);
+        }
+
+        return respostaApi;
+      } catch (error: any) {
+        const axiosError = error as AxiosError<RespostaApi<null>>;
+
+        const errosResponse = axiosError.response?.data?.erros || [
+          "Ocorreu um erro inesperado.",
+        ];
+
+        setErro(errosResponse);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchUsuarios();
   }, []);
 
-  return { usuarios, loading, error };
+  return { usuarios, loading, erro, mensagemSucesso };
 }
 
 export function useGetUsuarioPorId(id: number) {
-  const [usuarios, setUsuarios]: any = useState(null);
-  const [loading, setLoading]: any = useState(true);
-  const [error, setError]: any = useState();
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string[] | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsuarios = async () => {
+      setLoading(true);
+      setErro(null);
+      setMensagemSucesso(null);
+
       try {
-        setLoading(true);
-        const data = await getUsuarioPorId(id);
-        setUsuarios(data);
-      } catch (err) {
-        setError(err);
+        const response = await getUsuarioPorId(id);
+
+        const respostaApi = response.data;
+
+        if (respostaApi.sucesso && respostaApi.dados) {
+          setUsuario(respostaApi.dados);
+          setMensagemSucesso(respostaApi.mensagem);
+        }
+
+        return respostaApi;
+      } catch (error: any) {
+        const axiosError = error as AxiosError<RespostaApi<null>>;
+
+        const errosResponse = axiosError.response?.data?.erros || [
+          "Ocorreu um erro inesperado.",
+        ];
+
+        setErro(errosResponse);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchUsuarios();
   }, []);
 
-  return { usuarios, loading, error };
+  return { usuario, loading, erro, mensagemSucesso };
 }
 
-export function useAtualizarUsuario(id: number, dados: { nome?: string; email?: string }) {
-  const [usuarios, setUsuarios]: any = useState(null);
-  const [loading, setLoading]: any = useState(true);
-  const [error, setError]: any = useState();
+export function useCriarUsuario() {
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string[] | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const data = await atualizarUsuario(id, dados);
-        setUsuarios(data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
+  const criar = useCallback(async (dados: { nome: string; email: string }) => {
+    setLoading(true);
+    setErro(null);
+    setMensagemSucesso(null);
+
+    try {
+      const resposta = await criarUsuario(dados);
+
+      const respostaApi = resposta.data;
+
+      if (respostaApi.sucesso && respostaApi.dados) {
+        setUsuario(respostaApi.dados);
+        setMensagemSucesso(respostaApi.mensagem);
       }
-    };
 
-    fetchUsers();
+      return respostaApi;
+    } catch (error: any) {
+      const axiosError = error as AxiosError<RespostaApi<null>>;
+
+      const errosResponse = axiosError.response?.data?.erros || [
+        "Ocorreu um erro inesperado.",
+      ];
+
+      setErro(errosResponse);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { usuarios, loading, error };
+  return { criar, usuario, loading, erro, mensagemSucesso };
 }
 
-export function useCriarUsuario(dados: { nome: string; email: string }) {
-  const [usuarios, setUsuarios]: any = useState(null);
-  const [loading, setLoading]: any = useState(true);
-  const [error, setError]: any = useState();
+export function useAtualizarUsuario() {
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string[] | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
+  const atualizar = useCallback(
+    async (id: number, dados: { nome?: string; email?: string }) => {
+      setLoading(true);
+      setErro(null);
+      setMensagemSucesso(null);
+
       try {
-        setLoading(true);
-        const data = await criarUsuario(dados);
-        setUsuarios(data);
-      } catch (err) {
-        setError(err);
+        const resposta = await atualizarUsuario(id, dados);
+
+        const respostaApi = resposta.data;
+
+        if (respostaApi.sucesso && respostaApi.dados) {
+          setUsuario(respostaApi.dados);
+          setMensagemSucesso(respostaApi.mensagem);
+        }
+
+        return respostaApi;
+      } catch (error: any) {
+        const axiosError = error as AxiosError<RespostaApi<null>>;
+
+        const errosResponse = axiosError.response?.data?.erros || [
+          "Ocorreu um erro inesperado.",
+        ];
+
+        setErro(errosResponse);
       } finally {
         setLoading(false);
       }
-    };
+    },
+    []
+  );
 
-    fetchUsers();
-  }, []);
-
-  return { usuarios, loading, error };
+  return { atualizar, usuario, loading, erro, mensagemSucesso };
 }
 
-export function useDeletarUsuario(id: number) {
-  const [usuarios, setUsuarios]: any = useState(null);
-  const [loading, setLoading]: any = useState(true);
-  const [error, setError]: any = useState();
+export function useDeletarUsuario() {
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string[] | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const data = await deletarUsuario(id);
-        setUsuarios(data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
+  const deletar = useCallback(async (id: number) => {
+    setLoading(true);
+    setErro(null);
+    setMensagemSucesso(null);
+
+    try {
+      const resposta = await deletarUsuario(id);
+
+      const respostaApi = resposta.data;
+
+      if (respostaApi.sucesso && respostaApi.dados) {
+        setUsuario(respostaApi.dados);
+        setMensagemSucesso(respostaApi.mensagem);
       }
-    };
 
-    fetchUsers();
+      return respostaApi;
+    } catch (error: any) {
+      const axiosError = error as AxiosError<RespostaApi<null>>;
+
+      const errosResponse = axiosError.response?.data?.erros || [
+        "Ocorreu um erro inesperado.",
+      ];
+
+      setErro(errosResponse);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { usuarios, loading, error };
+  return { deletar, usuario, loading, erro, mensagemSucesso };
 }

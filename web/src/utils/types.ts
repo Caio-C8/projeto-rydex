@@ -4,9 +4,10 @@ export interface Usuario {
   nome: string | null;
 }
 
-export interface RespostaAPI<T> {
+export interface RespostaApi<T> {
   mensagem: string;
   sucesso: boolean;
   status: number;
-  data: T;
+  dados?: T;
+  erros?: string[];
 }
