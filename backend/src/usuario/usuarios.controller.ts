@@ -7,90 +7,94 @@ import {
   Delete,
   Put,
   ParseIntPipe,
-  HttpCode,
   HttpStatus,
+  HttpException,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { Usuario } from "@prisma/client";
 import { CriarUsuarioDto } from "./dto/criar-usuario.dto";
 import { AtualizarUsuarioDto } from "./dto/atualizar-usuario.dto";
-
-interface RespostaPadrao<T = any> {
-  mensagem: string;
-  sucesso: boolean;
-  status: number;
-  data: T;
-}
-
-function criarResponse<T>(
-  message: string,
-  data: T,
-  status: number
-): RespostaPadrao<T> {
-  return {
-    mensagem: message,
-    sucesso: status >= 200 && status < 300,
-    status,
-    data,
-  };
-}
+import { Resposta } from "../utils/resposta-api";
+import { RespostaApi } from "../types/resposta-api.type";
 
 @Controller("usuarios")
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Get()
-  async findAll(): Promise<RespostaPadrao<Usuario[]>> {
-    const usuarios = await this.usuariosService.findAll();
-    return criarResponse(
-      "Usuários listados com sucesso.",
-      usuarios,
-      HttpStatus.OK
-    );
+  async findAll(): Promise<RespostaApi<Usuario[]>> {
+    try {
+      const usuarios = await this.usuariosService.findAll();
+      return Resposta.sucesso(usuarios, "Usuários listados com sucesso");
+    } catch (erro) {
+      throw new HttpException(
+        Resposta.erro("Erro ao listar usuários", [erro.message]),
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 
   @Get(":id")
   async findOne(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<RespostaPadrao<Usuario>> {
-    const usuario = await this.usuariosService.findOne(id);
-    return criarResponse("Usuário encontrado.", usuario, HttpStatus.OK);
+  ): Promise<RespostaApi<Usuario>> {
+    try {
+      const usuario = await this.usuariosService.findOne(id);
+      return Resposta.sucesso(usuario, "Usuário encontrado com sucesso");
+    } catch (erro) {
+      throw new HttpException(
+        Resposta.erro("Erro ao encontrar usuário", [erro.message]),
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 
   @Post()
   async create(
     @Body() criarUsuarioDto: CriarUsuarioDto
-  ): Promise<RespostaPadrao<Usuario>> {
-    const usuario = await this.usuariosService.create(criarUsuarioDto);
-    return criarResponse(
-      "Usuário criado com sucesso.",
-      usuario,
-      HttpStatus.CREATED
-    );
+  ): Promise<RespostaApi<Usuario>> {
+    try {
+      const usuario = await this.usuariosService.create(criarUsuarioDto);
+      return Resposta.sucesso(usuario, "Usuário criado com sucesso");
+    } catch (erro) {
+      throw new HttpException(
+        Resposta.erro("Erro ao criar usuário", [erro.message]),
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 
   @Put(":id")
   async update(
     @Param("id", ParseIntPipe) id: number,
     @Body() atualizarUsuarioDto: AtualizarUsuarioDto
-  ): Promise<RespostaPadrao<Usuario>> {
-    const usuario = await this.usuariosService.update(id, atualizarUsuarioDto);
-    return criarResponse(
-      "Usuário atualizado com sucesso.",
-      usuario,
-      HttpStatus.OK
-    );
+  ): Promise<RespostaApi<Usuario>> {
+    try {
+      const usuario = await this.usuariosService.update(
+        id,
+        atualizarUsuarioDto
+      );
+      return Resposta.sucesso(usuario, "Usuário atualizado com sucesso");
+    } catch (erro) {
+      throw new HttpException(
+        Resposta.erro("Erro ao atualizar usuário", [erro.message]),
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 
   @Delete(":id")
   async remove(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<RespostaPadrao<Usuario>> {
-    const usuarioRemovido = await this.usuariosService.remove(id);
-    return criarResponse(
-      "Usuário removido com sucesso.",
-      usuarioRemovido,
-      HttpStatus.OK
-    );
+  ): Promise<RespostaApi<Usuario>> {
+    try {
+      const usuarioRemovido = await this.usuariosService.remove(id);
+      return Resposta.sucesso(usuarioRemovido, "Usuário removido com sucesso");
+    } catch (erro) {
+      throw new HttpException(
+        Resposta.erro("Erro ao remover usuário", [erro.message]),
+        HttpStatus.BAD_REQUEST
+      );
+    }
   }
 }
