@@ -32,12 +32,6 @@
 
 - Parar de desenvolver: docker-compose down
 
-## Banco de Dados
-
-Para criar as entidades do banco de dados, execute o seguinte comando com os containers rodando:
-
-docker-compose exec backend npx prisma generate
-
 ## Remover dados inúteis do Docker que podem ocupar muito espaço
 
 docker system prune -a --volumes
