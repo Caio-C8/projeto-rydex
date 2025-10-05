@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { AxiosError } from "axios";
 
 import {
@@ -16,82 +16,74 @@ export function useGetTodosUsuarios() {
   const [erro, setErro] = useState<string[] | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsuarios = async () => {
-      setLoading(true);
-      setErro(null);
-      setMensagemSucesso(null);
+  const buscarTodos = useCallback(async () => {
+    setLoading(true);
+    setErro(null);
+    setMensagemSucesso(null);
 
-      try {
-        const response = await getTodosUsuarios();
+    try {
+      const resposta = await getTodosUsuarios();
 
-        const respostaApi = response.data;
+      const respostaApi = resposta.data;
 
-        if (respostaApi.sucesso && respostaApi.dados) {
-          setUsuarios(respostaApi.dados);
-          setMensagemSucesso(respostaApi.mensagem);
-        }
-
-        return respostaApi;
-      } catch (error: any) {
-        const axiosError = error as AxiosError<RespostaApi<null>>;
-
-        const errosResponse = axiosError.response?.data?.erros || [
-          "Ocorreu um erro inesperado.",
-        ];
-
-        setErro(errosResponse);
-      } finally {
-        setLoading(false);
+      if (respostaApi.sucesso && respostaApi.dados) {
+        setUsuarios(respostaApi.dados);
+        setMensagemSucesso(respostaApi.mensagem);
       }
-    };
 
-    fetchUsuarios();
+      return respostaApi;
+    } catch (error: any) {
+      const axiosError = error as AxiosError<RespostaApi<null>>;
+
+      const errosResponse = axiosError.response?.data?.erros || [
+        "Ocorreu um erro inesperado.",
+      ];
+
+      setErro(errosResponse);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { usuarios, loading, erro, mensagemSucesso };
+  return { buscarTodos, usuarios, loading, erro, mensagemSucesso };
 }
 
-export function useGetUsuarioPorId(id: number) {
+export function useGetUsuarioPorId() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string[] | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsuarios = async () => {
-      setLoading(true);
-      setErro(null);
-      setMensagemSucesso(null);
+  const buscarPorId = useCallback(async (id: number) => {
+    setLoading(true);
+    setErro(null);
+    setMensagemSucesso(null);
 
-      try {
-        const response = await getUsuarioPorId(id);
+    try {
+      const resposta = await getUsuarioPorId(id);
 
-        const respostaApi = response.data;
+      const respostaApi = resposta.data;
 
-        if (respostaApi.sucesso && respostaApi.dados) {
-          setUsuario(respostaApi.dados);
-          setMensagemSucesso(respostaApi.mensagem);
-        }
-
-        return respostaApi;
-      } catch (error: any) {
-        const axiosError = error as AxiosError<RespostaApi<null>>;
-
-        const errosResponse = axiosError.response?.data?.erros || [
-          "Ocorreu um erro inesperado.",
-        ];
-
-        setErro(errosResponse);
-      } finally {
-        setLoading(false);
+      if (respostaApi.sucesso && respostaApi.dados) {
+        setUsuario(respostaApi.dados);
+        setMensagemSucesso(respostaApi.mensagem);
       }
-    };
 
-    fetchUsuarios();
+      return respostaApi;
+    } catch (error: any) {
+      const axiosError = error as AxiosError<RespostaApi<null>>;
+
+      const errosResponse = axiosError.response?.data?.erros || [
+        "Ocorreu um erro inesperado.",
+      ];
+
+      setErro(errosResponse);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { usuario, loading, erro, mensagemSucesso };
+  return { buscarPorId, usuario, loading, erro, mensagemSucesso };
 }
 
 export function useCriarUsuario() {

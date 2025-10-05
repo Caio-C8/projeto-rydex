@@ -1,0 +1,46 @@
+/* web/src/components/Resultado/Resultado.module.css */
+
+.container {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.mensagemSucesso {
+  color: #155724;
+  background-color: #d4edda;
+  padding: 0.75rem;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+}
+
+.mensagemErro {
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 0.75rem;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+.listaErros {
+  list-style-type: none;
+  padding-left: 0;
+  color: #721c24;
+}
+
+.userList {
+  margin-top: 1rem;
+}
+
+.userCard {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.userCard p {
+  margin: 0.5rem 0;
+}
