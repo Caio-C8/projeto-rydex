@@ -1,0 +1,86 @@
+entregadores (
+    id INT SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha TEXT NOT NULL,
+    saldo INT NOT NULL DEFAULT 0,
+    status VARCHAR(50) NOT NULL DEFAULT 'offline',
+    placa_veiculo VARCHAR(255) NOT NULL,
+    localizacao GEOGRAPHY(POINT, 4326),
+    ultima_atualizacao_localizacao TIMESTAMP NOT NULL,
+    chave_pix VARCHAR(255) NOT NULL
+)
+
+empresas (
+    id INT SERIAL PRIMARY KEY,
+    nome_empresa VARCHAR(255) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha TEXT NOT NULL,
+    saldo INT NOT NULL DEFAULT 0,
+    cep VARCHAR(10) NOT NULL,
+    cidade VARCHAR(255) NOT NULL,
+    numero INT NOT NULL,
+    bairro VARCHAR(255) NOT NULL,
+    logradouro VARCHAR(255) NOT NULL,
+    complemento VARCHAR(255),
+    ponto_referencia VARCHAR(255),
+    localizacao GEOGRAPHY(POINT, 4326)
+)
+
+solicitacoes_entregas (
+    id INT SERIAL PRIMARY KEY,
+    valor_estimado INT NOT NULL CHECK(valor_estimado > 0),
+    item_retorno BOOLEAN NOT NULL,
+    descricao_item_retorno TEXT NOT NULL,
+    observacao TEXT NOT NULL,
+    distancia_m INT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pendente',
+    criado_em TIMESTAMP NOT NULL,
+    cancelado_em TIMESTAMP NOT NULL,
+    cep VARCHAR(10) NOT NULL,
+    cidade VARCHAR(255) NOT NULL,
+    numero INT NOT NULL,
+    bairro VARCHAR(255) NOT NULL,
+    logradouro VARCHAR(255) NOT NULL,
+    complemento VARCHAR(255),
+    ponto_referencia VARCHAR(255),
+    localizacao GEOGRAPHY(POINT, 4326),
+    empresa_id INT NOT NULL REFERENCES empresas(id)
+)
+
+entregas (
+    id INT SERIAL PRIMARY KEY,
+    valor_entrega INT NOT NULL CHECK(valor_entrega > 0),
+    aceito_em TIMESTAMP NOT NULL,
+    criado_em TIMESTAMP NOT NULL,
+    cancelado_em TIMESTAMP NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'em_andamento',
+    solicitacao_entrega_id INT NOT NULL REFERENCES solicitacoes_entregas(id),
+    entregador_id INT NOT NULL REFERENCES entregadores(id)
+)
+
+imagens (
+    id INT SERIAL PRIMARY KEY,
+    nome_imagem VARCHAR(255) NOT NULL
+    conteudo BYTEA,
+    entregador_id INT REFERENCES entregadores(id), 
+) 
+
+configuracoes (
+    id INT SERIAL PRIMARY KEY,
+    chave VARCHAR(255) NOT NULL,
+    descricao TEXT NOT NULL,
+    valor_int INT,
+    valor_string VARCHAR(255),
+    valor_boolean BOOLEAN,
+    CHECK (
+        (CASE WHEN valor_texto IS NOT NULL THEN 1 ELSE 0 END) +
+        (CASE WHEN valor_inteiro IS NOT NULL THEN 1 ELSE 0 END) +
+        (CASE WHEN valor_decimal IS NOT NULL THEN 1 ELSE 0 END) +
+        (CASE WHEN valor_booleano IS NOT NULL THEN 1 ELSE 0 END)
+        = 1
+    )
+)
