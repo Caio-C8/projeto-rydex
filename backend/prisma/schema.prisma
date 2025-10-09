@@ -7,8 +7,114 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  nome  String?
+model Entregador {
+  id                            Int        @id @default(autoincrement())
+  nome                          String
+  data_nascimento               DateTime   @db.Date
+  cpf                           String     @unique
+  email                         String     @unique
+  senha                         String
+  saldo                         Int        @default(0)
+  celular                       String
+  status                        String     @default("offline")
+  placa_veiculo                 String
+  latitude                      Float?
+  longitude                     Float?
+  ultima_atualizacao_localizacao DateTime   @db.Timestamp()
+  chave_pix                     String
+  
+  entregas                      Entregas[]
+  imagens                       Imagens[]
+
+  @@map("entregadores")
+}
+
+model Empresa {
+  id                 Int        @id @default(autoincrement())
+  nome_empresa       String
+  cnpj               String     @unique
+  email              String     @unique
+  senha              String
+  saldo              Int        @default(0)
+  cep                String
+  cidade             String
+  numero             Int
+  bairro             String
+  logradouro         String
+  complemento        String?
+  ponto_referencia   String?
+  latitude           Float?
+  longitude          Float?
+  
+  solicitacoes_entregas SolicitacoesEntregas[]
+
+  @@map("empresas")
+}
+
+model SolicitacoesEntregas {
+  id                     Int       @id @default(autoincrement())
+  valor_estimado         Int
+  item_retorno           Boolean
+  descricao_item_retorno String
+  observacao             String
+  distancia_m            Int
+  status                 String    @default("pendente")
+  criado_em              DateTime  @db.Timestamp()
+  cancelado_em           DateTime? @db.Timestamp()
+  cep                    String
+  cidade                 String
+  numero                 Int
+  bairro                 String
+  logradouro             String
+  complemento            String?
+  ponto_referencia       String?
+  latitude               Float?
+  longitude              Float?
+  
+  empresa_id             Int
+  
+  empresa                Empresa   @relation(fields: [empresa_id], references: [id])
+  entrega                Entregas?
+
+  @@map("solicitacoes_entregas")
+}
+
+model Entregas {
+  id                      Int      @id @default(autoincrement())
+  valor_entrega           Int
+  aceito_em               DateTime @db.Timestamp()
+  criado_em               DateTime @db.Timestamp()
+  cancelado_em            DateTime? @db.Timestamp() // Campo opcional
+  status                  String   @default("em_andamento")
+  
+  solicitacao_entrega_id  Int      @unique
+  entregador_id           Int
+  
+  solicitacao_entrega     SolicitacoesEntregas @relation(fields: [solicitacao_entrega_id], references: [id])
+  entregador              Entregador           @relation(fields: [entregador_id], references: [id])
+
+  @@map("entregas")
+}
+
+model Imagens {
+  id           Int      @id @default(autoincrement())
+  nome_imagem  String
+  conteudo     Bytes?
+  
+  entregador_id Int?  
+  
+  entregador    Entregador? @relation(fields: [entregador_id], references: [id])
+
+  @@map("imagens")
+}
+
+model Configuracoes {
+  id            Int      @id @default(autoincrement())
+  chave         String
+  descricao     String
+  valor_int     Int?
+  valor_string  String?
+  valor_boolean Boolean?
+
+  @@map("configuracoes")
 }
