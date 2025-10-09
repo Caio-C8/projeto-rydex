@@ -6,6 +6,7 @@ entregadores (
     email VARCHAR(255) NOT NULL UNIQUE,
     senha TEXT NOT NULL,
     saldo INT NOT NULL DEFAULT 0,
+    celular VARCHAR(15) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'offline',
     placa_veiculo VARCHAR(255) NOT NULL,
     localizacao GEOGRAPHY(POINT, 4326),
