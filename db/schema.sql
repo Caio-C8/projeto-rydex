@@ -1,10 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-CREATE IF NOT EXISTS TYPE status_entregadores AS ENUM ('offline', 'online', 'em_entrega');
+CREATE TYPE status_entregadores AS ENUM ('offline', 'online', 'em_entrega');
 
-CREATE IF NOT EXISTS TYPE status_solicitacoes AS ENUM ('pendente', 'atribuida', 'cancelada');
+CREATE TYPE status_solicitacoes AS ENUM ('pendente', 'atribuida', 'cancelada');
 
-CREATE IF NOT EXISTS TYPE status_entregas AS ENUM ('em_andamento', 'finalizada', 'cancelada');
+CREATE TYPE status_entregas AS ENUM ('em_andamento', 'finalizada', 'cancelada');
 
 CREATE TABLE IF NOT EXISTS entregadores (
     id SERIAL PRIMARY KEY,
@@ -29,10 +29,9 @@ CREATE TABLE IF NOT EXISTS imagens (
     nome_imagem VARCHAR(255) NOT NULL,
     conteudo BYTEA,
     entregador_id INT,
-    CONSTRAINT fk_entregador
-        FOREIGN KEY(entregador_id) 
-        REFERENCES entregadores(id)
-        ON DELETE SET NULL
+    CONSTRAINT fk_entregador FOREIGN KEY(entregador_id) REFERENCES entregadores(id) ON DELETE
+    SET
+        NULL
 );
 
 CREATE TABLE IF NOT EXISTS empresas (
@@ -75,10 +74,7 @@ CREATE TABLE IF NOT EXISTS solicitacoes_entregas (
     longitude DOUBLE PRECISION,
     localizacao GEOGRAPHY(POINT, 4326),
     empresa_id INT NOT NULL,
-    CONSTRAINT fk_empresa
-        FOREIGN KEY(empresa_id) 
-        REFERENCES empresas(id)
-        ON DELETE CASCADE
+    CONSTRAINT fk_empresa FOREIGN KEY(empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS entregas (
@@ -90,57 +86,61 @@ CREATE TABLE IF NOT EXISTS entregas (
     status status_entregas NOT NULL DEFAULT 'em_andamento',
     solicitacao_entrega_id INT NOT NULL UNIQUE,
     entregador_id INT NOT NULL,
-    CONSTRAINT fk_solicitacao_entrega
-        FOREIGN KEY(solicitacao_entrega_id) 
-        REFERENCES solicitacoes_entregas(id)
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_entregador_entrega
-        FOREIGN KEY(entregador_id) 
-        REFERENCES entregadores(id)
-        ON DELETE RESTRICT 
+    CONSTRAINT fk_solicitacao_entrega FOREIGN KEY(solicitacao_entrega_id) REFERENCES solicitacoes_entregas(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_entregador_entrega FOREIGN KEY(entregador_id) REFERENCES entregadores(id) ON DELETE RESTRICT
 );
 
-CREATE TABLE IF NOT EXISTS configuracoes (
-    id SERIAL PRIMARY KEY,
-    chave VARCHAR(255) NOT NULL UNIQUE,
-    descricao TEXT,
-    valor_int INT,
-    valor_string VARCHAR(255),
-    valor_boolean BOOLEAN,
-    CONSTRAINT chk_apenas_um_valor
-    CHECK (
-        (CASE WHEN valor_int IS NOT NULL THEN 1 ELSE 0 END) +
-        (CASE WHEN valor_string IS NOT NULL THEN 1 ELSE 0 END) +
-        (CASE WHEN valor_boolean IS NOT NULL THEN 1 ELSE 0 END)
-        = 1
-    )
-);
-
-CREATE OR REPLACE FUNCTION fn_atualizar_localizacao()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.latitude IS NOT NULL AND NEW.longitude IS NOT NULL THEN    
-        NEW.localizacao = ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326)::geography;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- Trigger para a tabela 'entregadores'
-CREATE OR REPLACE TRIGGER trg_atualizar_geografia_entregadores
-BEFORE INSERT OR UPDATE ON entregadores
-FOR EACH ROW
-EXECUTE FUNCTION fn_atualizar_localizacao();
-
--- Trigger para a tabela 'empresas'
-CREATE OR REPLACE TRIGGER trg_atualizar_geografia_empresas
-BEFORE INSERT OR UPDATE ON empresas
-FOR EACH ROW
-EXECUTE FUNCTION fn_atualizar_localizacao();
-
--- Trigger para a tabela 'solicitacoes_entregas'
-CREATE OR REPLACE TRIGGER trg_atualizar_geografia_solicitacoes
-BEFORE INSERT OR UPDATE ON solicitacoes_entregas
-FOR EACH ROW
-EXECUTE FUNCTION fn_atualizar_localizacao();
+-- CREATE TABLE IF NOT EXISTS configuracoes (
+--     id SERIAL PRIMARY KEY,
+--     chave VARCHAR(255) NOT NULL UNIQUE,
+--     descricao TEXT,
+--     valor_int INT,
+--     valor_string VARCHAR(255),
+--     valor_boolean BOOLEAN,
+--     CONSTRAINT chk_apenas_um_valor CHECK (
+--         (
+--             CASE
+--                 WHEN valor_int IS NOT NULL THEN 1
+--                 ELSE 0
+--             END
+--         ) + (
+--             CASE
+--                 WHEN valor_string IS NOT NULL THEN 1
+--                 ELSE 0
+--             END
+--         ) + (
+--             CASE
+--                 WHEN valor_boolean IS NOT NULL THEN 1
+--                 ELSE 0
+--             END
+--         ) = 1
+--     )
+-- );
+-- CREATE
+-- OR REPLACE FUNCTION fn_atualizar_localizacao() RETURNS TRIGGER AS $ $ BEGIN IF NEW.latitude IS NOT NULL
+-- AND NEW.longitude IS NOT NULL THEN NEW.localizacao = ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326) :: geography;
+-- END IF;
+-- RETURN NEW;
+-- END;
+-- $ $ LANGUAGE plpgsql;
+-- -- Trigger para a tabela 'entregadores'
+-- CREATE
+-- OR REPLACE TRIGGER trg_atualizar_geografia_entregadores BEFORE
+-- INSERT
+--     OR
+-- UPDATE
+--     ON entregadores FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
+-- -- Trigger para a tabela 'empresas'
+-- CREATE
+-- OR REPLACE TRIGGER trg_atualizar_geografia_empresas BEFORE
+-- INSERT
+--     OR
+-- UPDATE
+--     ON empresas FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
+-- -- Trigger para a tabela 'solicitacoes_entregas'
+-- CREATE
+-- OR REPLACE TRIGGER trg_atualizar_geografia_solicitacoes BEFORE
+-- INSERT
+--     OR
+-- UPDATE
+--     ON solicitacoes_entregas FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
