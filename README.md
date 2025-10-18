@@ -12,6 +12,8 @@
 - Higor: web;
 - Antônio: web;
 - xinelo
+-alguma coisa
+
 
 ## Como rodar em ambiente de desenvolvimento (atualiza em tempo real a aplicação)
 
