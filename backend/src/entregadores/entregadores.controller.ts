@@ -20,27 +20,26 @@ import { RespostaImagemDto } from "./dto/resposta-imagem.dto";
 export class EntregadoresController {
   constructor(private readonly entregadoresService: EntregadoresService) {}
 
-  // @Get()
-  // buscarEntregadores(): Promise<Entregador[]> {
-  //   return this.entregadoresService.buscarEntregadores();
-  // }
+  @Get()
+  buscarEntregadores(): Promise<Entregador[]> {
+    return this.entregadoresService.buscarEntregadores();
+  }
 
-  // @Get(":id")
-  // buscarEntregador(
-  //   @Param("id", ParseIntPipe) id: number
-  // ): Promise<Entregador | null> {
-  //   return this.entregadoresService.buscarEntregador(id);
-  // }
+  @Get(":id")
+  buscarEntregador(
+    @Param("id", ParseIntPipe) id: number
+  ): Promise<Entregador | null> {
+    return this.entregadoresService.buscarEntregador(id);
+  }
 
-  // @Get(":id/imagens")
-  // buscarImagens(
-  //   @Param("id", ParseIntPipe) id: number
-  // ): Promise<RespostaImagemDto[]> {
-  //   return this.entregadoresService.buscarImagens(id);
-  // }
+  @Get(":id/imagens")
+  buscarImagens(
+    @Param("id", ParseIntPipe) id: number
+  ): Promise<RespostaImagemDto[]> {
+    return this.entregadoresService.buscarImagens(id);
+  }
 
   @Post()
-  // 1. Use o FileFieldsInterceptor
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: "imagemCnh", maxCount: 1 },
@@ -67,17 +66,17 @@ export class EntregadoresController {
     );
   }
 
-  // @Patch(":id")
-  // @UseInterceptors(FilesInterceptor("imagens"))
-  // atualizarEntregador(
-  //   @Param("id", ParseIntPipe) id: number,
-  //   @Body() alterarEntregadorDto: AlterarEntregadorDto,
-  //   @UploadedFiles() imagens: Array<Express.Multer.File>
-  // ): Promise<Entregador> {
-  //   return this.entregadoresService.alterarEntregador(
-  //     id,
-  //     alterarEntregadorDto,
-  //     imagens
-  //   );
-  // }
+  @Patch(":id")
+  @UseInterceptors(FilesInterceptor("imagens"))
+  atualizarEntregador(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() alterarEntregadorDto: AlterarEntregadorDto,
+    @UploadedFiles() imagens: Array<Express.Multer.File>
+  ): Promise<Entregador> {
+    return this.entregadoresService.alterarEntregador(
+      id,
+      alterarEntregadorDto,
+      imagens
+    );
+  }
 }
