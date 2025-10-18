@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS entregadores (
     chave_pix VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS imagens (
+CREATE TABLE IF NOT EXISTS arquivos (
     id SERIAL PRIMARY KEY,
-    nome_imagem VARCHAR(255) NOT NULL,
-    conteudo BYTEA,
+    nome VARCHAR(255) NOT NULL,
+    caminho TEXT NOT NULL,
     entregador_id INT,
     CONSTRAINT fk_entregador FOREIGN KEY(entregador_id) REFERENCES entregadores(id) ON DELETE
     SET
@@ -116,31 +116,3 @@ CREATE TABLE IF NOT EXISTS entregas (
 --         ) = 1
 --     )
 -- );
--- CREATE
--- OR REPLACE FUNCTION fn_atualizar_localizacao() RETURNS TRIGGER AS $ $ BEGIN IF NEW.latitude IS NOT NULL
--- AND NEW.longitude IS NOT NULL THEN NEW.localizacao = ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326) :: geography;
--- END IF;
--- RETURN NEW;
--- END;
--- $ $ LANGUAGE plpgsql;
--- -- Trigger para a tabela 'entregadores'
--- CREATE
--- OR REPLACE TRIGGER trg_atualizar_geografia_entregadores BEFORE
--- INSERT
---     OR
--- UPDATE
---     ON entregadores FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
--- -- Trigger para a tabela 'empresas'
--- CREATE
--- OR REPLACE TRIGGER trg_atualizar_geografia_empresas BEFORE
--- INSERT
---     OR
--- UPDATE
---     ON empresas FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
--- -- Trigger para a tabela 'solicitacoes_entregas'
--- CREATE
--- OR REPLACE TRIGGER trg_atualizar_geografia_solicitacoes BEFORE
--- INSERT
---     OR
--- UPDATE
---     ON solicitacoes_entregas FOR EACH ROW EXECUTE FUNCTION fn_atualizar_localizacao();
