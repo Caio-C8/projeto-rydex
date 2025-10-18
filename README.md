@@ -11,6 +11,7 @@
 - Gustavo: mobile e suporte back-end;
 - Higor: web;
 - Antônio: web;
+- xinelo
 
 ## Como rodar em ambiente de desenvolvimento (atualiza em tempo real a aplicação)
 
