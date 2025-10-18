@@ -23,7 +23,7 @@ model Entregador {
   localizacao                    Unsupported("geography")?
   ultima_atualizacao_localizacao DateTime?                 @db.Timestamp(6)
   chave_pix                      String                    @db.VarChar(100)
-  Arquivos                       Arquivos[]
+  arquivos                       Arquivos[]
   entregas                       Entregas[]
 
   @@map("entregadores")

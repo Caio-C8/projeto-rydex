@@ -10,9 +10,9 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { EntregadoresService } from "./entregadores.service";
-import { FilesInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import { Entregador, Arquivos } from "@prisma/client";
 import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
-import { Entregador } from "@prisma/client";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { RespostaImagemDto } from "./dto/resposta-imagem.dto";
 
@@ -40,14 +40,29 @@ export class EntregadoresController {
   }
 
   @Post()
-  @UseInterceptors(FilesInterceptor("imagens"))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "imagemCnh", maxCount: 1 },
+      { name: "imagemDocVeiculo", maxCount: 1 },
+    ])
+  )
   criarEntregador(
     @Body() criarEntregadorDto: CriarEntregadorDto,
-    @UploadedFiles() imagens: Array<Express.Multer.File>
-  ): Promise<Entregador> {
+    @UploadedFiles()
+    files: {
+      imagemCnh?: Express.Multer.File[];
+      imagemDocVeiculo?: Express.Multer.File[];
+    }
+  ): Promise<Entregador & { arquivos: Arquivos[] }> {
+    const imagemCnh = files.imagemCnh ? files.imagemCnh[0] : undefined;
+    const imagemDocVeiculo = files.imagemDocVeiculo
+      ? files.imagemDocVeiculo[0]
+      : undefined;
+
     return this.entregadoresService.criarEntregador(
       criarEntregadorDto,
-      imagens
+      imagemCnh,
+      imagemDocVeiculo
     );
   }
 
