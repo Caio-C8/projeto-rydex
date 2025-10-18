@@ -1,10 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Entregador {
+  id                             Int                       @id @default(autoincrement())
+  nome                           String                    @db.VarChar(255)
+  data_nascimento                DateTime                  @db.Date
+  cpf                            String                    @unique @db.VarChar(14)
+  email                          String                    @unique @db.VarChar(255)
+  senha                          String
+  saldo                          Int                       @default(0)
+  celular                        String                    @db.VarChar(15)
+  status                         StatusEntregadores        @default(offline)
+  placa_veiculo                  String                    @db.VarChar(100)
+  latitude                       Float?
+  longitude                      Float?
+  localizacao                    Unsupported("geography")?
+  ultima_atualizacao_localizacao DateTime?                 @db.Timestamp(6)
+  chave_pix                      String                    @db.VarChar(100)
+  Arquivos                       Arquivos[]
+  entregas                       Entregas[]
+
+  @@map("entregadores")
+}
+
+model Empresa {
+  id                    Int                       @id @default(autoincrement())
+  nome_empresa          String                    @db.VarChar(255)
+  cnpj                  String                    @unique @db.VarChar(18)
+  email                 String                    @unique @db.VarChar(255)
+  senha                 String
+  saldo                 Int                       @default(0)
+  cep                   String                    @db.VarChar(10)
+  cidade                String                    @db.VarChar(255)
+  numero                Int
+  bairro                String                    @db.VarChar(255)
+  logradouro            String                    @db.VarChar(255)
+  complemento           String?                   @db.VarChar(255)
+  ponto_referencia      String?                   @db.VarChar(255)
+  latitude              Float?
+  longitude             Float?
+  localizacao           Unsupported("geography")?
+  solicitacoes_entregas SolicitacoesEntregas[]
+
+  @@map("empresas")
+}
+
+model SolicitacoesEntregas {
+  id                     Int                       @id @default(autoincrement())
+  valor_estimado         Int
+  item_retorno           Boolean                   @default(false)
+  descricao_item_retorno String?
+  observacao             String?
+  distancia_m            Int?
+  status                 StatusSolicitacoes        @default(pendente)
+  criado_em              DateTime                  @default(now()) @db.Timestamp(6)
+  cancelado_em           DateTime?                 @db.Timestamp(6)
+  cep                    String                    @db.VarChar(10)
+  cidade                 String                    @db.VarChar(150)
+  numero                 Int
+  bairro                 String                    @db.VarChar(150)
+  logradouro             String                    @db.VarChar(150)
+  complemento            String?                   @db.VarChar(150)
+  ponto_referencia       String?                   @db.VarChar(150)
+  latitude               Float?
+  longitude              Float?
+  localizacao            Unsupported("geography")?
+  empresa_id             Int
+  entrega                Entregas?
+  empresa                Empresa                   @relation(fields: [empresa_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_empresa")
+
+  @@map("solicitacoes_entregas")
+}
+
+model Entregas {
+  id                     Int                  @id @default(autoincrement())
+  valor_entrega          Int
+  aceito_em              DateTime?            @db.Timestamp(6)
+  criado_em              DateTime             @default(now()) @db.Timestamp(6)
+  cancelado_em           DateTime?            @db.Timestamp(6)
+  status                 StatusEntregas       @default(em_andamento)
+  solicitacao_entrega_id Int                  @unique
+  entregador_id          Int
+  entregador             Entregador           @relation(fields: [entregador_id], references: [id], onUpdate: NoAction, map: "fk_entregador_entrega")
+  solicitacao_entrega    SolicitacoesEntregas @relation(fields: [solicitacao_entrega_id], references: [id], onUpdate: NoAction, map: "fk_solicitacao_entrega")
+
+  @@map("entregas")
+}
+
+model Arquivos {
+  id            Int         @id @default(autoincrement())
+  nome          String      @db.VarChar(255)
+  caminho       String
+  entregador_id Int?
+  entregador    Entregador? @relation(fields: [entregador_id], references: [id], onUpdate: NoAction, map: "fk_entregador")
+
+  @@map("arquivos")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }
 
 enum StatusEntregadores {
@@ -30,115 +135,3 @@ enum StatusEntregas {
 
   @@map("status_entregas")
 }
-
-model Entregador {
-  id                             Int                                    @id @default(autoincrement())
-  nome                           String
-  data_nascimento                DateTime                               @db.Date
-  cpf                            String                                 @unique
-  email                          String                                 @unique
-  senha                          String
-  saldo                          Int                                    @default(0)
-  celular                        String
-  status                         StatusEntregadores                     @default(offline)
-  placa_veiculo                  String
-  arquivo_cnh_id                 Int
-  arquivo_doc_veiculo_id         Int
-  latitude                       Float?
-  longitude                      Float?
-  localizacao                    Unsupported("geography(Point, 4326)")?
-  ultima_atualizacao_localizacao DateTime?
-  chave_pix                      String
-
-  entregas Entregas[]
-  Arquivos Arquivos[]
-
-  @@map("entregadores")
-}
-
-model Empresa {
-  id               Int     @id @default(autoincrement())
-  nome_empresa     String
-  cnpj             String  @unique
-  email            String  @unique
-  senha            String
-  saldo            Int     @default(0)
-  cep              String
-  cidade           String
-  numero           Int
-  bairro           String
-  logradouro       String
-  complemento      String?
-  ponto_referencia String?
-  latitude         Float?
-  longitude        Float?
-
-  solicitacoes_entregas SolicitacoesEntregas[]
-
-  @@map("empresas")
-}
-
-model SolicitacoesEntregas {
-  id                     Int                @id @default(autoincrement())
-  valor_estimado         Int
-  item_retorno           Boolean            @default(false)
-  descricao_item_retorno String?
-  observacao             String?
-  distancia_m            Int?
-  status                 StatusSolicitacoes @default(pendente)
-  criado_em              DateTime           @default(now()) @db.Timestamp()
-  cancelado_em           DateTime?
-  cep                    String
-  cidade                 String
-  numero                 Int
-  bairro                 String
-  logradouro             String
-  complemento            String?
-  ponto_referencia       String?
-  latitude               Float?
-  longitude              Float?
-
-  empresa_id Int
-  empresa    Empresa   @relation(fields: [empresa_id], references: [id])
-  entrega    Entregas?
-
-  @@map("solicitacoes_entregas")
-}
-
-model Entregas {
-  id            Int            @id @default(autoincrement())
-  valor_entrega Int
-  aceito_em     DateTime?
-  criado_em     DateTime       @default(now()) @db.Timestamp()
-  cancelado_em  DateTime?
-  status        StatusEntregas @default(em_andamento)
-
-  solicitacao_entrega_id Int @unique
-  entregador_id          Int
-
-  solicitacao_entrega SolicitacoesEntregas @relation(fields: [solicitacao_entrega_id], references: [id])
-  entregador          Entregador           @relation(fields: [entregador_id], references: [id])
-
-  @@map("entregas")
-}
-
-model Arquivos {
-  id            Int         @id @default(autoincrement())
-  nome          String
-  caminho       String
-  entregador_id Int?
-  entregador    Entregador? @relation(fields: [entregador_id], references: [id])
-
-  @@map("arquivos")
-}
-
-// model Configuracoes {
-//   id            Int      @id @default(autoincrement())
-//   chave         String   @unique
-//   descricao     String?
-//   valor_int     Int?
-//   valor_string  String?
-//   valor_boolean Boolean?
-
-//   @@map("configuracoes")
-// }
