@@ -21,7 +21,7 @@ export class EntregadoresController {
   constructor(private readonly entregadoresService: EntregadoresService) {}
 
   @Get()
-  buscarEntregadores(): Promise<Entregador[]> {
+  buscarEntregadores(): Promise<(Entregador & { arquivos: Arquivos[] })[]> {
     return this.entregadoresService.buscarEntregadores();
   }
 
@@ -66,17 +66,17 @@ export class EntregadoresController {
     );
   }
 
-  @Patch(":id")
-  @UseInterceptors(FilesInterceptor("imagens"))
-  atualizarEntregador(
-    @Param("id", ParseIntPipe) id: number,
-    @Body() alterarEntregadorDto: AlterarEntregadorDto,
-    @UploadedFiles() imagens: Array<Express.Multer.File>
-  ): Promise<Entregador> {
-    return this.entregadoresService.alterarEntregador(
-      id,
-      alterarEntregadorDto,
-      imagens
-    );
-  }
+  // @Patch(":id")
+  // @UseInterceptors(FilesInterceptor("imagens"))
+  // atualizarEntregador(
+  //   @Param("id", ParseIntPipe) id: number,
+  //   @Body() alterarEntregadorDto: AlterarEntregadorDto,
+  //   @UploadedFiles() imagens: Array<Express.Multer.File>
+  // ): Promise<Entregador> {
+  //   return this.entregadoresService.alterarEntregador(
+  //     id,
+  //     alterarEntregadorDto,
+  //     imagens
+  //   );
+  // }
 }
