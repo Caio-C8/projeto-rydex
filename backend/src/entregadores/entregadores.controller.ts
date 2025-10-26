@@ -21,7 +21,7 @@ export class EntregadoresController {
   constructor(private readonly entregadoresService: EntregadoresService) {}
 
   @Get()
-  buscarEntregadores(): Promise<Entregador[]> {
+  buscarEntregadores(): Promise<(Entregador & { arquivos: Arquivos[] })[]> {
     return this.entregadoresService.buscarEntregadores();
   }
 

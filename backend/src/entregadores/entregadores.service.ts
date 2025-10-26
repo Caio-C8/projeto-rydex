@@ -19,8 +19,14 @@ import { RespostaImagemDto } from "./dto/resposta-imagem.dto";
 export class EntregadoresService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async buscarEntregadores(): Promise<Entregador[]> {
-    return await this.prisma.entregador.findMany();
+  async buscarEntregadores(): Promise<
+    (Entregador & { arquivos: Arquivos[] })[]
+  > {
+    return await this.prisma.entregador.findMany({
+      include: {
+        arquivos: true,
+      },
+    });
   }
 
   async buscarEntregador(id: number): Promise<Entregador> {
@@ -107,45 +113,6 @@ export class EntregadoresService {
     });
   }
 
-  private async salvarArquivo(
-    prisma: Prisma.TransactionClient,
-    entregador: Entregador,
-    arquivo: Express.Multer.File,
-    tipoArquivo: string
-  ): Promise<Arquivos> {
-    const diretorioDestinoFs = path.join("uploads", "entregadores");
-
-    const diretorioDestinoUrl = "entregadores";
-
-    await fs.mkdir(diretorioDestinoFs, { recursive: true });
-
-    const nomeSanitizado = entregador.nome
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .replace(/[^a-z0-9]/g, " ")
-      .trim()
-      .replace(/\s+/g, "_");
-
-    const extensao = path.extname(arquivo.originalname);
-
-    const nomeArquivo = `${tipoArquivo}_${entregador.id}_${nomeSanitizado}_${Date.now()}${extensao}`;
-
-    const caminhoCompletoFs = path.join(diretorioDestinoFs, nomeArquivo);
-
-    const caminhoUrlDb = posix.join(diretorioDestinoUrl, nomeArquivo);
-
-    await fs.writeFile(caminhoCompletoFs, arquivo.buffer);
-
-    return prisma.arquivos.create({
-      data: {
-        nome: nomeArquivo,
-        caminho: caminhoUrlDb,
-        entregador_id: entregador.id,
-      },
-    });
-  }
-
   async alterarEntregador(
     id: number,
     alterarEntregadorDto: AlterarEntregadorDto,
@@ -185,6 +152,45 @@ export class EntregadoresService {
       }
 
       return entregadorAtualizado;
+    });
+  }
+
+  private async salvarArquivo(
+    prisma: Prisma.TransactionClient,
+    entregador: Entregador,
+    arquivo: Express.Multer.File,
+    tipoArquivo: string
+  ): Promise<Arquivos> {
+    const diretorioDestinoFs = path.join("uploads", "entregadores");
+
+    const diretorioDestinoUrl = "entregadores";
+
+    await fs.mkdir(diretorioDestinoFs, { recursive: true });
+
+    const nomeSanitizado = entregador.nome
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .replace(/[^a-z0-9]/g, " ")
+      .trim()
+      .replace(/\s+/g, "_");
+
+    const extensao = path.extname(arquivo.originalname);
+
+    const nomeArquivo = `${tipoArquivo}_${entregador.id}_${nomeSanitizado}_${Date.now()}${extensao}`;
+
+    const caminhoCompletoFs = path.join(diretorioDestinoFs, nomeArquivo);
+
+    const caminhoUrlDb = posix.join(diretorioDestinoUrl, nomeArquivo);
+
+    await fs.writeFile(caminhoCompletoFs, arquivo.buffer);
+
+    return prisma.arquivos.create({
+      data: {
+        nome: nomeArquivo,
+        caminho: caminhoUrlDb,
+        entregador_id: entregador.id,
+      },
     });
   }
 
