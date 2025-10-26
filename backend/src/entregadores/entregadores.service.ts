@@ -3,13 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { PrismaService } from "src/prisma.service";
 import { PrismaClient } from "@prisma/client";
 import { Entregador, Arquivos, Prisma } from "@prisma/client";
 
 import * as fs from "fs/promises";
 import * as path from "path";
 import { posix } from "path";
+
+import { PrismaService } from "src/prisma.service";
 
 import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
@@ -203,41 +204,41 @@ export class EntregadoresService {
       "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
     >
   ) {
-    // if (!idsImagensParaSubstituir) {
-    //   throw new BadRequestException("Imagens não localizadas.");
-    // }
-    // const idsParaSubstituir = idsImagensParaSubstituir
-    //   .split(",")
-    //   .map((idStr) => parseInt(idStr.trim(), 10));
-    // if (idsParaSubstituir.some(isNaN)) {
-    //   throw new BadRequestException("Erro ao processar dados.");
-    // }
-    // if (idsParaSubstituir.length !== imagens.length) {
-    //   throw new BadRequestException(
-    //     "O número de imagens fornecidas não corresponde ao número de imagens enviadas."
-    //   );
-    // }
-    // for (let i = 0; i < idsParaSubstituir.length; i++) {
-    //   const idImagem = idsParaSubstituir[i];
-    //   const novaImagem = imagens[i];
-    //   const imagemExistente = await prisma.imagens.findFirst({
-    //     where: {
-    //       id: idImagem,
-    //       entregador_id: entregadorId,
-    //     },
-    //   });
-    //   if (!imagemExistente) {
-    //     throw new NotFoundException(
-    //       `A imagem com ID ${idImagem} não foi encontrada ou não pertence a este entregador.`
-    //     );
-    //   }
-    //   await prisma.imagens.update({
-    //     where: { id: idImagem },
-    //     data: {
-    //       conteudo: novaImagem.buffer,
-    //       nome_imagem: novaImagem.originalname,
-    //     },
-    //   });
-    // }
+    if (!idsImagensParaSubstituir) {
+      throw new BadRequestException("Imagens não localizadas.");
+    }
+    const idsParaSubstituir = idsImagensParaSubstituir
+      .split(",")
+      .map((idStr) => parseInt(idStr.trim(), 10));
+    if (idsParaSubstituir.some(isNaN)) {
+      throw new BadRequestException("Erro ao processar dados.");
+    }
+    if (idsParaSubstituir.length !== imagens.length) {
+      throw new BadRequestException(
+        "O número de imagens fornecidas não corresponde ao número de imagens enviadas."
+      );
+    }
+    for (let i = 0; i < idsParaSubstituir.length; i++) {
+      const idImagem = idsParaSubstituir[i];
+      const novaImagem = imagens[i];
+      const imagemExistente = await prisma.imagens.findFirst({
+        where: {
+          id: idImagem,
+          entregador_id: entregadorId,
+        },
+      });
+      if (!imagemExistente) {
+        throw new NotFoundException(
+          `A imagem com ID ${idImagem} não foi encontrada ou não pertence a este entregador.`
+        );
+      }
+      await prisma.imagens.update({
+        where: { id: idImagem },
+        data: {
+          conteudo: novaImagem.buffer,
+          nome_imagem: novaImagem.originalname,
+        },
+      });
+    }
   }
 }

@@ -9,9 +9,12 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from "@nestjs/common";
-import { EntregadoresService } from "./entregadores.service";
+
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Entregador, Arquivos } from "@prisma/client";
+
+import { EntregadoresService } from "./entregadores.service";
+
 import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
@@ -66,17 +69,17 @@ export class EntregadoresController {
     );
   }
 
-  // @Patch(":id")
-  // @UseInterceptors(FilesInterceptor("imagens"))
-  // atualizarEntregador(
-  //   @Param("id", ParseIntPipe) id: number,
-  //   @Body() alterarEntregadorDto: AlterarEntregadorDto,
-  //   @UploadedFiles() imagens: Array<Express.Multer.File>
-  // ): Promise<Entregador> {
-  //   return this.entregadoresService.alterarEntregador(
-  //     id,
-  //     alterarEntregadorDto,
-  //     imagens
-  //   );
-  // }
+  @Patch(":id")
+  @UseInterceptors(FilesInterceptor("imagens"))
+  atualizarEntregador(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() alterarEntregadorDto: AlterarEntregadorDto,
+    @UploadedFiles() imagens: Array<Express.Multer.File>
+  ): Promise<Entregador> {
+    return this.entregadoresService.alterarEntregador(
+      id,
+      alterarEntregadorDto,
+      imagens
+    );
+  }
 }
