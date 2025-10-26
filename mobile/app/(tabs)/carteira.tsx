@@ -11,12 +11,17 @@ import {
   SafeAreaView,
 } from "react-native";
 
-// Você pode querer buscar esse saldo de algum lugar no futuro
-const SALDO_ACUMULADO = 120.0;
+// Valor inicial do saldo, pode vir de outro lugar no futuro
+const SALDO_INICIAL = 120.0;
 const VALOR_MINIMO_SAQUE = 20.0;
 
 export default function CarteiraScreen() {
   const [valorSaque, setValorSaque] = useState("");
+  // ===================================
+  // MUDANÇA 1: USAR useState PARA O SALDO
+  // ===================================
+  const [saldoAtual, setSaldoAtual] = useState(SALDO_INICIAL);
+  // ===================================
 
   // Função para formatar o saldo como moeda
   const formatCurrency = (value: number) => {
@@ -42,15 +47,13 @@ export default function CarteiraScreen() {
 
     // Validação 2: É maior ou igual ao mínimo?
     if (valorNumerico < VALOR_MINIMO_SAQUE) {
-      Alert.alert(
-        "Valor Mínimo",
-        `O valor mínimo para saque é de ${formatCurrency(VALOR_MINIMO_SAQUE)}.`
-      );
+      router.push("/saque-erro");
       return;
     }
 
-    // Validação 3: Tem saldo suficiente? (Opcional, mas bom ter)
-    if (valorNumerico > SALDO_ACUMULADO) {
+    // Validação 3: Tem saldo suficiente?
+    // Agora usamos 'saldoAtual' em vez de SALDO_ACUMULADO
+    if (valorNumerico > saldoAtual) {
       Alert.alert(
         "Saldo Insuficiente",
         "Você não tem saldo suficiente para realizar este saque."
@@ -58,48 +61,59 @@ export default function CarteiraScreen() {
       return;
     }
 
-    // Se passou por todas as validações:
+    // Se passou pelas validações iniciais:
     console.log("Solicitando saque de:", formatCurrency(valorNumerico));
 
-    // ===================================
-    // NAVEGAÇÃO PARA TELA DE SUCESSO
-    // ===================================
-    router.push({
-      pathname: "/saque-sucesso",
-      params: { valor: valorNumerico }, // Passa o valor como string
-    });
-    // ===================================
+    // Simulação de erro/sucesso
+    const sistemaOffline = valorNumerico === 1; // Nosso erro simulado
+
+    if (sistemaOffline) {
+      router.push("/saque-erro");
+    } else {
+      // ===================================
+      // MUDANÇA 2: ATUALIZAR O SALDO NO SUCESSO
+      // ===================================
+      // Calcula o novo saldo
+      const novoSaldo = saldoAtual - valorNumerico;
+      // Atualiza o estado do saldo
+      setSaldoAtual(novoSaldo);
+      // ===================================
+
+      // Navega para a tela de sucesso
+      router.push({
+        pathname: "/saque-sucesso",
+        params: { valor: valorNumerico },
+      });
+    }
 
     setValorSaque(""); // Limpa o campo
   }; // <-- FIM DA FUNÇÃO handleSaque
 
   // ===================================
-  // O RETURN DA TELA COMEÇA AQUI (FORA DO handleSaque)
+  // O RETURN DA TELA COMEÇA AQUI
   // ===================================
   return (
-    // SafeAreaView garante que o conteúdo não fique sob a barra de status/notch
     <SafeAreaView style={styles.safeArea}>
-      {/* ScrollView permite rolar se o conteúdo for maior que a tela */}
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        {/* O "card" branco principal */}
         <View style={styles.card}>
           <Text style={styles.title}>Sacar Saldo</Text>
           <Text style={styles.saldoLabel}>Saldo Acumulado</Text>
           <Text style={styles.saldoValor}>
-            {formatCurrency(SALDO_ACUMULADO)}
+            {/* Mostra o saldo DO ESTADO (que pode mudar) */}
+            {formatCurrency(saldoAtual)}
           </Text>
 
           <Text style={styles.inputLabel}>Valor para saque</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Preencha o valor"
-            placeholderTextColor="#9CA3AF" // Cinza claro para placeholder
-            keyboardType="numeric" // Teclado numérico
+            placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
             value={valorSaque}
-            onChangeText={setValorSaque} // Atualiza o estado a cada dígito
+            onChangeText={setValorSaque}
           />
 
           <TouchableOpacity style={styles.button} onPress={handleSaque}>
@@ -125,79 +139,79 @@ export default function CarteiraScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F0F0F0", // Fundo cinza claro da tela
+    backgroundColor: "#F0F0F0",
   },
   container: {
-    flexGrow: 1, // Permite que o ScrollView cresça
-    padding: 16, // Espaçamento geral da tela
-    justifyContent: "center", // Centraliza o card verticalmente (se houver espaço)
+    flexGrow: 1,
+    padding: 16,
+    justifyContent: "center",
   },
   card: {
     width: "100%",
-    maxWidth: 450, // Limita a largura em telas maiores
-    alignSelf: "center", // Centraliza o card horizontalmente
-    backgroundColor: "#FFFFFF", // Fundo branco do card
-    padding: 24, // Espaçamento interno do card
-    borderRadius: 30, // Cantos bem arredondados
-    alignItems: "center", // Centraliza o conteúdo dentro do card
+    maxWidth: 450,
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+    borderRadius: 30,
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 5, // Sombra para Android
+    elevation: 5,
   },
   title: {
-    fontSize: 28, // Tamanho grande
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#FF5722", // Laranja Rydex
+    color: "#FF5722",
     marginBottom: 16,
   },
   saldoLabel: {
     fontSize: 16,
-    color: "#FF5722", // Laranja Rydex
+    color: "#FF5722",
     marginBottom: 4,
   },
   saldoValor: {
-    fontSize: 32, // Tamanho bem grande
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#FF5722", // Laranja Rydex
-    marginBottom: 32, // Mais espaço abaixo do saldo
+    color: "#FF5722",
+    marginBottom: 32,
   },
   inputLabel: {
     fontSize: 16,
-    color: "#6B7280", // Cinza médio
+    color: "#6B7280",
     marginBottom: 8,
-    alignSelf: "flex-start", // Alinha o label à esquerda
-    marginLeft: 4, // Pequeno ajuste para alinhar com o input
+    alignSelf: "flex-start",
+    marginLeft: 4,
   },
   textInput: {
-    width: "100%", // Ocupa toda a largura do card
-    padding: 14, // Padding interno
+    width: "100%",
+    padding: 14,
     borderWidth: 1,
-    borderColor: "#D1D5DB", // Borda cinza clara
-    borderRadius: 12, // Cantos arredondados
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
     fontSize: 16,
-    color: "#2C2C2C", // Cinza escuro Rydex
-    marginBottom: 24, // Espaço abaixo do input
-    textAlign: "left", // Garante que o texto comece na esquerda
+    color: "#2C2C2C",
+    marginBottom: 24,
+    textAlign: "left",
   },
   button: {
     width: "100%",
-    paddingVertical: 14, // Padding vertical
-    backgroundColor: "#FF5722", // Laranja Rydex
-    borderRadius: 12, // Cantos arredondados
-    marginBottom: 24, // Espaço abaixo do botão
+    paddingVertical: 14,
+    backgroundColor: "#FF5722",
+    borderRadius: 12,
+    marginBottom: 24,
   },
   buttonText: {
-    color: "#FFFFFF", // Texto branco (diferente do login!)
+    color: "#FFFFFF",
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 16,
   },
   infoText: {
     fontSize: 14,
-    color: "#6B7280", // Cinza médio
-    textAlign: "center", // Texto centralizado
-    lineHeight: 20, // Espaçamento entre linhas
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
