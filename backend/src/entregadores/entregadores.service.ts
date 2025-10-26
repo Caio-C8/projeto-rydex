@@ -31,7 +31,7 @@ export class EntregadoresService {
 
   async buscarEntregador(
     id: number
-  ): Promise<(Entregador & { arquivos: Arquivos[] }) | null> {
+  ): Promise<Entregador & { arquivos: Arquivos[] }> {
     const entregador = await this.prisma.entregador.findUnique({
       where: {
         id: id,
