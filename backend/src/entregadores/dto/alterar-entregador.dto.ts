@@ -14,7 +14,7 @@ export class AlterarEntregadorDto {
   cpf?: string;
 
   @IsOptional()
-  // @IsEmail({}, { message: "E-mail inválido." })
+  @IsEmail({}, { message: "E-mail inválido." })
   email?: string;
 
   @IsOptional()
@@ -32,10 +32,4 @@ export class AlterarEntregadorDto {
   @IsOptional()
   @IsString({ message: "Chave pix inválida." })
   chavePix?: string;
-
-  @IsOptional()
-  @IsString({
-    message: "Imagens não localizadas.",
-  })
-  idsImagensParaSubstituir?: string;
 }
