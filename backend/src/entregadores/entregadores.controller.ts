@@ -28,7 +28,7 @@ export class EntregadoresController {
   @Get(":id")
   buscarEntregador(
     @Param("id", ParseIntPipe) id: number
-  ): Promise<Entregador | null> {
+  ): Promise<(Entregador & { arquivos: Arquivos[] }) | null> {
     return this.entregadoresService.buscarEntregador(id);
   }
 
