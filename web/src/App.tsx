@@ -1,13 +1,11 @@
-import "./index.css";
-import TesteApi from "./pages/TesteApi/TesteApi";
-
-// localhost:8080/
+import React from "react";
+import BotaoTexto from "./components/ui/Botao/BotaoTexto";
 
 function App() {
   return (
-    <div>
-      <TesteApi />
-    </div>
+      <BotaoTexto texto="Entrar"/>
+
+      
   );
 }
 
