@@ -45,3 +45,19 @@ export const CloudUploadIcon: React.FC = () => (
     <Path d="m19 16-7-7-7 7" />
   </Svg>
 );
+
+export const DoubleCheckIcon: React.FC = () => (
+  <Svg
+    width="80" 
+    height="80"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#FF5722" 
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M18 6 7 17l-5-5" />
+    <Path d="m22 6-11 11-4-4" />
+  </Svg>
+);

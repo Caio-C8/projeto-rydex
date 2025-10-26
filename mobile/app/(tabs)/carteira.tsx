@@ -1,3 +1,4 @@
+import { router } from "expo-router"; // <-- Importe o router
 import React, { useState } from "react";
 import {
   View,
@@ -59,16 +60,22 @@ export default function CarteiraScreen() {
 
     // Se passou por todas as validações:
     console.log("Solicitando saque de:", formatCurrency(valorNumerico));
-    Alert.alert(
-      "Saque Solicitado!",
-      `Seu saque de ${formatCurrency(
-        valorNumerico
-      )} foi solicitado com sucesso.`
-    );
-    // Aqui você chamaria a função real para processar o saque
-    setValorSaque(""); // Limpa o campo após o saque
-  };
 
+    // ===================================
+    // NAVEGAÇÃO PARA TELA DE SUCESSO
+    // ===================================
+    router.push({
+      pathname: "/saque-sucesso",
+      params: { valor: valorNumerico }, // Passa o valor como string
+    });
+    // ===================================
+
+    setValorSaque(""); // Limpa o campo
+  }; // <-- FIM DA FUNÇÃO handleSaque
+
+  // ===================================
+  // O RETURN DA TELA COMEÇA AQUI (FORA DO handleSaque)
+  // ===================================
   return (
     // SafeAreaView garante que o conteúdo não fique sob a barra de status/notch
     <SafeAreaView style={styles.safeArea}>
@@ -107,10 +114,13 @@ export default function CarteiraScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
+  // ===================================
+  // FIM DO RETURN DA TELA
+  // ===================================
+} // <-- FIM DA FUNÇÃO CarteiraScreen
 
 // ===============================================
-// ESTILOS (Para ficar igual ao Figma)
+// ESTILOS (Permanecem iguais)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
