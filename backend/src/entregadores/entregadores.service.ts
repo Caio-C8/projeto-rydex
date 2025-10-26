@@ -1,38 +1,38 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Entregador, Arquivos, Prisma } from "@prisma/client";
 
 import * as fs from "fs/promises";
 import * as path from "path";
 import { posix } from "path";
+import * as bcrypt from "bcrypt";
 
 import { PrismaService } from "src/prisma.service";
 
 import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
+import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
 
 @Injectable()
 export class EntregadoresService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async buscarEntregadores(): Promise<
-    (Entregador & { arquivos: Arquivos[] })[]
-  > {
-    return await this.prisma.entregador.findMany({
+  async buscarEntregadores(): Promise<RespostaEntregadorDto[]> {
+    const entregadores = await this.prisma.entregador.findMany({
       include: {
         arquivos: true,
       },
     });
+
+    const entregadoresSemSenha = entregadores.map((entregador) => {
+      const { senha, ...entregadorSemSenha } = entregador;
+      return entregadorSemSenha;
+    });
+
+    return entregadoresSemSenha;
   }
 
-  async buscarEntregador(
-    id: number
-  ): Promise<Entregador & { arquivos: Arquivos[] }> {
+  async buscarEntregador(id: number): Promise<RespostaEntregadorDto> {
     const entregador = await this.prisma.entregador.findUnique({
       where: {
         id: id,
@@ -46,7 +46,9 @@ export class EntregadoresService {
       throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
     }
 
-    return entregador;
+    const { senha, ...entregadorSemSenha } = entregador;
+
+    return entregadorSemSenha;
   }
 
   async buscarArquivos(id: number): Promise<RespostaArquivosDto[]> {
@@ -71,7 +73,9 @@ export class EntregadoresService {
     criarEntregadorDto: CriarEntregadorDto,
     imagemCnh?: Express.Multer.File,
     imagemDocVeiculo?: Express.Multer.File
-  ): Promise<Entregador & { arquivos: Arquivos[] }> {
+  ): Promise<RespostaEntregadorDto> {
+    const senhaCriptografada = await bcrypt.hash(criarEntregadorDto.senha, 10);
+
     return this.prisma.$transaction(async (prisma) => {
       const novoEntregador = await prisma.entregador.create({
         data: {
@@ -79,7 +83,7 @@ export class EntregadoresService {
           data_nascimento: new Date(criarEntregadorDto.dataNascimento),
           cpf: criarEntregadorDto.cpf,
           email: criarEntregadorDto.email,
-          senha: criarEntregadorDto.senha,
+          senha: senhaCriptografada,
           celular: criarEntregadorDto.celular,
           placa_veiculo: criarEntregadorDto.placaVeiculo,
           chave_pix: criarEntregadorDto.chavePix,
@@ -95,7 +99,7 @@ export class EntregadoresService {
           prisma,
           novoEntregador,
           imagemDocVeiculo,
-          "docVeiculo"
+          "doc_veiculo"
         );
       }
 
@@ -110,7 +114,9 @@ export class EntregadoresService {
         throw new Error("Falha ao buscar entregador recém-criado.");
       }
 
-      return entregadorCompleto;
+      const { senha, ...entregadorSemSenha } = entregadorCompleto;
+
+      return entregadorSemSenha;
     });
   }
 
@@ -119,7 +125,7 @@ export class EntregadoresService {
     alterarEntregadorDto: AlterarEntregadorDto,
     imagemCnh?: Express.Multer.File,
     imagemDocVeiculo?: Express.Multer.File
-  ): Promise<Entregador & { arquivos: Arquivos[] }> {
+  ): Promise<RespostaEntregadorDto> {
     return this.prisma.$transaction(async (prisma) => {
       const entregador = await prisma.entregador.findUnique({
         where: { id },
@@ -131,20 +137,28 @@ export class EntregadoresService {
         );
       }
 
-      const entregadorAtualizado = await prisma.entregador.update({
-        where: { id },
-        data: {
-          nome: alterarEntregadorDto.nome,
-          data_nascimento: alterarEntregadorDto.dataNascimento
+      const dadosParaAtualizar: Prisma.EntregadorUpdateInput = {
+        nome: alterarEntregadorDto.nome,
+        data_nascimento:
+          alterarEntregadorDto.dataNascimento &&
+          alterarEntregadorDto.dataNascimento.trim() !== ""
             ? new Date(alterarEntregadorDto.dataNascimento)
             : undefined,
-          cpf: alterarEntregadorDto.cpf,
-          email: alterarEntregadorDto.email,
-          senha: alterarEntregadorDto.senha,
-          celular: alterarEntregadorDto.celular,
-          placa_veiculo: alterarEntregadorDto.placaVeiculo,
-          chave_pix: alterarEntregadorDto.chavePix,
-        },
+        cpf: alterarEntregadorDto.cpf,
+        email: alterarEntregadorDto.email,
+        celular: alterarEntregadorDto.celular,
+        placa_veiculo: alterarEntregadorDto.placaVeiculo,
+        chave_pix: alterarEntregadorDto.chavePix,
+      };
+
+      if (alterarEntregadorDto.senha) {
+        const senhaHash = await bcrypt.hash(alterarEntregadorDto.senha, 10);
+        dadosParaAtualizar.senha = senhaHash;
+      }
+
+      const entregadorAtualizado = await prisma.entregador.update({
+        where: { id },
+        data: dadosParaAtualizar,
       });
 
       if (imagemCnh) {
@@ -176,7 +190,9 @@ export class EntregadoresService {
         throw new Error("Falha buscar entregador após atualização.");
       }
 
-      return entregadorCompleto;
+      const { senha, ...entregadorSemSenha } = entregadorCompleto;
+
+      return entregadorSemSenha;
     });
   }
 
