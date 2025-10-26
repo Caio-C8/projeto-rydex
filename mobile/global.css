@@ -1,0 +1,41 @@
+/* 1. Diretivas do Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Seu CSS customizado */
+.card-container {
+  /* w-full, max-w-lg (aprox 450px), items-center, p-4 */
+  @apply w-full max-w-lg items-center p-4;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.input-group {
+  @apply relative;
+}
+
+.eye-icon {
+  /* Posição absoluta, topo 50%, direita 3, etc. */
+  @apply absolute top-1/2 right-3 -translate-y-1/2 opacity-60;
+}
+
+.upload-area {
+  @apply border-2 border-dashed border-gray-300 bg-gray-50 h-32
+         flex flex-col justify-center items-center rounded-xl;
+}
+.upload-area:hover {
+  @apply border-rydex-orange;
+}
+
+/* Estilização base dos inputs */
+.text-rydex-gray {
+  @apply p-3 border border-gray-300 rounded-lg w-full text-base;
+}
+.text-rydex-gray:focus {
+  @apply border-rydex-blue;
+}
+
+.logo-container {
+  @apply mb-8; /* margin-bottom: 30px */
+}

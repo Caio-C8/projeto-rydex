@@ -1,3 +1,6 @@
+// Este é um arquivo de layout. Ele define a estrutura visual 
+// (como um cabeçalho ou a própria barra de abas) que envolve as telas dentro da pasta app/
+
 import { Tabs } from 'expo-router';
 import React from 'react';
 

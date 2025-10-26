@@ -1,3 +1,5 @@
+//Este arquivo provavelmente define uma tela que será aberta como um modal (uma tela que sobrepõe a outra).
+
 import { Link } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
