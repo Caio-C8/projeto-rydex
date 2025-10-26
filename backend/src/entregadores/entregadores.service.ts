@@ -117,42 +117,66 @@ export class EntregadoresService {
   async alterarEntregador(
     id: number,
     alterarEntregadorDto: AlterarEntregadorDto,
-    imagens: Array<Express.Multer.File>
-  ): Promise<Entregador> {
+    imagemCnh?: Express.Multer.File,
+    imagemDocVeiculo?: Express.Multer.File
+  ): Promise<Entregador & { arquivos: Arquivos[] }> {
     return this.prisma.$transaction(async (prisma) => {
-      const entregadorExistente = await prisma.entregador.findUnique({
+      const entregador = await prisma.entregador.findUnique({
         where: { id },
       });
 
-      if (!entregadorExistente) {
+      if (!entregador) {
         throw new NotFoundException(
           `Entregador com o ID ${id} não encontrado.`
         );
       }
 
-      const { idsImagensParaSubstituir, ...dadosEntregador } =
-        alterarEntregadorDto;
       const entregadorAtualizado = await prisma.entregador.update({
         where: { id },
         data: {
-          ...dadosEntregador,
-          placa_veiculo: alterarEntregadorDto.placaVeiculo,
+          nome: alterarEntregadorDto.nome,
           data_nascimento: alterarEntregadorDto.dataNascimento
             ? new Date(alterarEntregadorDto.dataNascimento)
             : undefined,
+          cpf: alterarEntregadorDto.cpf,
+          email: alterarEntregadorDto.email,
+          senha: alterarEntregadorDto.senha,
+          celular: alterarEntregadorDto.celular,
+          placa_veiculo: alterarEntregadorDto.placaVeiculo,
+          chave_pix: alterarEntregadorDto.chavePix,
         },
       });
 
-      if (imagens && imagens.length > 0) {
-        await this.processarAtualizacaoImagens(
-          id,
-          imagens,
-          idsImagensParaSubstituir,
-          prisma
+      if (imagemCnh) {
+        await this.atualizarArquivo(
+          prisma,
+          entregadorAtualizado,
+          imagemCnh,
+          "cnh"
         );
       }
 
-      return entregadorAtualizado;
+      if (imagemDocVeiculo) {
+        await this.atualizarArquivo(
+          prisma,
+          entregadorAtualizado,
+          imagemDocVeiculo,
+          "doc_veiculo"
+        );
+      }
+
+      const entregadorCompleto = await prisma.entregador.findUnique({
+        where: { id },
+        include: {
+          arquivos: true,
+        },
+      });
+
+      if (!entregadorCompleto) {
+        throw new Error("Falha buscar entregador após atualização.");
+      }
+
+      return entregadorCompleto;
     });
   }
 
@@ -162,8 +186,74 @@ export class EntregadoresService {
     arquivo: Express.Multer.File,
     tipoArquivo: string
   ): Promise<Arquivos> {
-    const diretorioDestinoFs = path.join("uploads", "entregadores");
+    const { nome, caminho } = await this.gravarArquivoDisco(
+      entregador,
+      arquivo,
+      tipoArquivo
+    );
 
+    return prisma.arquivos.create({
+      data: {
+        nome: nome,
+        caminho: caminho,
+        entregador_id: entregador.id,
+      },
+    });
+  }
+
+  private async atualizarArquivo(
+    prisma: Prisma.TransactionClient,
+    entregador: Entregador,
+    arquivoNovo: Express.Multer.File,
+    tipoArquivo: string
+  ) {
+    const arquivoAntigo = await prisma.arquivos.findFirst({
+      where: {
+        entregador_id: entregador.id,
+        nome: {
+          startsWith: `${tipoArquivo}_`,
+        },
+      },
+    });
+
+    const { nome: nomeArquivoNovo, caminho: caminhoUrlDbNovo } =
+      await this.gravarArquivoDisco(entregador, arquivoNovo, tipoArquivo);
+
+    if (arquivoAntigo) {
+      const caminhoAntigoFs = path.join("uploads", arquivoAntigo.caminho);
+      try {
+        await fs.unlink(caminhoAntigoFs);
+      } catch (error) {
+        console.warn(
+          `Falha ao apagar arquivo antigo: ${caminhoAntigoFs}`,
+          error.message
+        );
+      }
+
+      await prisma.arquivos.update({
+        where: { id: arquivoAntigo.id },
+        data: {
+          nome: nomeArquivoNovo,
+          caminho: caminhoUrlDbNovo,
+        },
+      });
+    } else {
+      await prisma.arquivos.create({
+        data: {
+          nome: nomeArquivoNovo,
+          caminho: caminhoUrlDbNovo,
+          entregador_id: entregador.id,
+        },
+      });
+    }
+  }
+
+  private async gravarArquivoDisco(
+    entregador: Entregador,
+    arquivo: Express.Multer.File,
+    tipoArquivo: string
+  ): Promise<{ nome: string; caminho: string }> {
+    const diretorioDestinoFs = path.join("uploads", "entregadores");
     const diretorioDestinoUrl = "entregadores";
 
     await fs.mkdir(diretorioDestinoFs, { recursive: true });
@@ -177,68 +267,12 @@ export class EntregadoresService {
       .replace(/\s+/g, "_");
 
     const extensao = path.extname(arquivo.originalname);
-
     const nomeArquivo = `${tipoArquivo}_${entregador.id}_${nomeSanitizado}_${Date.now()}${extensao}`;
-
     const caminhoCompletoFs = path.join(diretorioDestinoFs, nomeArquivo);
-
     const caminhoUrlDb = posix.join(diretorioDestinoUrl, nomeArquivo);
 
     await fs.writeFile(caminhoCompletoFs, arquivo.buffer);
 
-    return prisma.arquivos.create({
-      data: {
-        nome: nomeArquivo,
-        caminho: caminhoUrlDb,
-        entregador_id: entregador.id,
-      },
-    });
-  }
-
-  private async processarAtualizacaoImagens(
-    entregadorId: number,
-    imagens: Array<Express.Multer.File>,
-    idsImagensParaSubstituir: string | undefined,
-    prisma: Omit<
-      PrismaClient,
-      "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
-    >
-  ) {
-    if (!idsImagensParaSubstituir) {
-      throw new BadRequestException("Imagens não localizadas.");
-    }
-    const idsParaSubstituir = idsImagensParaSubstituir
-      .split(",")
-      .map((idStr) => parseInt(idStr.trim(), 10));
-    if (idsParaSubstituir.some(isNaN)) {
-      throw new BadRequestException("Erro ao processar dados.");
-    }
-    if (idsParaSubstituir.length !== imagens.length) {
-      throw new BadRequestException(
-        "O número de imagens fornecidas não corresponde ao número de imagens enviadas."
-      );
-    }
-    for (let i = 0; i < idsParaSubstituir.length; i++) {
-      const idImagem = idsParaSubstituir[i];
-      const novaImagem = imagens[i];
-      const imagemExistente = await prisma.imagens.findFirst({
-        where: {
-          id: idImagem,
-          entregador_id: entregadorId,
-        },
-      });
-      if (!imagemExistente) {
-        throw new NotFoundException(
-          `A imagem com ID ${idImagem} não foi encontrada ou não pertence a este entregador.`
-        );
-      }
-      await prisma.imagens.update({
-        where: { id: idImagem },
-        data: {
-          conteudo: novaImagem.buffer,
-          nome_imagem: novaImagem.originalname,
-        },
-      });
-    }
+    return { nome: nomeArquivo, caminho: caminhoUrlDb };
   }
 }

@@ -70,16 +70,31 @@ export class EntregadoresController {
   }
 
   @Patch(":id")
-  @UseInterceptors(FilesInterceptor("imagens"))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "imagemCnh", maxCount: 1 },
+      { name: "imagemDocVeiculo", maxCount: 1 },
+    ])
+  )
   atualizarEntregador(
     @Param("id", ParseIntPipe) id: number,
     @Body() alterarEntregadorDto: AlterarEntregadorDto,
-    @UploadedFiles() imagens: Array<Express.Multer.File>
-  ): Promise<Entregador> {
+    @UploadedFiles()
+    files: {
+      imagemCnh?: Express.Multer.File[];
+      imagemDocVeiculo?: Express.Multer.File[];
+    }
+  ): Promise<Entregador & { arquivos: Arquivos[] }> {
+    const imagemCnh = files.imagemCnh ? files.imagemCnh[0] : undefined;
+    const imagemDocVeiculo = files.imagemDocVeiculo
+      ? files.imagemDocVeiculo[0]
+      : undefined;
+
     return this.entregadoresService.alterarEntregador(
       id,
       alterarEntregadorDto,
-      imagens
+      imagemCnh,
+      imagemDocVeiculo
     );
   }
 }
