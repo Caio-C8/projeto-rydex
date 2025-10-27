@@ -7,6 +7,7 @@ type BotaoTextoProps = {
   corTexto?: string;
   corTextoHover?: string;
   onClick?: () => void;
+  tipo?: "button" | "submit" | "reset";
 };
 
 export default function BotaoTexto({
@@ -15,6 +16,7 @@ export default function BotaoTexto({
   corTexto = "#2C2C2C",
   corTextoHover = "#FFFFFF",
   onClick,
+  tipo = "button"
 }: BotaoTextoProps) {
   const [hover, setHover] = useState(false);
   const [active, setActive] = useState(false);
@@ -26,6 +28,7 @@ export default function BotaoTexto({
 
   return (
     <button
+      type={tipo}
       className="botao"
       onClick={handleClick}
       onMouseEnter={() => setHover(true)}

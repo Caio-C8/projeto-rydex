@@ -1,8 +1,55 @@
-.input {
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.input-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.input-container label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #2C2C2C;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper input {
+  padding: 25px 50px 25px 25px;
+  border-radius: 6px;
+  border: 2px solid #2C2C2C;
+  outline: none;
   width: 100%;
-  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  color: #2C2C2C;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.input-wrapper input:focus {
+  border-color: #FF5722;
+}
+
+.input-wrapper input:disabled {
+  color: #666666;
+  background-color: #f5f5f5;
+}
+
+.input-icon {
+  position: absolute;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.input-icon.ativo {
+  color: #2C2C2C;
+}
+
+.input-icon.desativado {
+  color: #999999;
 }
