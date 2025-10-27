@@ -61,3 +61,20 @@ export const DoubleCheckIcon: React.FC = () => (
     <Path d="m22 6-11 11-4-4" />
   </Svg>
 );
+
+export const ErrorIcon: React.FC = () => (
+  <Svg
+    width="80" // Tamanho grande, como no Figma
+    height="80"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#FF5722" // Laranja Rydex (igual ao de sucesso, pode mudar se quiser)
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Circle cx="12" cy="12" r="10" />
+    <Line x1="15" y1="9" x2="9" y2="15" />
+    <Line x1="9" y1="9" x2="15" y2="15" />
+  </Svg>
+);
