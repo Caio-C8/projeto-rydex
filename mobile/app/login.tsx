@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { LogoHeader } from "../components/LogoHeader";
-import { EyeIcon } from "../components/Icons";
+import { EyeIcon, EyeOffIcon } from "../components/Icons"; // Correto
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -37,6 +37,7 @@ export default function LoginScreen() {
         />
 
         <View style={styles.formContainer}>
+          {/* O campo de E-mail (permanece igual) */}
           <View style={styles.mb4}>
             <Text style={styles.label}>E-mail:</Text>
             <TextInput
@@ -50,23 +51,36 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View style={styles.inputGroup}>
+          {/* =================================== */}
+          {/* MUDANÇA FEITA AQUI (CAMPO DE SENHA) */}
+          {/* =================================== */}
+          <View style={styles.mb4}>
+            {/* <-- Usamos mb4 para espaçamento */}
             <Text style={styles.label}>Senha:</Text>
-            <TextInput
-              placeholder="Sua senha"
-              style={styles.textInput}
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <EyeIcon />
-            </TouchableOpacity>
+            {/* Esta é a nova View "wrapper" */}
+            <View style={styles.inputWrapper}>
+              <TextInput
+                placeholder="Sua senha"
+                style={styles.textInputInsideWrapper} // Estilo modificado
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon} // Estilo modificado
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                {/* =================================== */}
+                {/* LÓGICA CORRIGIDA (INVERTIDA)        */}
+                {/* =================================== */}
+                {showPassword ? <EyeIcon /> : <EyeOffIcon />}
+              </TouchableOpacity>
+            </View>
           </View>
+          {/* =================================== */}
+          {/* FIM DA MUDANÇA                  */}
+          {/* =================================== */}
 
           <TouchableOpacity style={styles.button} onPress={handleSubmit}>
             <Text style={styles.buttonText}>ENTRAR</Text>
@@ -92,12 +106,12 @@ export default function LoginScreen() {
 }
 
 // ===============================================
-// ESTILOS
+// ESTILOS (ATUALIZADOS)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#dadadaff", // bg-light
+    backgroundColor: "#d4d4d4ff", // bg-light
   },
   cardContainer: {
     width: "100%",
@@ -120,7 +134,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   mb4: {
-    marginBottom: 16,
+    marginBottom: 24, // <-- Aumentamos o espaçamento (era 16, como o inputGroup)
   },
   label: {
     color: "#2C2C2C",
@@ -128,6 +142,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 8,
   },
+  // Este estilo é usado apenas pelo campo de E-mail
   textInput: {
     padding: 12,
     borderWidth: 1,
@@ -137,16 +152,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#2C2C2C",
   },
-  inputGroup: {
+  // O 'inputGroup' foi removido, pois agora usamos 'mb4'
+
+  // ===================================
+  // NOVOS ESTILOS (Adicionados)
+  // ===================================
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
     position: "relative",
-    marginBottom: 24,
+    width: "100%",
+    borderColor: "#D1D5DB",
+    borderWidth: 1,
+    borderRadius: 12,
   },
+  textInputInsideWrapper: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: "#2C2C2C",
+    paddingRight: 40,
+  },
+  // ===================================
+
+  // Estilo do ícone (Modificado)
   eyeIcon: {
     position: "absolute",
-    top: 45, // Ajuste manual da posição do ícone
+    // top: 45, <-- REMOVIDO
     right: 12,
     opacity: 0.6,
   },
+
+  // O resto dos estilos
   button: {
     width: "100%",
     paddingVertical: 12,
