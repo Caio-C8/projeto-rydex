@@ -3,6 +3,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { EntregadoresModule } from "./entregadores/entregadores.module";
 import { ServeStaticModule } from "@nestjs/serve-static";
+import { EmpresasModule } from "./empresas/empresas.module";
 import { join } from "path";
 
 @Module({
@@ -13,6 +14,7 @@ import { join } from "path";
       serveRoot: "/public",
     }),
     EntregadoresModule,
+    EmpresasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
