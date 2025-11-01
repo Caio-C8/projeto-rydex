@@ -8,4 +8,4 @@ import { PrismaService } from "src/prisma.service";
   controllers: [EmpresasController],
   providers: [EmpresasServices, PrismaService],
 })
-export class EntregadoresModule {}
+export class EmpresasModule {}

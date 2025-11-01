@@ -1,60 +1,54 @@
-
 import {
   IsString,
-  IsNotEmpty,
   IsEmail,
   MaxLength,
   IsNumber,
   IsInt,
-  IsOptional,
+  IsOptional, 
   MinLength,
 } from 'class-validator';
 
-export class CriarEmpresaDto {
+export class AlterarEmpresaDto {
   @IsString({ message: 'O nome da empresa deve ser um texto.' })
-  @IsNotEmpty({ message: 'O nome da empresa é obrigatório.' })
   @MaxLength(255, { message: 'O nome da empresa deve ter no máximo 255 caracteres.' }) //
-  nome_empresa: string;
+  @IsOptional()
+  nome_empresa?: string;
 
-  @IsString({ message: 'O CNPJ deve ser um texto.' })
-  @IsNotEmpty({ message: 'O CNPJ é obrigatório.' })
-  @MaxLength(18, { message: 'O CNPJ deve ter no máximo 18 caracteres.' }) //
-  cnpj: string;
 
   @IsEmail({}, { message: 'O email fornecido não é válido.' })
-  @IsNotEmpty({ message: 'O email é obrigatório.' })
   @MaxLength(255, { message: 'O email deve ter no máximo 255 caracteres.' }) //
-  email: string;
+  @IsOptional()
+  email?: string;
 
   @IsString({ message: 'A senha deve ser um texto.' })
-  @IsNotEmpty({ message: 'A senha é obrigatória.' })
   @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres.' })
-  senha: string;
+  @IsOptional()
+  senha?: string;
 
   @IsString({ message: 'O CEP deve ser um texto.' })
-  @IsNotEmpty({ message: 'O CEP é obrigatório.' })
   @MaxLength(10, { message: 'O CEP deve ter no máximo 10 caracteres.' }) //
-  cep: string;
+  @IsOptional()
+  cep?: string;
 
   @IsString({ message: 'A cidade deve ser um texto.' })
-  @IsNotEmpty({ message: 'A cidade é obrigatória.' })
   @MaxLength(255, { message: 'A cidade deve ter no máximo 255 caracteres.' }) //
-  cidade: string;
+  @IsOptional()
+  cidade?: string;
 
   @IsNumber({}, { message: 'O número deve ser um valor numérico.' })
   @IsInt({ message: 'O número deve ser um inteiro.' }) //
-  @IsNotEmpty({ message: 'O número é obrigatório.' })
-  numero: number;
+  @IsOptional()
+  numero?: number;
 
   @IsString({ message: 'O bairro deve ser um texto.' })
-  @IsNotEmpty({ message: 'O bairro é obrigatório.' })
   @MaxLength(255, { message: 'O bairro deve ter no máximo 255 caracteres.' }) //
-  bairro: string;
+  @IsOptional()
+  bairro?: string;
 
   @IsString({ message: 'O logradouro deve ser um texto.' })
-  @IsNotEmpty({ message: 'O logradouro é obrigatório.' })
   @MaxLength(255, { message: 'O logradouro deve ter no máximo 255 caracteres.' }) //
-  logradouro: string;
+  @IsOptional()
+  logradouro?: string;
 
   @IsString({ message: 'O complemento deve ser um texto.' })
   @MaxLength(255, { message: 'O complemento deve ter no máximo 255 caracteres.' }) //
@@ -63,6 +57,6 @@ export class CriarEmpresaDto {
 
   @IsString({ message: 'O ponto de referência deve ser um texto.' })
   @MaxLength(255, { message: 'O ponto de referência deve ter no máximo 255 caracteres.' }) //
-  @IsOptional() 
+  @IsOptional()
   ponto_referencia?: string;
 }
