@@ -1,14 +1,24 @@
 .botao {
-  padding: 20px 40px; 
+  padding: 20px 40px;
   border-radius: 8px;
   font-weight: bold;
   font-style: italic;
   cursor: pointer;
-  transition: all 0.25s;
   font-family: 'Montserrat', sans-serif;
-  outline: none;
+  transition: background-color 0.2s, transform 0.2s, color 0.2s, border 0.2s;
+
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  border: 3px solid var(--cor-borda);
 }
 
 .botao:hover {
+  color: var(--cor-texto-hover);
+}
+
+.botao:active {
+  background-color: transparent !important;
+  color: var(--cor-texto) !important;
   transform: scale(1.3);
+  border-color: var(--cor-borda) !important;
 }
