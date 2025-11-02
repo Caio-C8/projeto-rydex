@@ -1,0 +1,17 @@
+.card {
+      background-color: #fff;
+      width: 300px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    
+    .card-content {
+      padding: 100px;
+    }
