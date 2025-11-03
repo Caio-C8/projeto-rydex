@@ -5,6 +5,7 @@ import {
   IsOptional,
   MinLength,
   Matches,
+  ValidateIf,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
@@ -28,6 +29,7 @@ export class AlterarEntregadorDto {
     required: false,
   })
   @IsOptional()
+  @ValidateIf((o, value) => value !== null && value !== "")
   @IsDateString({}, { message: "Data de nascimento inválida." })
   dataNascimento?: string;
 
@@ -38,6 +40,7 @@ export class AlterarEntregadorDto {
   })
   @IsOptional()
   @Transform(({ value }) => removerNaoDigitos(value))
+  @ValidateIf((o, value) => value !== null && value !== "")
   @IsString({ message: "CPF inválido." })
   @IsCpf()
   cpf?: string;
@@ -48,6 +51,7 @@ export class AlterarEntregadorDto {
     required: false,
   })
   @IsOptional()
+  @ValidateIf((o, value) => value !== null && value !== "")
   @IsEmail({}, { message: "E-mail inválido." })
   email?: string;
 
@@ -55,7 +59,10 @@ export class AlterarEntregadorDto {
     description:
       "Senha de acesso (mínimo 8 caracteres, 1 número e 1 caractere especial)",
     example: "senha!Forte123",
+    required: false,
   })
+  @IsOptional()
+  @ValidateIf((o, value) => value !== null && value !== "")
   @IsString({ message: "Senha inválida." })
   @MinLength(8, { message: "Senha deve ter 8 ou mais caracteres." })
   @Matches(/.*\d/, { message: "Senha deve conter pelo menos um número." })
@@ -71,6 +78,7 @@ export class AlterarEntregadorDto {
   })
   @IsOptional()
   @Transform(({ value }) => removerNaoDigitos(value))
+  @ValidateIf((o, value) => value !== null && value !== "")
   @IsString({ message: "Celular inválido." })
   @IsCelular()
   celular?: string;

@@ -138,17 +138,25 @@ export class EntregadoresService {
       }
 
       const dadosParaAtualizar: Prisma.EntregadorUpdateInput = {
-        nome: alterarEntregadorDto.nome,
+        nome: alterarEntregadorDto.nome ? alterarEntregadorDto.nome : undefined,
         data_nascimento:
           alterarEntregadorDto.dataNascimento &&
           alterarEntregadorDto.dataNascimento.trim() !== ""
             ? new Date(alterarEntregadorDto.dataNascimento)
             : undefined,
-        cpf: alterarEntregadorDto.cpf,
-        email: alterarEntregadorDto.email,
-        celular: alterarEntregadorDto.celular,
-        placa_veiculo: alterarEntregadorDto.placaVeiculo,
-        chave_pix: alterarEntregadorDto.chavePix,
+        cpf: alterarEntregadorDto.cpf ? alterarEntregadorDto.cpf : undefined,
+        email: alterarEntregadorDto.email
+          ? alterarEntregadorDto.email
+          : undefined,
+        celular: alterarEntregadorDto.celular
+          ? alterarEntregadorDto.celular
+          : undefined,
+        placa_veiculo: alterarEntregadorDto.placaVeiculo
+          ? alterarEntregadorDto.placaVeiculo
+          : undefined,
+        chave_pix: alterarEntregadorDto.chavePix
+          ? alterarEntregadorDto.chavePix
+          : undefined,
       };
 
       if (alterarEntregadorDto.senha) {
