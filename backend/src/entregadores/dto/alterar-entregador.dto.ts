@@ -1,6 +1,17 @@
-import { IsString, IsEmail, IsDateString, IsOptional } from "class-validator";
+import {
+  IsString,
+  IsEmail,
+  IsDateString,
+  IsOptional,
+  MinLength,
+  Matches,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsCpf } from "../../validators/is-cpf.validator";
+import { IsCelular } from "src/validators/is-celular.validator";
 
+const removerNaoDigitos = (value: string) => value.replace(/[^\d]/g, "");
 export class AlterarEntregadorDto {
   @ApiProperty({
     description: "Nome completo do entregador",
@@ -21,12 +32,14 @@ export class AlterarEntregadorDto {
   dataNascimento?: string;
 
   @ApiProperty({
-    description: "CPF do entregador (apenas números)",
-    example: "12345678900",
+    description: "CPF do entregador (com ou sem formatação)",
+    example: "123.456.789-00",
     required: false,
   })
   @IsOptional()
+  @Transform(({ value }) => removerNaoDigitos(value))
   @IsString({ message: "CPF inválido." })
+  @IsCpf()
   cpf?: string;
 
   @ApiProperty({
@@ -39,21 +52,27 @@ export class AlterarEntregadorDto {
   email?: string;
 
   @ApiProperty({
-    description: "Nova senha de acesso",
-    example: "novaSenhaForte456",
-    required: false,
+    description:
+      "Senha de acesso (mínimo 8 caracteres, 1 número e 1 caractere especial)",
+    example: "senha!Forte123",
   })
-  @IsOptional()
   @IsString({ message: "Senha inválida." })
+  @MinLength(8, { message: "Senha deve ter 8 ou mais caracteres." })
+  @Matches(/.*\d/, { message: "Senha deve conter pelo menos um número." })
+  @Matches(/.*[!@#$%^&*(),.?":{}|<>]/, {
+    message: "Senha deve conter pelo menos um caractere especial.",
+  })
   senha?: string;
 
   @ApiProperty({
-    description: "Número de celular com DDD",
-    example: "11987654321",
+    description: "Número de celular com DDD (com ou sem formatação)",
+    example: "(11) 98765-4321",
     required: false,
   })
   @IsOptional()
-  @IsString({ message: "Celular inválida." })
+  @Transform(({ value }) => removerNaoDigitos(value))
+  @IsString({ message: "Celular inválido." })
+  @IsCelular()
   celular?: string;
 
   @ApiProperty({
