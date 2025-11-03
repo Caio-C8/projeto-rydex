@@ -28,6 +28,8 @@ import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { AlterarEntregadorSwaggerDto } from "./dto/alterar-entregador-swagger.dto";
 import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
 import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
+import { RespostaErroValidacaoDto } from "src/utils/dto/resposta-erro-validacao.dto";
+import { RespostaErroGeralDto } from "src/utils/dto/resposta-erro-geral.dto";
 
 @ApiTags("Entregadores")
 @Controller("entregadores")
@@ -52,7 +54,11 @@ export class EntregadoresController {
     description: "Dados do entregador",
     type: RespostaEntregadorDto,
   })
-  @ApiResponse({ status: 404, description: "Entregador não encontrado" })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
   @Get(":id")
   buscarEntregador(
     @Param("id", ParseIntPipe) id: number
@@ -67,7 +73,11 @@ export class EntregadoresController {
     description: "Lista de arquivos do entregador",
     type: [RespostaArquivosDto],
   })
-  @ApiResponse({ status: 404, description: "Entregador não encontrado" })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
   @Get(":id/arquivos")
   buscarImagens(
     @Param("id", ParseIntPipe) id: number
@@ -86,7 +96,11 @@ export class EntregadoresController {
     description: "Entregador criado com sucesso",
     type: RespostaEntregadorDto,
   })
-  @ApiResponse({ status: 400, description: "Dados inválidos" })
+  @ApiResponse({
+    status: 400,
+    description: "Erros de validação nos dados enviados.",
+    type: RespostaErroValidacaoDto,
+  })
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -127,7 +141,16 @@ export class EntregadoresController {
     description: "Entregador atualizado com sucesso",
     type: RespostaEntregadorDto,
   })
-  @ApiResponse({ status: 404, description: "Entregador não encontrado" })
+  @ApiResponse({
+    status: 400,
+    description: "Erros de validação nos dados enviados.",
+    type: RespostaErroValidacaoDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: "imagemCnh", maxCount: 1 },

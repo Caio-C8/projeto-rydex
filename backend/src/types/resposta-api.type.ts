@@ -3,5 +3,5 @@ export interface RespostaApi<T> {
   sucesso: boolean;
   status: number;
   dados?: T;
-  erros?: string[];
+  erros?: string[] | object;
 }
