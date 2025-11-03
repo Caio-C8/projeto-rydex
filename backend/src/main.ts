@@ -1,5 +1,10 @@
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
+// Importe BadRequestException e ValidationError
+import {
+  ValidationPipe,
+  BadRequestException,
+  ValidationError,
+} from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { RespostaInterceptor } from "./interceptors/resposta.interceptor";
@@ -12,6 +17,18 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+
+      exceptionFactory: (errors: ValidationError[]) => {
+        const formattedErrors = {};
+
+        errors.forEach((err) => {
+          if (err.constraints) {
+            formattedErrors[err.property] = Object.values(err.constraints)[0];
+          }
+        });
+
+        return new BadRequestException(formattedErrors);
+      },
     })
   );
 

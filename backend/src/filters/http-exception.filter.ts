@@ -19,17 +19,33 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (
-        exception instanceof BadRequestException &&
-        typeof exceptionResponse === "object" &&
-        "message" in exceptionResponse &&
-        Array.isArray(exceptionResponse.message)
-      ) {
-        const validationErrors = exceptionResponse.message as string[];
-        response
-          .status(status)
-          .json(Resposta.erro("Erro de validação.", validationErrors, status));
-        return;
+      if (exception instanceof BadRequestException) {
+        if (
+          typeof exceptionResponse === "object" &&
+          !Array.isArray(exceptionResponse)
+        ) {
+          if (!("message" in exceptionResponse)) {
+            response
+              .status(status)
+              .json(
+                Resposta.erro("Erro de validação.", exceptionResponse, status)
+              );
+            return;
+          }
+
+          if (
+            "message" in exceptionResponse &&
+            Array.isArray(exceptionResponse.message)
+          ) {
+            const validationErrors = exceptionResponse.message as string[];
+            response
+              .status(status)
+              .json(
+                Resposta.erro("Erro de validação.", validationErrors, status)
+              );
+            return;
+          }
+        }
       }
 
       const errorMessage =
