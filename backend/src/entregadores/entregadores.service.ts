@@ -137,6 +137,11 @@ export class EntregadoresService {
         );
       }
 
+      const nomeMudou =
+        alterarEntregadorDto.nome &&
+        alterarEntregadorDto.nome.trim() !== "" &&
+        alterarEntregadorDto.nome !== entregador.nome;
+
       const dadosParaAtualizar: Prisma.EntregadorUpdateInput = {
         nome: alterarEntregadorDto.nome ? alterarEntregadorDto.nome : undefined,
         data_nascimento:
@@ -185,6 +190,20 @@ export class EntregadoresService {
           imagemDocVeiculo,
           "doc_veiculo"
         );
+      }
+
+      if (nomeMudou) {
+        if (!imagemCnh) {
+          await this.renomearArquivo(prisma, entregadorAtualizado, "cnh");
+        }
+
+        if (!imagemDocVeiculo) {
+          await this.renomearArquivo(
+            prisma,
+            entregadorAtualizado,
+            "doc_veiculo"
+          );
+        }
       }
 
       const entregadorCompleto = await prisma.entregador.findUnique({
@@ -282,13 +301,7 @@ export class EntregadoresService {
 
     await fs.mkdir(diretorioDestinoFs, { recursive: true });
 
-    const nomeSanitizado = entregador.nome
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .replace(/[^a-z0-9]/g, " ")
-      .trim()
-      .replace(/\s+/g, "_");
+    const nomeSanitizado = this.sanitizarNome(entregador.nome);
 
     const extensao = path.extname(arquivo.originalname);
     const nomeArquivo = `${tipoArquivo}_${entregador.id}_${nomeSanitizado}_${Date.now()}${extensao}`;
@@ -298,5 +311,69 @@ export class EntregadoresService {
     await fs.writeFile(caminhoCompletoFs, arquivo.buffer);
 
     return { nome: nomeArquivo, caminho: caminhoUrlDb };
+  }
+
+  private sanitizarNome(nome: string): string {
+    return nome
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .replace(/[^a-z0-9]/g, " ")
+      .trim()
+      .replace(/\s+/g, "_");
+  }
+
+  private async renomearArquivo(
+    prisma: Prisma.TransactionClient,
+    entregador: Entregador,
+    tipoArquivo: "cnh" | "doc_veiculo"
+  ) {
+    const arquivoAntigo = await prisma.arquivos.findFirst({
+      where: {
+        entregador_id: entregador.id,
+        nome: {
+          startsWith: `${tipoArquivo}_`,
+        },
+      },
+    });
+
+    if (!arquivoAntigo) {
+      return;
+    }
+
+    try {
+      const extensao = path.extname(arquivoAntigo.nome);
+
+      const nomePartes = arquivoAntigo.nome.replace(extensao, "").split("_");
+      const timestamp = nomePartes[nomePartes.length - 1];
+
+      if (!timestamp || isNaN(Number(timestamp))) {
+        throw new Error(
+          `Timestamp inválido ou não encontrado em ${arquivoAntigo.nome}`
+        );
+      }
+
+      const nomeSanitizadoNovo = this.sanitizarNome(entregador.nome);
+      const nomeArquivoNovo = `${tipoArquivo}_${entregador.id}_${nomeSanitizadoNovo}_${timestamp}${extensao}`;
+      const caminhoUrlDbNovo = posix.join("entregadores", nomeArquivoNovo);
+
+      const caminhoAntigoFs = path.join("uploads", arquivoAntigo.caminho);
+      const caminhoNovoFs = path.join("uploads", caminhoUrlDbNovo);
+
+      await fs.rename(caminhoAntigoFs, caminhoNovoFs);
+
+      await prisma.arquivos.update({
+        where: { id: arquivoAntigo.id },
+        data: {
+          nome: nomeArquivoNovo,
+          caminho: caminhoUrlDbNovo,
+        },
+      });
+    } catch (error) {
+      console.error(
+        `Falha ao renomear o arquivo ${arquivoAntigo.nome} para ${entregador.nome}`,
+        error
+      );
+    }
   }
 }
