@@ -1,5 +1,17 @@
-import { IsDateString, IsEmail, IsNotEmpty, IsString } from "class-validator";
+import {
+  IsDateString,
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  Matches,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsCpf } from "../../validators/is-cpf.validator";
+import { IsCelular } from "src/validators/is-celular.validator";
+
+const removerNaoDigitos = (value: string) => value.replace(/[^\d]/g, "");
 
 export class CriarEntregadorDto {
   @ApiProperty({
@@ -19,10 +31,12 @@ export class CriarEntregadorDto {
   dataNascimento: string;
 
   @ApiProperty({
-    description: "CPF do entregador (apenas números)",
-    example: "12345678900",
+    description: "CPF do entregador (com ou sem formatação)",
+    example: "123.456.789-00",
   })
+  @Transform(({ value }) => removerNaoDigitos(value))
   @IsString({ message: "CPF inválido." })
+  @IsCpf()
   @IsNotEmpty({ message: "Preencha o campo 'CPF'." })
   cpf: string;
 
@@ -35,18 +49,26 @@ export class CriarEntregadorDto {
   email: string;
 
   @ApiProperty({
-    description: "Senha de acesso",
-    example: "senhaForte123",
+    description:
+      "Senha de acesso (mínimo 8 caracteres, 1 número e 1 caractere especial)",
+    example: "senha!Forte123",
   })
   @IsString({ message: "Senha inválida." })
+  @MinLength(8, { message: "Senha deve ter 8 ou mais caracteres." })
+  @Matches(/.*\d/, { message: "Senha deve conter pelo menos um número." })
+  @Matches(/.*[!@#$%^&*(),.?":{}|<>]/, {
+    message: "Senha deve conter pelo menos um caractere especial.",
+  })
   @IsNotEmpty({ message: "Preencha o campo 'Senha'." })
   senha: string;
 
   @ApiProperty({
-    description: "Número de celular com DDD",
-    example: "11987654321",
+    description: "Número de celular com DDD (com ou sem formatação)",
+    example: "(11) 98765-4321",
   })
-  @IsString({ message: "Celular inválida." })
+  @Transform(({ value }) => removerNaoDigitos(value))
+  @IsString({ message: "Celular inválido." })
+  @IsCelular()
   @IsNotEmpty({ message: "Preencha o campo 'Celular'." })
   celular: string;
 
