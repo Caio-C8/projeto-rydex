@@ -1,5 +1,4 @@
 import { NestFactory } from "@nestjs/core";
-// Importe BadRequestException e ValidationError
 import {
   ValidationPipe,
   BadRequestException,
