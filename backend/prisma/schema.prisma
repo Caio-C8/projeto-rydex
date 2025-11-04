@@ -8,21 +8,21 @@ datasource db {
 }
 
 model Entregador {
-  id                             Int                       @id @default(autoincrement())
-  nome                           String                    @db.VarChar(255)
-  data_nascimento                DateTime                  @db.Date
-  cpf                            String                    @unique @db.VarChar(14)
-  email                          String                    @unique @db.VarChar(255)
+  id                             Int                                    @id @default(autoincrement())
+  nome                           String                                 @db.VarChar(255)
+  data_nascimento                DateTime                               @db.Date
+  cpf                            String                                 @unique @db.VarChar(14)
+  email                          String                                 @unique @db.VarChar(255)
   senha                          String
-  saldo                          Int                       @default(0)
-  celular                        String                    @db.VarChar(15)
-  status                         StatusEntregadores        @default(offline)
-  placa_veiculo                  String                    @db.VarChar(100)
+  saldo                          Int                                    @default(0)
+  celular                        String                                 @db.VarChar(15)
+  status                         StatusEntregadores                     @default(offline)
+  placa_veiculo                  String                                 @db.VarChar(100)
   latitude                       Float?
   longitude                      Float?
-  localizacao                    Unsupported("geography")?
-  ultima_atualizacao_localizacao DateTime?                 @db.Timestamp(6)
-  chave_pix                      String                    @db.VarChar(100)
+  localizacao                    Unsupported("GEOGRAPHY(POINT, 4326)")?
+  ultima_atualizacao_localizacao DateTime?                              @db.Timestamp(6)
+  chave_pix                      String                                 @db.VarChar(100)
   arquivos                       Arquivos[]
   entregas                       Entregas[]
 
@@ -30,50 +30,50 @@ model Entregador {
 }
 
 model Empresa {
-  id                    Int                       @id @default(autoincrement())
-  nome_empresa          String                    @db.VarChar(255)
-  cnpj                  String                    @unique @db.VarChar(18)
-  email                 String                    @unique @db.VarChar(255)
+  id                    Int                                    @id @default(autoincrement())
+  nome_empresa          String                                 @db.VarChar(255)
+  cnpj                  String                                 @unique @db.VarChar(18)
+  email                 String                                 @unique @db.VarChar(255)
   senha                 String
-  saldo                 Int                       @default(0)
-  cep                   String                    @db.VarChar(10)
-  cidade                String                    @db.VarChar(255)
+  saldo                 Int                                    @default(0)
+  cep                   String                                 @db.VarChar(10)
+  cidade                String                                 @db.VarChar(255)
   numero                Int
-  bairro                String                    @db.VarChar(255)
-  logradouro            String                    @db.VarChar(255)
-  complemento           String?                   @db.VarChar(255)
-  ponto_referencia      String?                   @db.VarChar(255)
+  bairro                String                                 @db.VarChar(255)
+  logradouro            String                                 @db.VarChar(255)
+  complemento           String?                                @db.VarChar(255)
+  ponto_referencia      String?                                @db.VarChar(255)
   latitude              Float?
   longitude             Float?
-  localizacao           Unsupported("geography")?
+  localizacao           Unsupported("GEOGRAPHY(POINT, 4326)")?
   solicitacoes_entregas SolicitacoesEntregas[]
 
   @@map("empresas")
 }
 
 model SolicitacoesEntregas {
-  id                     Int                       @id @default(autoincrement())
+  id                     Int                                    @id @default(autoincrement())
   valor_estimado         Int
-  item_retorno           Boolean                   @default(false)
+  item_retorno           Boolean                                @default(false)
   descricao_item_retorno String?
   observacao             String?
   distancia_m            Int?
-  status                 StatusSolicitacoes        @default(pendente)
-  criado_em              DateTime                  @default(now()) @db.Timestamp(6)
-  cancelado_em           DateTime?                 @db.Timestamp(6)
-  cep                    String                    @db.VarChar(10)
-  cidade                 String                    @db.VarChar(150)
+  status                 StatusSolicitacoes                     @default(pendente)
+  criado_em              DateTime                               @default(now()) @db.Timestamp(6)
+  cancelado_em           DateTime?                              @db.Timestamp(6)
+  cep                    String                                 @db.VarChar(10)
+  cidade                 String                                 @db.VarChar(150)
   numero                 Int
-  bairro                 String                    @db.VarChar(150)
-  logradouro             String                    @db.VarChar(150)
-  complemento            String?                   @db.VarChar(150)
-  ponto_referencia       String?                   @db.VarChar(150)
+  bairro                 String                                 @db.VarChar(150)
+  logradouro             String                                 @db.VarChar(150)
+  complemento            String?                                @db.VarChar(150)
+  ponto_referencia       String?                                @db.VarChar(150)
   latitude               Float?
   longitude              Float?
-  localizacao            Unsupported("geography")?
+  localizacao            Unsupported("GEOGRAPHY(POINT, 4326)")?
   empresa_id             Int
   entrega                Entregas?
-  empresa                Empresa                   @relation(fields: [empresa_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_empresa")
+  empresa                Empresa                                @relation(fields: [empresa_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_empresa")
 
   @@map("solicitacoes_entregas")
 }
