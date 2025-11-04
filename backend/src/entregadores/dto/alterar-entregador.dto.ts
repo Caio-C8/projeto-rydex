@@ -34,18 +34,6 @@ export class AlterarEntregadorDto {
   dataNascimento?: string;
 
   @ApiProperty({
-    description: "CPF do entregador (com ou sem formatação)",
-    example: "123.456.789-00",
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }) => removerNaoDigitos(value))
-  @ValidateIf((o, value) => value !== null && value !== "")
-  @IsString({ message: "CPF inválido." })
-  @IsCpf()
-  cpf?: string;
-
-  @ApiProperty({
     description: "Email único para login",
     example: "joao.silva@email.com",
     required: false,
