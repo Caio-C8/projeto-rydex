@@ -11,29 +11,58 @@
 - Gustavo: mobile e suporte back-end;
 - Higor: web;
 - Antônio: web;
-- xinelo
--alguma coisa
-
 
 ## Como rodar em ambiente de desenvolvimento (atualiza em tempo real a aplicação)
 
-- Rodar na primeira vez: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+- Rodar na primeira vez:
 
-- Rodar normalemente: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
 
-- Para os contêineres: CTRL + C e ENTER
+```bash
+docker-compose exec backend npx prisma migrate dev
+```
 
-- Parar de desenvolver: docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+- Rodar normalemente:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+- Parar os contêineres: CTRL + C e ENTER
+
+- Parar de desenvolver:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
 
 ## Como rodar em ambiente de produção
 
-- Rodar na primeira vez: docker-compose up --build
+- Rodar na primeira vez:
 
-- Rodar normalmente: docker-compose up
+```bash
+docker-compose -f docker-compose.yml up --build -d
+```
 
-- Para os contêineres: CTRL + C e ENTER
+```bash
+docker-compose exec backend npx prisma migrate deploy
+```
 
-- Parar de desenvolver: docker-compose down
+- Rodar normalmente:
+
+```bash
+docker-compose -f docker-compose.yml up -d
+```
+
+- Parar os contêineres: CTRL + C e ENTER
+
+- Parar de desenvolver:
+
+```bash
+docker-compose -f docker-compose.yml down
+```
 
 ## Remover dados inúteis do Docker que podem ocupar muito espaço
 
