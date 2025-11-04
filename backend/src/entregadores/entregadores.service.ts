@@ -149,7 +149,6 @@ export class EntregadoresService {
           alterarEntregadorDto.dataNascimento.trim() !== ""
             ? new Date(alterarEntregadorDto.dataNascimento)
             : undefined,
-        cpf: alterarEntregadorDto.cpf ? alterarEntregadorDto.cpf : undefined,
         email: alterarEntregadorDto.email
           ? alterarEntregadorDto.email
           : undefined,
