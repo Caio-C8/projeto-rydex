@@ -16,21 +16,21 @@ export default function BotaoTexto({
   corFundo = "#FF5722",
   corTexto = "#2C2C2C",
   corTextoHover = "#FFFFFF",
-  corBorda = "#FF5722", 
-  type = "button",
-  onClick
+  corBorda = "#FF5722",
+  onClick,
 }: BotaoTextoProps) {
-
   return (
     <button
       className="botao"
       onClick={onClick}
-      style={{
-        "--cor-fundo": corFundo,
-        "--cor-texto": corTexto,
-        "--cor-texto-hover": corTextoHover,
-        "--cor-borda": corBorda,
-      } as React.CSSProperties}
+      style={
+        {
+          "--cor-fundo": corFundo,
+          "--cor-texto": corTexto,
+          "--cor-texto-hover": corTextoHover,
+          "--cor-borda": corBorda,
+        } as React.CSSProperties
+      }
     >
       {texto}
     </button>
