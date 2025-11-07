@@ -5,9 +5,11 @@ import {
   IsString,
   MinLength,
   Matches,
+  IsNumber,
+  IsOptional,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsCpf } from "../../validators/is-cpf.validator";
 import { IsCelular } from "src/validators/is-celular.validator";
 
@@ -86,4 +88,24 @@ export class CriarEntregadorDto {
   @IsString({ message: "Chave pix inválida." })
   @IsNotEmpty({ message: "Preencha o campo 'Chave pix'." })
   chavePix: string;
+
+  @ApiProperty({
+    description: "Latitude da localização atual do entregador",
+    example: -23.55052,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: "Latitude inválida." })
+  @Type(() => Number)
+  latitude?: number;
+
+  @ApiProperty({
+    description: "Longitude da localização atual do entregador",
+    example: -46.633308,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: "Longitude inválida." })
+  @Type(() => Number)
+  longitude?: number;
 }
