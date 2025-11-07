@@ -87,8 +87,20 @@ export class EntregadoresService {
           celular: criarEntregadorDto.celular,
           placa_veiculo: criarEntregadorDto.placaVeiculo,
           chave_pix: criarEntregadorDto.chavePix,
+          latitude: criarEntregadorDto.latitude,
+          longitude: criarEntregadorDto.longitude,
         },
       });
+
+      if (novoEntregador.latitude && novoEntregador.longitude) {
+        await prisma.$executeRaw`
+          UPDATE "entregadores"
+          SET 
+            "localizacao" = ST_SetSRID(ST_MakePoint(${novoEntregador.longitude}, ${novoEntregador.latitude}), 4326),
+            "ultima_atualizacao_localizacao" = NOW()
+          WHERE "id" = ${novoEntregador.id}
+        `;
+      }
 
       if (imagemCnh) {
         await this.salvarArquivo(prisma, novoEntregador, imagemCnh, "cnh");
