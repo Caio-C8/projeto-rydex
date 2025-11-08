@@ -41,7 +41,7 @@ export class LoginDto {
     example: "entregador",
   })
   @IsEnum(TipoUsuario, {
-    message: 'O tipo de usuário deve ser "empresa" ou "entregador".',
+    message: "O tipo de usuário deve ser 'empresa' ou 'entregador'.",
   })
   @IsNotEmpty({ message: "O tipo de usuário é obrigatório." })
   tipo: TipoUsuario;
