@@ -1,18 +1,12 @@
 import {
-  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsString,
   MinLength,
   Matches,
-  IsNumber,
-  IsOptional,
   IsEnum,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsCpf } from "../../validators/is-cpf.validator";
-import { IsCelular } from "src/validators/is-celular.validator";
 
 export enum TipoUsuario {
   EMPRESA = "empresa",
