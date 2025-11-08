@@ -239,4 +239,52 @@ export class EntregadoresController {
   ): Promise<RespostaEntregadorDto> {
     return this.entregadoresService.retirarSaldo(id, transacaoDto.valor);
   }
+
+  @ApiOperation({ summary: "Definir status do entregador como ONLINE" })
+  @ApiParam({ name: "id", description: "ID do entregador", type: Number })
+  @ApiResponse({
+    status: 200,
+    description: "Status do entregador atualizado para ONLINE",
+    type: RespostaEntregadorDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Não é possível alterar o status (ex: em entrega).",
+    type: RespostaErroValidacaoDto,
+  })
+  @Patch(":id/status/online")
+  definirStatusOnline(
+    @Param("id", ParseIntPipe) id: number
+  ): Promise<RespostaEntregadorDto> {
+    return this.entregadoresService.definirStatusOnline(id);
+  }
+
+  @ApiOperation({ summary: "Definir status do entregador como OFFLINE" })
+  @ApiParam({ name: "id", description: "ID do entregador", type: Number })
+  @ApiResponse({
+    status: 200,
+    description: "Status do entregador atualizado para OFFLINE",
+    type: RespostaEntregadorDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Não é possível alterar o status (ex: em entrega).",
+    type: RespostaErroValidacaoDto,
+  })
+  @Patch(":id/status/offline")
+  definirStatusOffline(
+    @Param("id", ParseIntPipe) id: number
+  ): Promise<RespostaEntregadorDto> {
+    return this.entregadoresService.definirStatusOffline(id);
+  }
 }
