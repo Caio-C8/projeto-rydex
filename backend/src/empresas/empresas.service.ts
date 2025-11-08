@@ -11,15 +11,15 @@ import { CriarEmpresaDto } from './dto/criar-empresa.dto';
 import { Empresa } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AlterarEmpresaDto } from './dto/alterar-empresa.dto';
-import { HttpService } from '@nestjs/axios'; // Já estava
-import { firstValueFrom } from 'rxjs'; // Já estava
+import { HttpService } from '@nestjs/axios'; 
+import { firstValueFrom } from 'rxjs'; 
 
 @Injectable()
 export class EmpresasServices {
   private readonly logger = new Logger(EmpresasServices.name);
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly httpService: HttpService, // Já estava
+    private readonly httpService: HttpService,
   ) {}
 
   // A SUA FUNÇÃO (está perfeita, sem alterações)
@@ -246,6 +246,22 @@ export class EmpresasServices {
           throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
         }
         throw new BadRequestException('Saldo insuficiente para realizar a operação.');
+      }
+      throw error;
+    }
+  }
+  async removerEmpresa(id: number): Promise<void> {
+    try {
+      await this.prismaService.empresa.delete({
+        where: { id: id },
+      });
+      
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
       }
       throw error;
     }
