@@ -6,6 +6,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { EmpresasModule } from "./empresas/empresas.module";
 import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
+import { PrismaModule } from "./prisma.module";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from "./auth/auth.module";
 
       serveRoot: "/public",
     }),
+    PrismaModule,
     EntregadoresModule,
     EmpresasModule,
     AuthModule,
