@@ -30,6 +30,7 @@ import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
 import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
 import { RespostaErroValidacaoDto } from "src/utils/dto/resposta-erro-validacao.dto";
 import { RespostaErroGeralDto } from "src/utils/dto/resposta-erro-geral.dto";
+import { TransacaoSaldoDto } from "./dto/transacao-saldo.dto";
 
 @ApiTags("Entregadores")
 @Controller("entregadores")
@@ -178,5 +179,64 @@ export class EntregadoresController {
       imagemCnh,
       imagemDocVeiculo
     );
+  }
+
+  @ApiOperation({ summary: "Adicionar saldo a um entregador" })
+  @ApiParam({ name: "id", description: "ID do entregador", type: Number })
+  @ApiBody({
+    description: "Valor a ser adicionado (em centavos)",
+    type: TransacaoSaldoDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Saldo atualizado com sucesso",
+    type: RespostaEntregadorDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Erros de validação nos dados enviados.",
+    type: RespostaErroValidacaoDto,
+  })
+  @Post(":id/saldo/adicionar")
+  adicionarSaldo(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() transacaoDto: TransacaoSaldoDto
+  ): Promise<RespostaEntregadorDto> {
+    return this.entregadoresService.adicionarSaldo(id, transacaoDto.valor);
+  }
+
+  @ApiOperation({ summary: "Retirar saldo de um entregador" })
+  @ApiParam({ name: "id", description: "ID do entregador", type: Number })
+  @ApiBody({
+    description: "Valor a ser retirado (em centavos)",
+    type: TransacaoSaldoDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Saldo atualizado com sucesso",
+    type: RespostaEntregadorDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado.",
+    type: RespostaErroGeralDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      "Erros de validação (Ex: Saldo insuficiente, Valor mínimo não atingido).",
+    type: RespostaErroValidacaoDto,
+  })
+  @Post(":id/saldo/retirar")
+  retirarSaldo(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() transacaoDto: TransacaoSaldoDto
+  ): Promise<RespostaEntregadorDto> {
+    return this.entregadoresService.retirarSaldo(id, transacaoDto.valor);
   }
 }
