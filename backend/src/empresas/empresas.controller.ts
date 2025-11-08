@@ -7,6 +7,9 @@ import {
   Patch, 
   Param, 
   ParseIntPipe, 
+  Delete,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { EmpresasServices } from './empresas.service';
 import { CriarEmpresaDto } from './dto/criar-empresa.dto';
@@ -35,6 +38,14 @@ export class EmpresasController {
   ): Promise<Empresa> {
     // Retorna a empresa atualizada (sem a senha)
     return this.empresasService.removerSaldo(id, transacaoSaldoDto.valor);
+  }
+  
+  @Delete(':id/deletar-empresa')
+  @HttpCode(HttpStatus.NO_CONTENT) 
+  removerEmpresa(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    return this.empresasService.removerEmpresa(id);
   }
 
 
