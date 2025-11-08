@@ -12,10 +12,31 @@ import { EmpresasServices } from './empresas.service';
 import { CriarEmpresaDto } from './dto/criar-empresa.dto';
 import { Empresa } from '@prisma/client';
 import { AlterarEmpresaDto } from './dto/alterar-empresa.dto'; 
+import {TransacaoSaldoDto} from './dto/empresa-transacao-saldo.dto';
 
 @Controller('empresas')
 export class EmpresasController {
   constructor(private readonly empresasService: EmpresasServices) {}
+
+
+  @Post(':id/adicionar-saldo')
+  adicionarSaldo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() transacaoSaldoDto: TransacaoSaldoDto,
+  ): Promise<Empresa> {
+    // Retorna a empresa atualizada (sem a senha)
+    return this.empresasService.adicionarSaldo(id, transacaoSaldoDto.valor);
+  }
+
+  @Post(':id/remover-saldo')
+  removerSaldo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() transacaoSaldoDto: TransacaoSaldoDto,
+  ): Promise<Empresa> {
+    // Retorna a empresa atualizada (sem a senha)
+    return this.empresasService.removerSaldo(id, transacaoSaldoDto.valor);
+  }
+
 
   @Post()
   criarEmrpesa(@Body() criarEmpresaDto: CriarEmpresaDto): Promise<Empresa> {
