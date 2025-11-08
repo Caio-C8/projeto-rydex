@@ -34,7 +34,7 @@
       // --- ADICIONADO para a chave da API do Google Maps no Android ---
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCIqQamfQBH-DH9PFDYsUqo01_NRFFhVdc"
+          "apiKey": ""
         }
       }
     },
@@ -44,7 +44,7 @@
 
       // --- ADICIONADO para a chave da API do Google Maps na Web ---
       "config": { 
-        "googleMapsApiKey": "AIzaSyCIqQamfQBH-DH9PFDYsUqo01_NRFFhVdc"
+        "googleMapsApiKey": ""
       }
     },
     "plugins": [
