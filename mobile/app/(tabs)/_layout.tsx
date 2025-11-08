@@ -44,7 +44,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore" // Corresponde a explore.tsx (Carteira)
+        name="carteira" // Corresponde a explore.tsx (Carteira)
         options={{
           title: 'Carteira',
           tabBarIcon: ({ color, focused }) => (
