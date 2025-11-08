@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { Entregador, Arquivos, Prisma } from "@prisma/client";
 
 import * as fs from "fs/promises";
@@ -232,6 +236,75 @@ export class EntregadoresService {
 
       return entregadorSemSenha;
     });
+  }
+
+  async adicionarSaldo(
+    id: number,
+    valor: number
+  ): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        saldo: {
+          increment: valor,
+        },
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+
+    return entregadorSemSenha;
+  }
+
+  async retirarSaldo(
+    id: number,
+    valor: number
+  ): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    const valorMinimoRetirada = 2000;
+    if (valor < valorMinimoRetirada) {
+      throw new BadRequestException(
+        `O valor mínimo para retirada é de R$ 20,00.`
+      );
+    }
+
+    if (entregador.saldo < valor) {
+      throw new BadRequestException("Saldo insuficiente para esta retirada.");
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        saldo: {
+          decrement: valor,
+        },
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+
+    return entregadorSemSenha;
   }
 
   private async salvarArquivo(
