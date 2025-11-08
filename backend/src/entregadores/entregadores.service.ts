@@ -3,7 +3,12 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { Entregador, Arquivos, Prisma } from "@prisma/client";
+import {
+  Entregador,
+  Arquivos,
+  StatusEntregadores,
+  Prisma,
+} from "@prisma/client";
 
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -304,6 +309,80 @@ export class EntregadoresService {
 
     const { senha, ...entregadorSemSenha } = entregadorAtualizado;
 
+    return entregadorSemSenha;
+  }
+
+  async definirStatusOnline(id: number): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    if (entregador.status === StatusEntregadores.em_entrega) {
+      throw new BadRequestException(
+        "Não é possível ficar online. O entregador está atualmente em entrega."
+      );
+    }
+
+    if (entregador.status === StatusEntregadores.online) {
+      const { senha, ...entregadorSemSenha } = entregador;
+      return entregadorSemSenha;
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        status: StatusEntregadores.online,
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+    return entregadorSemSenha;
+  }
+
+  async definirStatusOffline(id: number): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    if (entregador.status === StatusEntregadores.em_entrega) {
+      throw new BadRequestException(
+        "Não é possível ficar offline. O entregador está atualmente em entrega."
+      );
+    }
+
+    if (entregador.status === StatusEntregadores.offline) {
+      const { senha, ...entregadorSemSenha } = entregador;
+      return entregadorSemSenha;
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        status: StatusEntregadores.offline,
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
     return entregadorSemSenha;
   }
 
