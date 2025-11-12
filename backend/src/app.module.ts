@@ -3,6 +3,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { EntregadoresModule } from "./entregadores/entregadores.module";
 import { ServeStaticModule } from "@nestjs/serve-static";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { EmpresasModule } from "./empresas/empresas.module";
 import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
@@ -15,6 +16,7 @@ import { PrismaModule } from "./prisma.module";
 
       serveRoot: "/public",
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     EntregadoresModule,
     EmpresasModule,
