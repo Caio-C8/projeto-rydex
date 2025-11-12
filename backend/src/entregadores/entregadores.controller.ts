@@ -8,6 +8,7 @@ import {
   Patch,
   UploadedFiles,
   UseInterceptors,
+  UseGuards,
 } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 
@@ -31,6 +32,9 @@ import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
 import { RespostaErroValidacaoDto } from "src/utils/dto/resposta-erro-validacao.dto";
 import { RespostaErroGeralDto } from "src/utils/dto/resposta-erro-geral.dto";
 import { TransacaoSaldoDto } from "./dto/transacao-saldo.dto";
+import { EntregadoresModule } from "./entregadores.module";
+import { AuthGuard } from "src/auth/auth.guard";
+import { EntregadorGuard } from "src/auth/guards/entregador.guard";
 
 @ApiTags("Entregadores")
 @Controller("entregadores")
@@ -129,6 +133,7 @@ export class EntregadoresController {
     );
   }
 
+  @UseGuards(AuthGuard, EntregadorGuard)
   @ApiOperation({ summary: "Atualizar dados ou documentos de um entregador" })
   @ApiConsumes("multipart/form-data")
   @ApiParam({ name: "id", description: "ID do entregador", type: Number })
@@ -181,6 +186,7 @@ export class EntregadoresController {
     );
   }
 
+  @UseGuards(AuthGuard, EntregadorGuard)
   @ApiOperation({ summary: "Adicionar saldo a um entregador" })
   @ApiParam({ name: "id", description: "ID do entregador", type: Number })
   @ApiBody({
@@ -210,6 +216,7 @@ export class EntregadoresController {
     return this.entregadoresService.adicionarSaldo(id, transacaoDto.valor);
   }
 
+  @UseGuards(AuthGuard, EntregadorGuard)
   @ApiOperation({ summary: "Retirar saldo de um entregador" })
   @ApiParam({ name: "id", description: "ID do entregador", type: Number })
   @ApiBody({
@@ -240,6 +247,7 @@ export class EntregadoresController {
     return this.entregadoresService.retirarSaldo(id, transacaoDto.valor);
   }
 
+  @UseGuards(AuthGuard, EntregadorGuard)
   @ApiOperation({ summary: "Definir status do entregador como ONLINE" })
   @ApiParam({ name: "id", description: "ID do entregador", type: Number })
   @ApiResponse({
@@ -264,6 +272,7 @@ export class EntregadoresController {
     return this.entregadoresService.definirStatusOnline(id);
   }
 
+  @UseGuards(AuthGuard, EntregadorGuard)
   @ApiOperation({ summary: "Definir status do entregador como OFFLINE" })
   @ApiParam({ name: "id", description: "ID do entregador", type: Number })
   @ApiResponse({
