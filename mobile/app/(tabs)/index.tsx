@@ -17,6 +17,7 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+
 // Habilita LayoutAnimation no Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -56,12 +57,20 @@ const BORDERS = {
 // --- ESTADOS POSSÍVEIS E MOCK DATA ---
 // ========================================================================
 type AppMode = | 'OFFLINE' | 'IDLE_ONLINE' | 'SOLICITATION' | 'EN_ROUTE_PICKUP' | 'EN_ROUTE_DELIVERY' | 'DELIVERY_FINISHED';
-const mockSolicitation = { // Exemplo - preencha com dados realistas
+const mockSolicitation = { 
     id: '#857', pickupAddress: 'Rua Flores Pereira, 123', deliveryAddress: 'Av. Brasil, 456',
     value: 12.50, storeName: 'Farmácia XYZ', timer: 30,
-    routeToPickup: [ { latitude: -18.579, longitude: -46.51 }, { latitude: -18.582, longitude: -46.515 }],
+    // CORRIGIDO: Adicionado coordenadas de exemplo
+    routeToPickup: [ 
+        { latitude: -18.579, longitude: -46.51 }, 
+        { latitude: -18.582, longitude: -46.515 }
+    ],
 };
-const mockDeliveryRoute = [ { latitude: -18.582, longitude: -46.515 }, { latitude: -18.585, longitude: -46.520 } ];
+const mockDeliveryRoute = [ 
+    // CORRIGIDO: Adicionado coordenadas de exemplo
+    { latitude: -18.582, longitude: -46.515 }, 
+    { latitude: -18.585, longitude: -46.520 } 
+];
 
 // ========================================================================
 // --- COMPONENTE PRINCIPAL ---

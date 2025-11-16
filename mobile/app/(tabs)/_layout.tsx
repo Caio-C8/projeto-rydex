@@ -10,7 +10,7 @@ const guidelineBaseHeight = 812;
 const horizontalScale = (size) => (screenWidth / guidelineBaseWidth) * size;
 const verticalScale = (size) => (screenHeight / guidelineBaseHeight) * size;
 const moderateScale = (size, factor = 0.5) => size + (horizontalScale(size) - size) * factor;
-const COLORS = { primary: "#ff8c00", textMuted: "#b2bec3", white: "#fff", border: "#dfe6e9" };
+const COLORS = { primary: "#ff8c00", textMuted: "#000000", white: "#fff", border: "#dfe6e9" };
 // --- Fim ---
 
 export default function TabLayout() {
@@ -44,7 +44,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore" // Corresponde a explore.tsx (Carteira)
+        name="carteira" // Corresponde a explore.tsx (Carteira)
         options={{
           title: 'Carteira',
           tabBarIcon: ({ color, focused }) => (
