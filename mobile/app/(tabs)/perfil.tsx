@@ -11,10 +11,12 @@ import {
   Alert,
   Dimensions,
   KeyboardTypeOptions,
+  ActivityIndicator
 } from "react-native";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ImagePickerAsset } from 'expo-image-picker';
+import { router } from 'expo-router'; // Importa o router para o Logout
 
 // ========================================================================
 // --- 1. LÓGICA DE RESPONSIVIDADE (ESCALA PROFISSIONAL) ---
@@ -38,6 +40,10 @@ const maskPhoneNumber = (text: string) => {
   return formatted;
 };
 
+// --- CORREÇÃO AQUI ---
+// Remove as aspas. Agora ele lê a variável de ambiente.
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 // ========================================================================
 // --- 2. COMPONENTES REUTILIZÁVEIS ---
 // ========================================================================
@@ -60,7 +66,6 @@ const EditableInput: React.FC<EditableInputProps> = ({ label, value, onChangeTex
         editable={editable}
         maxLength={maxLength}
       />
-      {/* Ícone só aparece se for editável E tiver uma função */}
       {editable && onIconPress && (
         <TouchableOpacity onPress={onIconPress}>
           <Feather name={iconName} size={moderateScale(20)} color="#888" />
@@ -86,38 +91,76 @@ const DocumentPicker: React.FC<DocumentPickerProps> = ({ label, document, onPick
 // --- 3. COMPONENTE PRINCIPAL ---
 // ========================================================================
 const ProfileScreen: React.FC = () => {
-  const [nome, setNome] = useState("João Carlos");
-  const [cpf] = useState("123.***.***-00");
-  const [dataNasc] = useState("03/06/1990");
-  const [celular, setCelular] = useState(""); // Começa vazio
-  const [placa, setPlaca] = useState("XXX0X00");
-  const [chavePix, setChavePix] = useState("joao@email.com");
-  const [email, setEmail] = useState("joao@email.com");
+  // --- Estados começam vazios ou "carregando" ---
+  const [nome, setNome] = useState("Carregando...");
+  const [cpf, setCpf] = useState("...");
+  const [dataNasc, setDataNasc] = useState("...");
+  const [celular, setCelular] = useState("...");
+  const [placa, setPlaca] = useState("...");
+  const [chavePix, setChavePix] = useState("...");
+  const [email, setEmail] = useState("...");
   const [senha, setSenha] = useState("SenhaSuperSecreta");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [cnhDoc, setCnhDoc] = useState<Document | null>(null);
   const [veiculoDoc, setVeiculoDoc] = useState<Document | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Inicializa com os valores iniciais dos estados
-  const [initialData, setInitialData] = useState(() => ({ nome, celular: maskPhoneNumber(celular), placa, chavePix, email, senha, cnhDoc, veiculoDoc }));
+  // --- InitialData começa como null ---
+  const [initialData, setInitialData] = useState(null);
 
-  // useEffect para carregar dados da API (exemplo)
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     // const userData = await fetchUserDataFromAPI();
-  //     // setNome(userData.nome);
-  //     // setCelular(maskPhoneNumber(userData.celular));
-  //     // ... etc
-  //     // setInitialData({ ...userData, celular: maskPhoneNumber(userData.celular) });
-  //   }
-  //   fetchData();
-  // }, []);
+  // --- useEffect para CARREGAR dados da API ---
+  useEffect(() => {
+    // --- CORREÇÃO AQUI: Verifica se a API_URL existe
+    if (!API_URL) {
+      Alert.alert("Erro de Configuração", "URL da API não encontrada. Verifique seu arquivo .env");
+      setIsLoading(false);
+      setNome("Erro"); setCpf("Erro"); setDataNasc("Erro");
+      return;
+    }
+
+    async function carregarDadosDoPerfil() {
+      try {
+        const usuarioId = "123"; // (Substituir pelo ID real)
+        
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/usuario/${usuarioId}`);
+        if (!response.ok) {
+          throw new Error("Falha ao buscar dados do servidor");
+        }
+        
+        const dadosDoBanco = await response.json();
+
+        // Preenche os estados com os dados do banco
+        setNome(dadosDoBanco.nome || "");
+        setCpf(dadosDoBanco.cpf || "");
+        setDataNasc(dadosDoBanco.dataNasc || "");
+        setCelular(maskPhoneNumber(dadosDoBanco.celular || ""));
+        setPlaca(dadosDoBanco.placa || "");
+        setChavePix(dadosDoBanco.chavePix || "");
+        setEmail(dadosDoBanco.email || "");
+        
+        // Define os dados iniciais para a lógica do "Cancelar" e "isDirty"
+        setInitialData({
+          ...dadosDoBanco,
+          celular: maskPhoneNumber(dadosDoBanco.celular || "") // Salva com a máscara
+        });
+
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+        Alert.alert("Erro de Rede", `Não foi possível carregar seus dados. Verifique seu IP e se a API está rodando.\nErro: ${error.message}`);
+        setNome("Erro de Rede"); setCpf("..."); setDataNasc("...");
+      } finally {
+        setIsLoading(false); // Para o indicador de carregamento
+      }
+    }
+
+    carregarDadosDoPerfil();
+  }, []); // O array vazio [] garante que isso rode apenas UMA VEZ
+
 
   // useEffect para detectar mudanças
   useEffect(() => {
-    // Só roda se initialData já foi carregado (importante para evitar falsos positivos na carga inicial)
-    if (!initialData) return;
+    if (!initialData) return; 
 
     const hasChanged =
       initialData.nome !== nome ||
@@ -131,6 +174,7 @@ const ProfileScreen: React.FC = () => {
     setIsDirty(hasChanged);
   }, [nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc, initialData]);
 
+  // --- CORREÇÃO AQUI: Função de pegar imagem RESTAURADA ---
   const handlePickImage = async (setter: (doc: Document | null) => void) => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -147,33 +191,69 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleSave = async () => { // Adicionado async para simular chamada API
+  // --- CORREÇÃO AQUI: Função handleSave com FormData ---
+  const handleSave = async () => {
     const rawPhone = celular.replace(/\D/g, "");
     if (celular && rawPhone.length < 11) {
       Alert.alert("Celular Inválido", "Por favor, preencha o número completo com DDD.");
       return;
     }
+    if (!process.env.EXPO_PUBLIC_API_URL) {
+      Alert.alert("Erro de Configuração", "A URL da API não foi definida.");
+      return;
+    }
 
-    const dataToSave = { nome, celular, placa, chavePix, email, senha /*, cnhUri: cnhDoc?.uri, veiculoUri: veiculoDoc?.uri*/ };
+    const formData = new FormData();
+    formData.append('nome', nome);
+    formData.append('celular', rawPhone);
+    formData.append('placa', placa);
+    formData.append('chavePix', chavePix);
+    formData.append('email', email);
+    formData.append('senha', senha);
 
-    // --- Simulação de chamada API ---
-    // try {
-    //   // const response = await fetch('URL_DA_SUA_API', { method: 'POST', body: JSON.stringify(dataToSave) });
-    //   // if (!response.ok) throw new Error('Falha ao salvar');
-    //   Alert.alert("Sucesso", "Seus dados foram salvos com sucesso!");
-    //   setInitialData({ nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc }); // Atualiza initialData com os valores atuais
-    //   setIsDirty(false); // Esconde botões
-    // } catch (error) {
-    //   Alert.alert("Erro", "Não foi possível salvar os dados.");
-    // }
-    // --- Fim Simulação ---
+    if (cnhDoc) {
+      const uriParts = cnhDoc.uri.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      formData.append('cnhDoc', {
+        uri: cnhDoc.uri, name: `cnh.${fileType}`, type: `image/${fileType}`,
+      } as any);
+    }
+    if (veiculoDoc) {
+      const uriParts = veiculoDoc.uri.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      formData.append('veiculoDoc', {
+        uri: veiculoDoc.uri, name: `veiculo.${fileType}`, type: `image/${fileType}`,
+      } as any);
+    }
 
-    // Remover esta parte quando integrar API
-    Alert.alert("Sucesso", "Seus dados foram salvos com sucesso! (Simulado)");
-    setInitialData({ nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc });
-    setIsDirty(false);
+    try {
+      const usuarioId = "123"; // (Substituir pelo ID real)
+      
+      const response = await fetch(`${API_URL}/usuario/${usuarioId}`, {
+        method: 'POST', // ou 'PUT'
+        body: formData,
+        headers: {
+          // NÃO defina 'Content-Type'. O fetch/FormData faz isso.
+          // 'Authorization': 'Bearer SEU_TOKEN_DE_LOGIN'
+        },
+      });
+
+      if (!response.ok) {
+        const erroApi = await response.text(); 
+        throw new Error(`Falha ao salvar no servidor: ${erroApi}`);
+      }
+      
+      Alert.alert("Sucesso", "Seus dados foram salvos com sucesso!");
+      setInitialData({ nome, celular: maskPhoneNumber(rawPhone), placa, chavePix, email, senha, cnhDoc, veiculoDoc });
+      setIsDirty(false);
+
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      Alert.alert("Erro", `Não foi possível salvar suas alterações. ${error.message}`);
+    }
   };
 
+  // --- CORREÇÃO AQUI: Função handleCancel RESTAURADA ---
   const handleCancel = () => {
     if (!initialData) return;
     setNome(initialData.nome);
@@ -187,6 +267,25 @@ const ProfileScreen: React.FC = () => {
     setIsDirty(false);
   };
 
+  // --- CORREÇÃO AQUI: Função handleLogout ADICIONADA ---
+  const handleLogout = () => {
+    // (Lógica futura: limpar o token do AsyncStorage)
+    router.replace('/login'); // Navega para a tela de login
+  };
+
+  // --- Return de "Carregando..." ---
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#555" />
+          <Text style={styles.loadingText}>Carregando perfil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // --- Return Principal (JSX) ---
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f0f2f5" />
@@ -196,14 +295,16 @@ const ProfileScreen: React.FC = () => {
                 <Text style={styles.headerTitle}>Perfil</Text>
                 <Text style={styles.headerSubtitle}>Alterar dados</Text>
             </View>
-            <TouchableOpacity style={styles.logoutButton}>
+            {/* --- CORREÇÃO AQUI: Adicionado onPress={handleLogout} --- */}
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Text style={styles.logoutButtonText}>Sair</Text>
                 <Feather name="log-out" size={moderateScale(20)} color="#333" />
             </TouchableOpacity>
         </View>
 
+        {/* --- CORREÇÃO AQUI: Removida a View duplicada --- */}
         <View style={styles.formContainer}>
-            <EditableInput label="Nome completo:" value={nome} onChangeText={setNome} onIconPress={() => Alert.alert("Editar nome?")} />
+            <EditableInput label="Nome completo:" value={nome} onChangeText={setNome} onIconPress={() => {}} />
             <View style={styles.row}>
                 <View style={{flex: 1, marginRight: horizontalScale(8)}}>
                     <EditableInput label="CPF:" value={cpf} editable={false} />
@@ -214,14 +315,14 @@ const ProfileScreen: React.FC = () => {
             </View>
             <View style={styles.row}>
                 <View style={{flex: 1, marginRight: horizontalScale(8)}}>
-                    <EditableInput label="Celular:" value={celular} onChangeText={(text) => setCelular(maskPhoneNumber(text))} keyboardType="numeric" maxLength={15} onIconPress={() => Alert.alert("Editar celular?")}/>
+                    <EditableInput label="Celular:" value={celular} onChangeText={(text) => setCelular(maskPhoneNumber(text))} keyboardType="numeric" maxLength={15} onIconPress={() => {}}/>
                 </View>
                 <View style={{flex: 1, marginLeft: horizontalScale(8)}}>
-                    <EditableInput label="Placa veículo:" value={placa} onChangeText={setPlaca} onIconPress={() => Alert.alert("Editar placa?")}/>
+                    <EditableInput label="Placa veículo:" value={placa} onChangeText={setPlaca} onIconPress={() => {}}/>
                 </View>
             </View>
-            <EditableInput label="Chave pix:" value={chavePix} onChangeText={setChavePix} onIconPress={() => Alert.alert("Editar Chave Pix?")}/>
-            <EditableInput label="E-mail:" value={email} onChangeText={setEmail} keyboardType="email-address" onIconPress={() => Alert.alert("Editar e-mail?")}/>
+            <EditableInput label="Chave pix:" value={chavePix} onChangeText={setChavePix} onIconPress={() => {}}/>
+            <EditableInput label="E-mail:" value={email} onChangeText={setEmail} keyboardType="email-address" onIconPress={() => {}}/>
             <EditableInput
                 label="Senha:" value={senha} onChangeText={setSenha} secureTextEntry={!isPasswordVisible}
                 iconName={isPasswordVisible ? "eye-off" : "eye"} onIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -243,7 +344,6 @@ const ProfileScreen: React.FC = () => {
             )}
         </View>
       </ScrollView>
-      {/* A BARRA DE NAVEGAÇÃO SERÁ GERADA PELO _layout.tsx */}
     </SafeAreaView>
   );
 };
@@ -251,14 +351,25 @@ const ProfileScreen: React.FC = () => {
 export default ProfileScreen;
 
 // ========================================================================
-// --- 4. ESTILOS COM ESCALA MODERADA ---
+// --- 4. ESTILOS ---
 // ========================================================================
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f0f2f5' },
   container: {
     flexGrow: 1,
     backgroundColor: '#f0f2f5',
-    paddingBottom: verticalScale(100) // Espaço para a navBar não sobrepor o conteúdo
+    paddingBottom: verticalScale(100)
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f2f5',
+  },
+  loadingText: {
+    marginTop: verticalScale(10),
+    fontSize: moderateScale(16),
+    color: '#555',
   },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -314,17 +425,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: verticalScale(50), // Altura fixa e responsiva
+    height: verticalScale(50),
     fontSize: moderateScale(16),
     color: '#333'
   },
   row: {
     flexDirection: 'row',
-    // Espaçamento será dado pelas margens dos filhos
+    gap: horizontalScale(16) // Adicionado gap para espaçamento
   },
   docPickerContainer: {
     flex: 1, alignItems: 'center',
-    // marginHorizontal dado pelos filhos da row
     marginTop: verticalScale(8),
   },
   docPickerButton: {
@@ -344,7 +454,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   actionButtonsContainer: {
-      marginTop: verticalScale(24), // Espaço acima dos botões
+      marginTop: verticalScale(24),
   },
   saveButton: {
     backgroundColor: '#2E8B57',
@@ -357,12 +467,11 @@ const styles = StyleSheet.create({
     padding: verticalScale(14),
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: verticalScale(12), // Espaço entre os botões
+    marginTop: verticalScale(12),
   },
   buttonText: {
     color: '#fff',
     fontSize: moderateScale(16),
     fontWeight: 'bold'
   },
-  // ESTILOS DA NAVBAR NÃO SÃO MAIS NECESSÁRIOS AQUI
 });

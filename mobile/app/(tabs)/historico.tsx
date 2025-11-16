@@ -73,8 +73,8 @@ interface HistoryCardProps { delivery: Delivery; }
 
 const HistoryCard: React.FC<HistoryCardProps> = ({ delivery }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(delivery.isFinished);
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  // REMOVIDO: const [isEnabled, setIsEnabled] = useState(true);
+  // REMOVIDO: const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
   return (
     <View style={styles.cardContainer}>
@@ -110,19 +110,13 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ delivery }) => {
           )}
         </>
       )}
-       <View style={styles.statusContainer}>
-         <Text style={[styles.statusText, { color: isEnabled ? COLORS.success : COLORS.textMuted }]}>
-           {isEnabled ? 'Finalizada' : delivery.status}
-         </Text>
-         <Switch
-           trackColor={{ false: COLORS.border, true: '#b7ebde' }}
-           thumbColor={isEnabled ? COLORS.success : COLORS.white}
-           ios_backgroundColor={COLORS.border}
-           onValueChange={toggleSwitch}
-           value={isEnabled}
-           style={styles.switch}
-         />
-       </View>
+        <View style={styles.statusContainer}>
+          {/* O texto agora está fixo e sempre verde */}
+          <Text style={[styles.statusText, { color: COLORS.success }]}>
+            Finalizada
+          </Text>
+          {/* O componente Switch foi REMOVIDO */}
+        </View>
     </View>
   );
 };
