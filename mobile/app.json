@@ -12,6 +12,18 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.gjdds.rydex",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBScDlz_hNoeSK9jj2-pcE48q4swHt_Kqg"
+        }
+      },
+      "ios": {
+      "bundleIdentifier": "com.gustavo.rydex", 
+      "config": {
+        "googleMapsApiKey": "AIzaSyBScDlz_hNoeSK9jj2-pcE48q4swHt_Kqg"
+      }
+    },
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
