@@ -1,0 +1,12 @@
+.adicionar-saldo-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adicionar-saldo-container .card {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 400px;
+}
