@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: verticalScale(10),
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   header: {
     flexDirection: 'row', 
@@ -396,11 +396,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FontSizes.titleLarge, // Usa FontSizes
     fontWeight: 'bold',
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   headerSubtitle: {
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   logoutButton: {
     flexDirection: 'row', 
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     marginRight: horizontalScale(8),
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   formContainer: {
     marginHorizontal: horizontalScale(20),
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSizes.caption, // Usa FontSizes
     marginBottom: verticalScale(4),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   inputRow: {
     flexDirection: 'row', 
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: verticalScale(50),
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   row: {
     flexDirection: 'row',
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(8),
     fontSize: FontSizes.small, // Usa FontSizes
     textAlign: 'center',
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   actionButtonsContainer: {
       marginTop: verticalScale(24),
@@ -496,6 +496,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: FontSizes.body, // Usa FontSizes
     fontWeight: 'bold',
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
 });

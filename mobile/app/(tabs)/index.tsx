@@ -240,7 +240,7 @@ const HomeScreen: React.FC = () => {
             return (
                 <View style={[styles.bottomCardBase, styles.summaryCard]}>
                     <View style={styles.summaryHeader}>
-                        <Text style={styles.summaryTitle}>Seus ganhos</MText>
+                        <Text style={styles.summaryTitle}>Seus ganhos</Text>
                         <TouchableOpacity onPress={toggleSummaryExpansion}>
                             <Text style={styles.viewMoreText}>{isSummaryExpanded ? "VER MENOS" : "VER MAIS"}</Text>
                         </TouchableOpacity>
