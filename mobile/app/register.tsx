@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "500", 
     marginBottom: verticalScale(8), // Usa escala
-    fontFamily: Fonts.default.sans, // Usa Fonts
+    fontFamily: Fonts.sans, // Usa Fonts
   },
   textInput: {
     padding: verticalScale(12),
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: "100%",
     fontSize: FontSizes.body,
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
     // cores aplicadas dinamicamente no JSX
   },
   inputWrapper: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: verticalScale(12),
     fontSize: FontSizes.body,
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
     paddingRight: horizontalScale(40),
   },
   eyeIcon: {
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.small, // Usa FontSizes
     marginTop: verticalScale(8),
     textAlign: "center",
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   button: {
     width: "100%",
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: FontSizes.body,
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   linksContainer: {
     alignItems: "center",
@@ -381,6 +381,6 @@ const styles = StyleSheet.create({
   linkOrange: {
     fontSize: FontSizes.caption,
     fontWeight: "700",
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
 });

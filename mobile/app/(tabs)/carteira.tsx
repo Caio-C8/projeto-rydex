@@ -164,25 +164,25 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.titleLarge, // Usa FontSizes
     fontWeight: "bold",
     marginBottom: verticalScale(16),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   saldoLabel: {
     fontSize: FontSizes.body, // Usa FontSizes
     marginBottom: verticalScale(4),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   saldoValor: {
     fontSize: FontSizes.xlarge, // Usa FontSizes
     fontWeight: "bold",
     marginBottom: verticalScale(32),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   inputLabel: {
     fontSize: FontSizes.body, // Usa FontSizes
     marginBottom: verticalScale(8),
     alignSelf: "flex-start",
     marginLeft: horizontalScale(4),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   textInput: {
     width: "100%",
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body, // Usa FontSizes
     marginBottom: verticalScale(24),
     textAlign: "left",
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   button: {
     width: "100%",
@@ -204,12 +204,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   infoText: {
     fontSize: FontSizes.caption, // Usa FontSizes
     textAlign: "center",
     lineHeight: verticalScale(20),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
 });

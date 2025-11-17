@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
         marginTop: verticalScale(50),
         marginBottom: verticalScale(24),
         paddingHorizontal: horizontalScale(8),
-        fontFamily: Fonts.default.sans,
+        fontFamily: Fonts.sans,
     },
     dateGroupContainer: { 
       marginBottom: verticalScale(16),
@@ -198,13 +198,13 @@ const styles = StyleSheet.create({
     dateText: { 
       fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
       fontWeight: 'bold', 
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     totalAmountText: { 
       fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
       fontWeight: 'bold', 
       marginRight: horizontalScale(16),
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     deliveriesList: { 
       marginTop: verticalScale(8),
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     cardTitle: { 
       fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
       fontWeight: 'bold', 
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     cardRow: { 
       flexDirection: 'row', 
@@ -241,14 +241,14 @@ const styles = StyleSheet.create({
       fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
       marginRight: horizontalScale(8), 
       minWidth: horizontalScale(60),
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     cardValue: { 
       fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
       fontWeight: '500', 
       flexShrink: 1, 
       textAlign: 'right',
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     addressText: { 
       textAlign: 'right',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
       fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
       marginTop: verticalScale(4), 
       lineHeight: FontSizes.caption * 1.4,
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
     statusContainer: { 
       flexDirection: 'row', 
@@ -276,6 +276,6 @@ const styles = StyleSheet.create({
       fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
       fontWeight: 'bold', 
       marginRight: horizontalScale(8),
-      fontFamily: Fonts.default.sans,
+      fontFamily: Fonts.sans,
     },
 });

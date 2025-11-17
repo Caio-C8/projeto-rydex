@@ -86,9 +86,9 @@ const styles = StyleSheet.create({
     tabBarLabel: {
         fontSize: moderateScale(11),
         marginBottom: verticalScale(-5), // Aproxima o texto (do seu código)
-        fontFamily: Fonts.default.sans, // Adiciona a fonte padrão
+        fontFamily: Fonts.sans, // Adiciona a fonte padrão
     },
     tabBarItem: {
         // Estilos para cada item individual, se necessário
     }
-});
+});                                           

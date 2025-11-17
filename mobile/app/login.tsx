@@ -26,9 +26,10 @@ export default function LoginScreen() {
   const themeColors = Colors[colorScheme ?? 'light'];
 
   const handleSubmit = () => {
-    console.log("Login:", { email, password });
-    // No futuro: router.push('/(tabs)/');
-    Alert.alert("Login", "Login realizado com sucesso! (simulação)");
+    console.log("Login simulado:", { email, password });
+    // 1. Mostra um alerta rápido (opcional)
+    Alert.alert("Login", "Bem-vindo de volta!"); 
+    router.replace('/(tabs)/'); 
   };
 
   return (
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "500",
     marginBottom: verticalScale(8), // Usa escala
-    fontFamily: Fonts.default.sans, // Usa Fonts
+    fontFamily: Fonts.sans, // Usa Fonts
   },
   // Este estilo é usado apenas pelo campo de E-mail
   textInput: {
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: "100%",
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
     // cores aplicadas dinamicamente no JSX
   },
   inputWrapper: {
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: verticalScale(12),
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
     paddingRight: horizontalScale(40),
   },
   eyeIcon: {
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   linksContainer: {
     alignItems: "center",
@@ -206,11 +207,11 @@ const styles = StyleSheet.create({
   linkOrange: {
     fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "700",
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   linkGray: {
     fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "700",
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
 });

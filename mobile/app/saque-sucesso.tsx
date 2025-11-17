@@ -99,14 +99,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: verticalScale(24), 
     marginBottom: verticalScale(16),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   subText: {
     fontSize: FontSizes.body, // Usa FontSizes
     textAlign: "center",
     lineHeight: verticalScale(24), 
     marginBottom: verticalScale(32),
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
   button: {
     width: "100%",
@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: FontSizes.body, // Usa FontSizes
-    fontFamily: Fonts.default.sans,
+    fontFamily: Fonts.sans,
   },
 });
