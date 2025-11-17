@@ -12,7 +12,7 @@ import {
     Alert,
     UIManager,
     LayoutAnimation
-} from 'react-native';
+} from 'react-native'; // Seu import está correto!
 import { Feather, Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -60,14 +60,12 @@ type AppMode = | 'OFFLINE' | 'IDLE_ONLINE' | 'SOLICITATION' | 'EN_ROUTE_PICKUP' 
 const mockSolicitation = { 
     id: '#857', pickupAddress: 'Rua Flores Pereira, 123', deliveryAddress: 'Av. Brasil, 456',
     value: 12.50, storeName: 'Farmácia XYZ', timer: 30,
-    // CORRIGIDO: Adicionado coordenadas de exemplo
     routeToPickup: [ 
         { latitude: -18.579, longitude: -46.51 }, 
         { latitude: -18.582, longitude: -46.515 }
     ],
 };
 const mockDeliveryRoute = [ 
-    // CORRIGIDO: Adicionado coordenadas de exemplo
     { latitude: -18.582, longitude: -46.515 }, 
     { latitude: -18.585, longitude: -46.520 } 
 ];
@@ -77,16 +75,14 @@ const mockDeliveryRoute = [
 // ========================================================================
 const HomeScreen: React.FC = () => {
 
-    // --- ESTADOS NORMAIS (RESTAURADOS) ---
-    const [appMode, setAppMode] = useState<AppMode>('OFFLINE'); // << Começa OFFLINE
-    const [isOnline, setIsOnline] = useState(false);            // << Começa OFFLINE
+    // --- ESTADOS ---
+    const [appMode, setAppMode] = useState<AppMode>('OFFLINE');
+    const [isOnline, setIsOnline] = useState(false);
     const [solicitation, setSolicitation] = useState(null);
     const [timer, setTimer] = useState(30);
-    const [region, setRegion] = useState<Region>({             // << Região inicial padrão
-        latitude: -18.5792, // Patos de Minas
-        longitude: -46.5176,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.01
+    const [region, setRegion] = useState<Region>({ 
+        latitude: -18.5792, longitude: -46.5176,
+        latitudeDelta: 0.02, longitudeDelta: 0.01
     });
     const [routeCoords, setRouteCoords] = useState([]);
     const [navInstruction, setNavInstruction] = useState('');
@@ -95,8 +91,7 @@ const HomeScreen: React.FC = () => {
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const locationSubscription = useRef<Location.LocationSubscription | null>(null);
-    // --- FIM DOS ESTADOS NORMAIS ---
-
+    // --- FIM DOS ESTADOS ---
 
     // --- useEffect para Localização ---
     useEffect(() => {
@@ -118,7 +113,7 @@ const HomeScreen: React.FC = () => {
                         latitude: currentLocation.coords.latitude, longitude: currentLocation.coords.longitude,
                         latitudeDelta: 0.01, longitudeDelta: 0.005,
                     };
-                    setRegion(initialMapRegion); // Define a região inicial baseada no GPS
+                    setRegion(initialMapRegion); 
                     mapRef.current?.animateToRegion(initialMapRegion, 1000);
                 }
             } catch (error) { if (isMounted) setErrorMsg("Erro ao obter localização."); console.error(error); }
@@ -128,17 +123,13 @@ const HomeScreen: React.FC = () => {
                 (newLocation) => {
                     if (isMounted) {
                         setLocation(newLocation);
-                        // Opcional: Animar mapa para seguir (só se ocioso)
-                        // if (appMode === 'IDLE_ONLINE' || appMode === 'OFFLINE') {
-                        //     mapRef.current?.animateCamera({ center: newLocation.coords }, { duration: 1000 });
-                        // }
                     }
                 }
             );
         };
         startLocationTracking();
         return () => { isMounted = false; locationSubscription.current?.remove(); };
-    }, []); // Array vazio garante que rode só uma vez
+    }, []); 
 
     // --- useEffect para Timer da Solicitação ---
     useEffect(() => {
@@ -204,9 +195,39 @@ const HomeScreen: React.FC = () => {
     };
 
     const renderBottomCard = () => {
+        // ===================================
+        // --- CÓDIGO DO CARD FALTANTE (PREENCHIDO) ---
+        // ===================================
         if (appMode === 'SOLICITATION' && solicitation) {
-             return ( <View style={[styles.bottomCardBase, styles.solicitationCard]}> {/* ... Conteúdo Solicitação ... */} </View> );
+            return ( 
+                <View style={[styles.bottomCardBase, styles.solicitationCard]}>
+                    <View style={styles.timerContainer}>
+                        <Text style={styles.timerText}>{timer}</Text>
+                        <Text style={styles.timerLabel}>segundos</Text>
+                    </View>
+                    <View style={styles.solicitationDetails}>
+                        <Text style={styles.solicitationTitle}>{solicitation.storeName}</Text>
+                        <Text style={styles.solicitationValue}>R$ {solicitation.value.toFixed(2).replace('.', ',')}</Text>
+                        <Text style={styles.detailLabel}>COLETA</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>{solicitation.pickupAddress}</Text>
+                        <Text style={styles.detailLabel}>ENTREGA</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>{solicitation.deliveryAddress}</Text>
+                    </View>
+                    <View style={styles.solicitationActions}>
+                        <TouchableOpacity style={[styles.actionButton, styles.rejectButton]} onPress={handleRejectSolicitation}>
+                            <Text style={styles.actionButtonText}>REJEITAR</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.actionButton, styles.acceptButton]} onPress={handleAcceptSolicitation}>
+                            <Text style={styles.actionButtonText}>ACEITAR</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View> 
+            );
         }
+        // ===================================
+        // --- FIM DO CÓDIGO FALTANTE ---
+        // ===================================
+
         if (appMode === 'EN_ROUTE_PICKUP' || appMode === 'EN_ROUTE_DELIVERY' || appMode === 'DELIVERY_FINISHED' || navInstruction === 'Entregar o pedido') {
             let button1, button2;
             if (appMode === 'EN_ROUTE_PICKUP') { button1 = <TouchableOpacity style={[styles.actionButton, styles.primaryButton]} onPress={handleArrivedPickup}><Text style={styles.actionButtonText}>CHEGUEI NA EMPRESA</Text></TouchableOpacity>; button2 = <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={handleCancelDelivery}><Text style={styles.cancelButtonText}>CANCELAR</Text></TouchableOpacity>; }
@@ -215,29 +236,29 @@ const HomeScreen: React.FC = () => {
             else if (appMode === 'DELIVERY_FINISHED') { button1 = <Text style={styles.finishedText}>ENTREGA FINALIZADA</Text>; }
             return ( <View style={[styles.bottomCardBase, styles.deliveryActionsContainer]}>{button1}{button2}</View> );
         }
-        if (appMode === 'OFFLINE') {
-             return (
-                 <View style={[styles.bottomCardBase, styles.summaryCard]}>
-                     <View style={styles.summaryHeader}>
-                         <Text style={styles.summaryTitle}>Seus ganhos</Text>
-                         <TouchableOpacity onPress={toggleSummaryExpansion}>
-                             <Text style={styles.viewMoreText}>{isSummaryExpanded ? "VER MENOS" : "VER MAIS"}</Text>
-                         </TouchableOpacity>
-                     </View>
-                     {isSummaryExpanded && (
+        if (appMode === 'OFFLINE' || (appMode === 'IDLE_ONLINE' && isSummaryExpanded)) { // <-- Modificado para mostrar também em IDLE_ONLINE
+            return (
+                <View style={[styles.bottomCardBase, styles.summaryCard]}>
+                    <View style={styles.summaryHeader}>
+                        <Text style={styles.summaryTitle}>Seus ganhos</MText>
+                        <TouchableOpacity onPress={toggleSummaryExpansion}>
+                            <Text style={styles.viewMoreText}>{isSummaryExpanded ? "VER MENOS" : "VER MAIS"}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {isSummaryExpanded && (
                         <>
-                             <Text style={styles.earningsText}>R$ 20,00</Text>
-                             <Text style={styles.earningsLabel}>Entregas do dia</Text>
-                             <View style={styles.statsContainer}>
+                            <Text style={styles.earningsText}>R$ 20,00</Text>
+                            <Text style={styles.earningsLabel}>Entregas do dia</Text>
+                            <View style={styles.statsContainer}>
                                 <View style={styles.statItem}><Text style={styles.statValue}>2</Text><Text style={styles.statLabel}>Rotas Aceitas</Text></View>
                                 <View style={styles.statItem}><Text style={styles.statValue}>1</Text><Text style={styles.statLabel}>Finalizadas</Text></View>
                                 <View style={styles.statItem}><Text style={styles.statValue}>0</Text><Text style={styles.statLabel}>Recusadas</Text></View>
                                 <View style={styles.statItem}><Text style={styles.statValue}>1</Text><Text style={styles.statLabel}>Canceladas</Text></View>
-                             </View>
+                            </View>
                         </>
-                     )}
-                 </View>
-             );
+                    )}
+                </View>
+            );
         }
         return null;
     };
@@ -252,26 +273,29 @@ const HomeScreen: React.FC = () => {
                     onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
                     mapPadding={{ top: verticalScale(100), right: 0, bottom: verticalScale(100 + TAB_BAR_HEIGHT), left: 0 }}
                 >
-                      {routeCoords.length > 0 && ( <Polyline coordinates={routeCoords} strokeColor={COLORS.mapBlue} strokeWidth={4} /> )}
-                      {solicitation && appMode !== 'IDLE_ONLINE' && appMode !== 'OFFLINE' && (
-                          <>
-                              {routeCoords.length > 0 && <Marker coordinate={routeCoords[0]} title="Coleta" pinColor="orange" />}
-                              {routeCoords.length > 0 && <Marker coordinate={routeCoords[routeCoords.length - 1]} title="Entrega" pinColor="green" />}
-                          </>
-                      )}
+                        {routeCoords.length > 0 && ( <Polyline coordinates={routeCoords} strokeColor={COLORS.mapBlue} strokeWidth={4} /> )}
+                        {solicitation && appMode !== 'IDLE_ONLINE' && appMode !== 'OFFLINE' && (
+                            <>
+                                {routeCoords.length > 0 && <Marker coordinate={routeCoords[0]} title="Coleta" pinColor="orange" />}
+                                {routeCoords.length > 0 && <Marker coordinate={routeCoords[routeCoords.length - 1]} title="Entrega" pinColor="green" />}
+                            </>
+                        )}
                 </MapView>
                 {renderTopStatus()}
-                {(appMode === 'IDLE_ONLINE' || appMode === 'OFFLINE') && !isSummaryExpanded && (
+                {/* Modificado para mostrar o resumo e o botão de simulação */}
+                {(appMode === 'IDLE_ONLINE' && !isSummaryExpanded) && (
                     <TouchableOpacity style={styles.floatingButton} onPress={simulateReceiveSolicitation}>
-                         <Ionicons name="paper-plane" size={moderateScale(24)} color={COLORS.white} />
+                        <Ionicons name="paper-plane" size={moderateScale(24)} color={COLORS.white} />
                     </TouchableOpacity>
                 )}
-                 <TouchableOpacity
-                     style={styles.recenterGpsButton}
-                     onPress={() => { if (location && mapRef.current) { mapRef.current.animateCamera({ center: location.coords }, { duration: 1000 }); } }}
-                 >
-                     <Ionicons name="navigate" size={moderateScale(24)} color={COLORS.primary} />
-                 </TouchableOpacity>
+                 {(appMode === 'IDLE_ONLINE' || appMode === 'OFFLINE') && (
+                     <TouchableOpacity
+                        style={styles.recenterGpsButton}
+                        onPress={() => { if (location && mapRef.current) { mapRef.current.animateCamera({ center: location.coords }, { duration: 1000 }); } }}
+                     >
+                        <Ionicons name="navigate" size={moderateScale(24)} color={COLORS.primary} />
+                    </TouchableOpacity>
+                 )}
             </View>
             {renderBottomCard()}
         </SafeAreaView>
@@ -318,10 +342,10 @@ const styles = StyleSheet.create({
          elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 3,
      },
      recenterGpsButton: {
-        position: 'absolute', bottom: TAB_BAR_HEIGHT + verticalScale(100) + SPACING.medium,
-        left: horizontalScale(20), backgroundColor: COLORS.white, width: moderateScale(45), height: moderateScale(45),
-        borderRadius: moderateScale(25), justifyContent: 'center', alignItems: 'center',
-        elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3,
+         position: 'absolute', bottom: TAB_BAR_HEIGHT + verticalScale(100) + SPACING.medium,
+         left: horizontalScale(20), backgroundColor: COLORS.white, width: moderateScale(45), height: moderateScale(45),
+         borderRadius: moderateScale(25), justifyContent: 'center', alignItems: 'center',
+         elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3,
      },
     bottomCardBase: {
         position: 'absolute', bottom: TAB_BAR_HEIGHT + verticalScale(5),

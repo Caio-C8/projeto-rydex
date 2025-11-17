@@ -5,31 +5,45 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  useColorScheme, // 1. Importado
 } from "react-native";
 import { router } from "expo-router";
-import { ErrorIcon } from "../components/Icons"; // Importa o novo ícone
+import { ErrorIcon } from "../components/Icons"; 
+
+// 2. Importado do seu novo theme.ts
+import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
 
 export default function SaqueErroScreen() {
+  // 3. Pega o tema (light/dark) e as cores corretas
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
+
   const handleVoltar = () => {
-    // Volta para a tela anterior (a de Carteira)
     router.back();
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // 4. Cor de fundo dinâmica aplicada
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
       <View style={styles.container}>
-        {/* O "card" branco principal */}
-        <View style={styles.card}>
+        {/* 5. Cor de fundo do card dinâmica */}
+        <View style={[styles.card, { backgroundColor: themeColors.background }]}>
           <ErrorIcon />
 
-          <Text style={styles.title}>Erro na transferência</Text>
+          {/* 6. Cores e fontes dinâmicas */}
+          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>
+            Erro na transferência
+          </Text>
 
-          <Text style={styles.subText}>
+          <Text style={[styles.subText, { color: themeColors.textGray }]}>
             Erro ao processar a transferência. Tente novamente mais tarde
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={handleVoltar}>
-            <Text style={styles.buttonText}>Voltar</Text>
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+            onPress={handleVoltar}
+          >
+            <Text style={[styles.buttonText, { color: themeColors.white }]}>Voltar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -38,25 +52,25 @@ export default function SaqueErroScreen() {
 }
 
 // ===============================================
-// ESTILOS (Quase idênticos ao saque-sucesso.tsx)
+// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F0F0F0", // Fundo cinza claro da tela
+    // cor de fundo aplicada dinamicamente no JSX
   },
   container: {
     flex: 1,
-    padding: 16,
-    justifyContent: "center", // Centraliza o card verticalmente
-    alignItems: "center", // Centraliza o card horizontalmente
+    padding: horizontalScale(16),
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
     width: "100%",
     maxWidth: 450,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 24,
-    paddingVertical: 48,
+    // cor de fundo aplicada dinamicamente no JSX
+    paddingHorizontal: horizontalScale(24),
+    paddingVertical: verticalScale(48),
     borderRadius: 30,
     alignItems: "center",
     shadowColor: "#000",
@@ -66,30 +80,29 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 22,
+    fontSize: FontSizes.subtitle, // Usa FontSizes
     fontWeight: "bold",
-    color: "#FF5722", // Laranja Rydex
-    marginTop: 24,
-    marginBottom: 16,
-    textAlign: "center", // Garante centralização
+    marginTop: verticalScale(24),
+    marginBottom: verticalScale(16),
+    textAlign: "center",
+    fontFamily: Fonts.default.sans,
   },
   subText: {
-    fontSize: 16,
-    color: "#6B7280", // Cinza médio
+    fontSize: FontSizes.body, // Usa FontSizes
     textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 32,
+    lineHeight: verticalScale(24),
+    marginBottom: verticalScale(32),
+    fontFamily: Fonts.default.sans,
   },
   button: {
     width: "100%",
-    paddingVertical: 14,
-    backgroundColor: "#FF5722",
+    paddingVertical: verticalScale(14),
     borderRadius: 12,
   },
   buttonText: {
-    color: "#FFFFFF", // Texto branco
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 16,
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.default.sans,
   },
 });

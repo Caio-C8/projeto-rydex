@@ -7,45 +7,15 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  Dimensions,
-  Switch
+  useColorScheme, // 1. Importado
 } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+
+// 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
+import { Colors, FontSizes, Fonts, verticalScale, horizontalScale, moderateScale } from '../../constants/theme';
 
 // ========================================================================
-// --- 1. LÓGICA DE ESCALA PROFISSIONAL ---
-// ========================================================================
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-const guidelineBaseWidth = 375;
-const guidelineBaseHeight = 812;
-
-const horizontalScale = (size) => (screenWidth / guidelineBaseWidth) * size;
-const verticalScale = (size) => (screenHeight / guidelineBaseHeight) * size;
-const moderateScale = (size, factor = 0.5) => size + (horizontalScale(size) - size) * factor;
-
-// ========================================================================
-// --- 2. CONSTANTES DE ESTILO (TEMA) ---
-// ========================================================================
-const COLORS = {
-  background: "#f4f5f7", white: "#fff", textPrimary: "#2d3436",
-  textSecondary: "#636e72", textMuted: "#b2bec3", primary: "#ff8c00",
-  border: "#dfe6e9", shadow: '#a0a0a0', success: '#2ecc71', // Verde mais vivo para status
-  lightGrey: '#f9f9f9',
-};
-const SPACING = {
-  xsmall: moderateScale(4), small: moderateScale(8), medium: moderateScale(16),
-  large: moderateScale(24),
-};
-const FONT_SIZES = {
-  small: moderateScale(12), medium: moderateScale(14), large: moderateScale(16),
-  xlarge: moderateScale(32),
-};
-const BORDERS = {
-  radiusSmall: moderateScale(8), radiusMedium: moderateScale(16),
-};
-
-// ========================================================================
-// --- MOCK DATA E INTERFACES ---
+// --- MOCK DATA E INTERFACES (Permanece igual) ---
 // ========================================================================
 const historyData = [
   {
@@ -69,53 +39,55 @@ interface HistoryDay { date: string; totalAmount: number; deliveries: Delivery[]
 // ========================================================================
 // --- COMPONENTES REUTILIZÁVEIS DA TELA ---
 // ========================================================================
-interface HistoryCardProps { delivery: Delivery; }
+interface HistoryCardProps { 
+  delivery: Delivery; 
+  themeColors: typeof Colors.light; // 3. Precisa receber as cores
+}
 
-const HistoryCard: React.FC<HistoryCardProps> = ({ delivery }) => {
+const HistoryCard: React.FC<HistoryCardProps> = ({ delivery, themeColors }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  // REMOVIDO: const [isEnabled, setIsEnabled] = useState(true);
-  // REMOVIDO: const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+
+  // Define a cor do status (verde para Finalizada, cinza para outras)
+  const statusColor = delivery.isFinished ? '#2ecc71' : themeColors.textGray;
 
   return (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, { backgroundColor: themeColors.background, borderColor: themeColors.lightGray }]}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{delivery.type} {delivery.id}</Text>
+        <Text style={[styles.cardTitle, { color: themeColors.text }]}>{delivery.type} {delivery.id}</Text>
         <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-          <Feather name={isExpanded ? 'chevron-up' : 'chevron-down'} size={moderateScale(24)} color={COLORS.textMuted} />
+          <Feather name={isExpanded ? 'chevron-up' : 'chevron-down'} size={moderateScale(24)} color={themeColors.textGray} />
         </TouchableOpacity>
       </View>
       <View style={styles.cardRow}>
-        <Text style={styles.cardLabel}>Valor</Text>
-        <Text style={styles.cardValue}>R$ {delivery.value.toFixed(2).replace('.', ',')}</Text>
+        <Text style={[styles.cardLabel, { color: themeColors.textGray }]}>Valor</Text>
+        <Text style={[styles.cardValue, { color: themeColors.text }]}>R$ {delivery.value.toFixed(2).replace('.', ',')}</Text>
       </View>
       <View style={styles.cardRow}>
-        <Text style={styles.cardLabel}>Saída</Text>
-        <Text style={[styles.cardValue, styles.addressText]}>{delivery.departure}</Text>
+        <Text style={[styles.cardLabel, { color: themeColors.textGray }]}>Saída</Text>
+        <Text style={[styles.cardValue, styles.addressText, { color: themeColors.text }]}>{delivery.departure}</Text>
       </View>
       {isExpanded && (
         <>
           <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Destino</Text>
-            <Text style={[styles.cardValue, styles.addressText]}>{delivery.destination || 'N/A'}</Text>
+            <Text style={[styles.cardLabel, { color: themeColors.textGray }]}>Destino</Text>
+            <Text style={[styles.cardValue, styles.addressText, { color: themeColors.text }]}>{delivery.destination || 'N/A'}</Text>
           </View>
           <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Retorno</Text>
-            <Text style={[styles.cardValue, styles.addressText]}>{delivery.returnAddress || 'N/A'}</Text>
+            <Text style={[styles.cardLabel, { color: themeColors.textGray }]}>Retorno</Text>
+            <Text style={[styles.cardValue, styles.addressText, { color: themeColors.text }]}>{delivery.returnAddress || 'N/A'}</Text>
           </View>
           {delivery.notes && (
-            <View style={styles.notesContainer}>
-                <Text style={styles.cardLabel}>Observações</Text>
-                <Text style={styles.notesText}>{delivery.notes}</Text>
+            <View style={[styles.notesContainer, { borderColor: themeColors.lightGray }]}>
+              <Text style={[styles.cardLabel, { color: themeColors.textGray }]}>Observações</Text>
+              <Text style={[styles.notesText, { color: themeColors.textGray }]}>{delivery.notes}</Text>
             </View>
           )}
         </>
       )}
-        <View style={styles.statusContainer}>
-          {/* O texto agora está fixo e sempre verde */}
-          <Text style={[styles.statusText, { color: COLORS.success }]}>
-            Finalizada
+        <View style={[styles.statusContainer, { borderColor: themeColors.lightGray }]}>
+          <Text style={[styles.statusText, { color: statusColor }]}>
+            {delivery.status}
           </Text>
-          {/* O componente Switch foi REMOVIDO */}
         </View>
     </View>
   );
@@ -125,7 +97,10 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ delivery }) => {
 // --- COMPONENTE PRINCIPAL ---
 // ========================================================================
 const HistoryScreen: React.FC = () => {
-  // ALTERADO: Inicializa o estado com todas as datas do mock data expandidas
+  // 4. Pega o tema (light/dark) e as cores corretas
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
+
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set(historyData.map(day => day.date)));
 
   const toggleDateExpansion = (date: string) => {
@@ -141,29 +116,31 @@ const HistoryScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    // 5. Cor de fundo dinâmica aplicada
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={themeColors.appBackground} />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>Histórico</Text>
+        <Text style={[styles.screenTitle, { color: themeColors.text }]}>Histórico</Text>
 
         {historyData.map((dayData) => {
           const isDateExpanded = expandedDates.has(dayData.date);
           return (
             <View key={dayData.date} style={styles.dateGroupContainer}>
-              <TouchableOpacity onPress={() => toggleDateExpansion(dayData.date)} style={styles.dateHeader}>
-                <Text style={styles.dateText}>{dayData.date}</Text>
+              <TouchableOpacity onPress={() => toggleDateExpansion(dayData.date)} style={[styles.dateHeader, { backgroundColor: themeColors.background, borderColor: themeColors.lightGray }]}>
+                <Text style={[styles.dateText, { color: themeColors.textGray }]}>{dayData.date}</Text>
                 <View style={styles.dateHeaderRight}>
-                  <Text style={styles.totalAmountText}>R$ {dayData.totalAmount.toFixed(2).replace('.', ',')}</Text>
-                  <Feather name={isDateExpanded ? 'chevron-up' : 'chevron-down'} size={moderateScale(24)} color={COLORS.textSecondary} />
+                  <Text style={[styles.totalAmountText, { color: themeColors.text }]}>R$ {dayData.totalAmount.toFixed(2).replace('.', ',')}</Text>
+                  <Feather name={isDateExpanded ? 'chevron-up' : 'chevron-down'} size={moderateScale(24)} color={themeColors.textGray} />
                 </View>
               </TouchableOpacity>
               {isDateExpanded && (
                 <View style={styles.deliveriesList}>
                   {dayData.deliveries.map((delivery) => (
-                    <HistoryCard key={delivery.id} delivery={delivery} />
+                    // 6. Passa as cores para o componente Card
+                    <HistoryCard key={delivery.id} delivery={delivery} themeColors={themeColors} />
                   ))}
                 </View>
               )}
@@ -171,7 +148,6 @@ const HistoryScreen: React.FC = () => {
           );
         })}
       </ScrollView>
-      {/* A BARRA DE NAVEGAÇÃO É GERADA PELO _layout.tsx */}
     </SafeAreaView>
   );
 };
@@ -179,50 +155,127 @@ const HistoryScreen: React.FC = () => {
 export default HistoryScreen;
 
 // ========================================================================
-// --- ESTILOS ---
+// --- ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA) ---
 // ========================================================================
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: COLORS.background },
+    safeArea: { 
+      flex: 1, 
+      // cor de fundo aplicada dinamicamente no JSX
+    },
     container: {
         paddingBottom: verticalScale(100),
-        paddingHorizontal: SPACING.medium,
+        paddingHorizontal: horizontalScale(16),
     },
     screenTitle: {
-        fontSize: FONT_SIZES.xlarge, fontWeight: 'bold', color: COLORS.textPrimary,
+        fontSize: moderateScale(32), // Mapeado do FONT_SIZES.xlarge
+        fontWeight: 'bold', 
         marginTop: verticalScale(50),
-        marginBottom: SPACING.large,
-        paddingHorizontal: SPACING.small,
+        marginBottom: verticalScale(24),
+        paddingHorizontal: horizontalScale(8),
+        fontFamily: Fonts.default.sans,
     },
-    dateGroupContainer: { marginBottom: SPACING.medium },
+    dateGroupContainer: { 
+      marginBottom: verticalScale(16),
+    },
     dateHeader: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingVertical: SPACING.medium, paddingHorizontal: SPACING.medium,
-        backgroundColor: COLORS.white,
-        borderBottomWidth: 1, borderColor: COLORS.border,
-        borderRadius: BORDERS.radiusSmall,
-        elevation: 1,
-        shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05, shadowRadius: 1,
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        paddingVertical: verticalScale(16), 
+        paddingHorizontal: horizontalScale(16),
+        borderBottomWidth: 1, 
+        borderRadius: 10, // Mapeado do BORDERS.radiusSmall
+        elevation: 1, 
+        shadowColor: "#a0a0a0", 
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05, 
+        shadowRadius: 1,
     },
-    dateHeaderRight: { flexDirection: 'row', alignItems: 'center' },
-    dateText: { fontSize: FONT_SIZES.large, fontWeight: 'bold', color: COLORS.textSecondary },
-    totalAmountText: { fontSize: FONT_SIZES.large, fontWeight: 'bold', color: COLORS.textPrimary, marginRight: SPACING.medium },
-    deliveriesList: { marginTop: SPACING.small },
+    dateHeaderRight: { 
+      flexDirection: 'row', 
+      alignItems: 'center',
+    },
+    dateText: { 
+      fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
+      fontWeight: 'bold', 
+      fontFamily: Fonts.default.sans,
+    },
+    totalAmountText: { 
+      fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
+      fontWeight: 'bold', 
+      marginRight: horizontalScale(16),
+      fontFamily: Fonts.default.sans,
+    },
+    deliveriesList: { 
+      marginTop: verticalScale(8),
+    },
     cardContainer: {
-        backgroundColor: COLORS.white, borderRadius: BORDERS.radiusMedium,
-        padding: SPACING.medium, marginBottom: SPACING.medium,
-        elevation: 3, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1, shadowRadius: 4,
+        borderRadius: 20, // Mapeado do BORDERS.radiusMedium
+        padding: horizontalScale(16), 
+        marginBottom: verticalScale(16),
+        elevation: 3, 
+        shadowColor: "#a0a0a0", 
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1, 
+        shadowRadius: 4,
+        borderWidth: 1, // Adicionado para dark mode
     },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.medium },
-    cardTitle: { fontSize: FONT_SIZES.large, fontWeight: 'bold', color: COLORS.textPrimary },
-    cardRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.small, alignItems: 'flex-start' },
-    cardLabel: { fontSize: FONT_SIZES.medium, color: COLORS.textSecondary, marginRight: SPACING.small, minWidth: horizontalScale(60) },
-    cardValue: { fontSize: FONT_SIZES.medium, color: COLORS.textPrimary, fontWeight: '500', flexShrink: 1, textAlign: 'right' },
-    addressText: { textAlign: 'right' },
-    notesContainer: { marginTop: SPACING.small, paddingTop: SPACING.small, borderTopWidth: 1, borderColor: COLORS.border },
-    notesText: { fontSize: FONT_SIZES.medium, color: COLORS.textSecondary, marginTop: SPACING.xsmall, lineHeight: FONT_SIZES.medium * 1.4 },
-    statusContainer: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: SPACING.medium, paddingTop: SPACING.medium, borderTopWidth: 1, borderColor: COLORS.border },
-    statusText: { fontSize: FONT_SIZES.medium, fontWeight: 'bold', marginRight: SPACING.small },
-    switch: { transform: [{ scaleX: .8 }, { scaleY: .8 }] },
+    cardHeader: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      marginBottom: verticalScale(16),
+    },
+    cardTitle: { 
+      fontSize: FontSizes.subtitle, // Mapeado do FONT_SIZES.large
+      fontWeight: 'bold', 
+      fontFamily: Fonts.default.sans,
+    },
+    cardRow: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      marginBottom: verticalScale(8), 
+      alignItems: 'flex-start',
+    },
+    cardLabel: { 
+      fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
+      marginRight: horizontalScale(8), 
+      minWidth: horizontalScale(60),
+      fontFamily: Fonts.default.sans,
+    },
+    cardValue: { 
+      fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
+      fontWeight: '500', 
+      flexShrink: 1, 
+      textAlign: 'right',
+      fontFamily: Fonts.default.sans,
+    },
+    addressText: { 
+      textAlign: 'right',
+    },
+    notesContainer: { 
+      marginTop: verticalScale(8), 
+      paddingTop: verticalScale(8), 
+      borderTopWidth: 1, 
+    },
+    notesText: { 
+      fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
+      marginTop: verticalScale(4), 
+      lineHeight: FontSizes.caption * 1.4,
+      fontFamily: Fonts.default.sans,
+    },
+    statusContainer: { 
+      flexDirection: 'row', 
+      justifyContent: 'flex-end', 
+      alignItems: 'center', 
+      marginTop: verticalScale(16), 
+      paddingTop: verticalScale(16), 
+      borderTopWidth: 1, 
+    },
+    statusText: { 
+      fontSize: FontSizes.caption, // Mapeado do FONT_SIZES.medium
+      fontWeight: 'bold', 
+      marginRight: horizontalScale(8),
+      fontFamily: Fonts.default.sans,
+    },
 });
