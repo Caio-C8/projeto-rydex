@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header/Header";
 import SideBar from "./components/layout/SideBar/SideBar";
-import { Routes, Route, useLocation } from "react-router-dom";
+import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
+import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 
 const getTitulo = (path: string): string => {
   switch (path) {
@@ -20,7 +22,7 @@ const getTitulo = (path: string): string => {
   }
 };
 
-const App: React.FC = () => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSideBarExpandida, setIsSideBarExpandida] = useState(false);
   const location = useLocation();
   const tituloDinamico = getTitulo(location.pathname);
@@ -35,20 +37,36 @@ const App: React.FC = () => {
 
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
-
-        <Routes>
-          <Route path="/" />
-          <Route path="/adicionar-saldo" />
-          <Route path="/historico" />
-          <Route path="/solicitar-entrega" />
-          <Route path="/perfil" />
-        </Routes>
+        {children}
       </main>
 
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
+
+      <Route
+        path="/*"
+        element={
+          <Layout>
+            <Routes>
+              <Route path="/" />
+              <Route path="/adicionar-saldo" />
+              <Route path="/historico" />
+              <Route path="/solicitar-entrega" />
+              <Route path="/perfil" />
+            </Routes>
+          </Layout>
+        }
+      />
+    </Routes>
   );
 };
 

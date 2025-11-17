@@ -34,7 +34,7 @@
       // --- ADICIONADO para a chave da API do Google Maps no Android ---
       "config": {
         "googleMaps": {
-          "apiKey": "insira sua propria chave de api"
+          "apiKey": "Insira sua chave da api aqui DE PREFERENCIA QUE ELA ESTEJA NO .ENV"
         }
       }
     },
@@ -44,7 +44,7 @@
 
       // --- ADICIONADO para a chave da API do Google Maps na Web ---
       "config": { 
-        "googleMapsApiKey": "insira sua propria chave de api"
+        "googleMapsApiKey": "Insira sua chave da api aqui DE PREFERENCIA QUE ELA ESTEJA NO .ENV"
       }
     },
     "plugins": [

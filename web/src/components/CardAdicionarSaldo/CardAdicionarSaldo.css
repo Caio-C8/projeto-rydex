@@ -1,0 +1,34 @@
+.adicionar-saldo-card-texto {
+  font-size: 1.3rem;
+}
+
+.card .adicionar-saldo-card-texto:nth-child(1) {
+  font-weight: bold;
+}
+
+.saldo-atual {
+  display: flex;
+  justify-content: space-between;
+}
+
+.saldo-depois {
+  display: flex;
+  justify-content: space-between;
+}
+
+.adicionar-saldo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.valor-adicionar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.valor-adicionar h1 {
+  font-size: 4rem;
+}

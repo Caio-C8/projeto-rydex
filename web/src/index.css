@@ -37,6 +37,10 @@ main {
   height: 100%;
 }
 
+.conteudo {
+  margin-top: 40px;
+}
+
 .overlay {
   position: fixed;
   top: 0;
