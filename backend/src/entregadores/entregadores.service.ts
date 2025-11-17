@@ -1,5 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Entregador, Arquivos, Prisma } from "@prisma/client";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import {
+  Entregador,
+  Arquivos,
+  StatusEntregadores,
+  Prisma,
+} from "@prisma/client";
 
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -87,8 +96,20 @@ export class EntregadoresService {
           celular: criarEntregadorDto.celular,
           placa_veiculo: criarEntregadorDto.placaVeiculo,
           chave_pix: criarEntregadorDto.chavePix,
+          latitude: criarEntregadorDto.latitude,
+          longitude: criarEntregadorDto.longitude,
         },
       });
+
+      if (novoEntregador.latitude && novoEntregador.longitude) {
+        await prisma.$executeRaw`
+          UPDATE "entregadores"
+          SET 
+            "localizacao" = ST_SetSRID(ST_MakePoint(${novoEntregador.longitude}, ${novoEntregador.latitude}), 4326),
+            "ultima_atualizacao_localizacao" = NOW()
+          WHERE "id" = ${novoEntregador.id}
+        `;
+      }
 
       if (imagemCnh) {
         await this.salvarArquivo(prisma, novoEntregador, imagemCnh, "cnh");
@@ -137,18 +158,30 @@ export class EntregadoresService {
         );
       }
 
+      const nomeMudou =
+        alterarEntregadorDto.nome &&
+        alterarEntregadorDto.nome.trim() !== "" &&
+        alterarEntregadorDto.nome !== entregador.nome;
+
       const dadosParaAtualizar: Prisma.EntregadorUpdateInput = {
-        nome: alterarEntregadorDto.nome,
+        nome: alterarEntregadorDto.nome ? alterarEntregadorDto.nome : undefined,
         data_nascimento:
           alterarEntregadorDto.dataNascimento &&
           alterarEntregadorDto.dataNascimento.trim() !== ""
             ? new Date(alterarEntregadorDto.dataNascimento)
             : undefined,
-        cpf: alterarEntregadorDto.cpf,
-        email: alterarEntregadorDto.email,
-        celular: alterarEntregadorDto.celular,
-        placa_veiculo: alterarEntregadorDto.placaVeiculo,
-        chave_pix: alterarEntregadorDto.chavePix,
+        email: alterarEntregadorDto.email
+          ? alterarEntregadorDto.email
+          : undefined,
+        celular: alterarEntregadorDto.celular
+          ? alterarEntregadorDto.celular
+          : undefined,
+        placa_veiculo: alterarEntregadorDto.placaVeiculo
+          ? alterarEntregadorDto.placaVeiculo
+          : undefined,
+        chave_pix: alterarEntregadorDto.chavePix
+          ? alterarEntregadorDto.chavePix
+          : undefined,
       };
 
       if (alterarEntregadorDto.senha) {
@@ -179,6 +212,20 @@ export class EntregadoresService {
         );
       }
 
+      if (nomeMudou) {
+        if (!imagemCnh) {
+          await this.renomearArquivo(prisma, entregadorAtualizado, "cnh");
+        }
+
+        if (!imagemDocVeiculo) {
+          await this.renomearArquivo(
+            prisma,
+            entregadorAtualizado,
+            "doc_veiculo"
+          );
+        }
+      }
+
       const entregadorCompleto = await prisma.entregador.findUnique({
         where: { id },
         include: {
@@ -194,6 +241,149 @@ export class EntregadoresService {
 
       return entregadorSemSenha;
     });
+  }
+
+  async adicionarSaldo(
+    id: number,
+    valor: number
+  ): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        saldo: {
+          increment: valor,
+        },
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+
+    return entregadorSemSenha;
+  }
+
+  async retirarSaldo(
+    id: number,
+    valor: number
+  ): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    const valorMinimoRetirada = 2000;
+    if (valor < valorMinimoRetirada) {
+      throw new BadRequestException(
+        `O valor mínimo para retirada é de R$ 20,00.`
+      );
+    }
+
+    if (entregador.saldo < valor) {
+      throw new BadRequestException("Saldo insuficiente para esta retirada.");
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        saldo: {
+          decrement: valor,
+        },
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+
+    return entregadorSemSenha;
+  }
+
+  async definirStatusOnline(id: number): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    if (entregador.status === StatusEntregadores.em_entrega) {
+      throw new BadRequestException(
+        "Não é possível ficar online. O entregador está atualmente em entrega."
+      );
+    }
+
+    if (entregador.status === StatusEntregadores.online) {
+      const { senha, ...entregadorSemSenha } = entregador;
+      return entregadorSemSenha;
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        status: StatusEntregadores.online,
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+    return entregadorSemSenha;
+  }
+
+  async definirStatusOffline(id: number): Promise<RespostaEntregadorDto> {
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { id },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(`Entregador com o ID ${id} não encontrado.`);
+    }
+
+    if (entregador.status === StatusEntregadores.em_entrega) {
+      throw new BadRequestException(
+        "Não é possível ficar offline. O entregador está atualmente em entrega."
+      );
+    }
+
+    if (entregador.status === StatusEntregadores.offline) {
+      const { senha, ...entregadorSemSenha } = entregador;
+      return entregadorSemSenha;
+    }
+
+    const entregadorAtualizado = await this.prisma.entregador.update({
+      where: { id },
+      data: {
+        status: StatusEntregadores.offline,
+      },
+      include: {
+        arquivos: true,
+      },
+    });
+
+    const { senha, ...entregadorSemSenha } = entregadorAtualizado;
+    return entregadorSemSenha;
   }
 
   private async salvarArquivo(
@@ -274,13 +464,7 @@ export class EntregadoresService {
 
     await fs.mkdir(diretorioDestinoFs, { recursive: true });
 
-    const nomeSanitizado = entregador.nome
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .replace(/[^a-z0-9]/g, " ")
-      .trim()
-      .replace(/\s+/g, "_");
+    const nomeSanitizado = this.sanitizarNome(entregador.nome);
 
     const extensao = path.extname(arquivo.originalname);
     const nomeArquivo = `${tipoArquivo}_${entregador.id}_${nomeSanitizado}_${Date.now()}${extensao}`;
@@ -290,5 +474,69 @@ export class EntregadoresService {
     await fs.writeFile(caminhoCompletoFs, arquivo.buffer);
 
     return { nome: nomeArquivo, caminho: caminhoUrlDb };
+  }
+
+  private sanitizarNome(nome: string): string {
+    return nome
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .replace(/[^a-z0-9]/g, " ")
+      .trim()
+      .replace(/\s+/g, "_");
+  }
+
+  private async renomearArquivo(
+    prisma: Prisma.TransactionClient,
+    entregador: Entregador,
+    tipoArquivo: "cnh" | "doc_veiculo"
+  ) {
+    const arquivoAntigo = await prisma.arquivos.findFirst({
+      where: {
+        entregador_id: entregador.id,
+        nome: {
+          startsWith: `${tipoArquivo}_`,
+        },
+      },
+    });
+
+    if (!arquivoAntigo) {
+      return;
+    }
+
+    try {
+      const extensao = path.extname(arquivoAntigo.nome);
+
+      const nomePartes = arquivoAntigo.nome.replace(extensao, "").split("_");
+      const timestamp = nomePartes[nomePartes.length - 1];
+
+      if (!timestamp || isNaN(Number(timestamp))) {
+        throw new Error(
+          `Timestamp inválido ou não encontrado em ${arquivoAntigo.nome}`
+        );
+      }
+
+      const nomeSanitizadoNovo = this.sanitizarNome(entregador.nome);
+      const nomeArquivoNovo = `${tipoArquivo}_${entregador.id}_${nomeSanitizadoNovo}_${timestamp}${extensao}`;
+      const caminhoUrlDbNovo = posix.join("entregadores", nomeArquivoNovo);
+
+      const caminhoAntigoFs = path.join("uploads", arquivoAntigo.caminho);
+      const caminhoNovoFs = path.join("uploads", caminhoUrlDbNovo);
+
+      await fs.rename(caminhoAntigoFs, caminhoNovoFs);
+
+      await prisma.arquivos.update({
+        where: { id: arquivoAntigo.id },
+        data: {
+          nome: nomeArquivoNovo,
+          caminho: caminhoUrlDbNovo,
+        },
+      });
+    } catch (error) {
+      console.error(
+        `Falha ao renomear o arquivo ${arquivoAntigo.nome} para ${entregador.nome}`,
+        error
+      );
+    }
   }
 }

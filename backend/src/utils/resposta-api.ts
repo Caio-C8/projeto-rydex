@@ -17,7 +17,7 @@ export class Resposta {
 
   static erro(
     mensagem: string,
-    erros: string[] = [],
+    erros: string[] | object,
     status: HttpStatus = HttpStatus.BAD_REQUEST
   ): RespostaApi<null> {
     return {

@@ -1,0 +1,78 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  height: 100vh;
+  width: 140px;
+  padding: 25px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 40px;
+  border-right: 1px solid #cccccc;
+  overflow-x: hidden;
+  transition: width 0.3s ease;
+  background-color: #f7f7f7;
+}
+
+.sidebar .sidebar-logo img {
+  height: auto;
+  width: 120px;
+  transition: width 0.3s ease;
+}
+
+.sidebar .sidebar-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  gap: 15px;
+  width: 100%;
+}
+
+.sidebar .sidebar-icons .icon {
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2c2c2c;
+  text-decoration: none;
+  padding: 8px;
+}
+
+.sidebar .sidebar-icons .icon.ativado {
+  background-color: #ff5722;
+  color: #f7f7f7;
+  border-radius: 15px;
+}
+
+.sidebar .sidebar-icons .icon-bottom {
+  margin-top: auto;
+}
+
+.sidebar.expandido {
+  width: 300px;
+}
+
+.sidebar.expandido .sidebar-logo img {
+  width: 230px;
+}
+
+.sidebar.expandido .sidebar-icons .icon {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 8px;
+}
+
+.sidebar.expandido .sidebar-icons .icon:hover {
+  background-color: #ff5722;
+  color: #f7f7f7;
+  border-radius: 15px;
+}
+
+.sidebar.expandido .sidebar-icons .icon.icon.ativado .icon-texto:hover {
+  color: #f7f7f7;
+}

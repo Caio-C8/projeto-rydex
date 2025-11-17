@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import "./BotaoTexto.css";
 
 type BotaoTextoProps = {
   texto: string;
-  corFundo?: string; // #4CAF50; #FFC107; #E53935; #FF5722;
+  corFundo?: string;
   corTexto?: string;
   corTextoHover?: string;
+  corBorda?: string;
   onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 };
 
 export default function BotaoTexto({
@@ -14,27 +16,21 @@ export default function BotaoTexto({
   corFundo = "#FF5722",
   corTexto = "#2C2C2C",
   corTextoHover = "#FFFFFF",
+  corBorda = "#FF5722",
   onClick,
 }: BotaoTextoProps) {
-  const [hover, setHover] = useState(false);
-  const [active, setActive] = useState(false);
-
-  const handleClick = () => {
-    setActive(!active);
-    if (onClick) onClick();
-  };
-
   return (
     <button
       className="botao"
-      onClick={handleClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        backgroundColor: active ? "transparent" : corFundo,
-        color: hover ? corTextoHover : corTexto,
-        border: `2px solid ${active ? corFundo : "transparent"}`, 
-      }}
+      onClick={onClick}
+      style={
+        {
+          "--cor-fundo": corFundo,
+          "--cor-texto": corTexto,
+          "--cor-texto-hover": corTextoHover,
+          "--cor-borda": corBorda,
+        } as React.CSSProperties
+      }
     >
       {texto}
     </button>

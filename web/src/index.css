@@ -1,146 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Montserrat", sans-serif;
+  box-sizing: border-box;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div,
+li {
+  color: #2c2c2c;
+}
 
 body {
-  font-family: 'Montserrat', sans-serif;
-  margin: 0;
-  background-color: #f0f2f5;
-  color: #333;
-  display: flex;
-  justify-content: center;
-  padding-top: 2rem;
+  background-color: #f7f7f7;
+  height: 100vh;
 }
 
 #root {
-  width: 100%;
-  max-width: 900px;
+  height: 100%;
 }
 
 main {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Seção de Controle --- */
-.controles {
-  border-right: 1px solid #e0e0e0;
-  padding-right: 2rem;
-}
-
-nav {
-  display: flex;
-  gap: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-nav button {
-  padding: 0.5rem 1rem;
-  border: 1px solid transparent;
-  background-color: #f0f2f5;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-nav button:hover {
-  background-color: #e0e4e8;
-}
-
-nav button.active {
-  background-color: #007bff;
-  color: white;
-}
-
-/* --- Formulários --- */
-.formulario-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-grupo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-grupo label {
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.form-grupo input {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.form-grupo button {
-  padding: 0.75rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #28a745;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.form-grupo button:hover {
-  background-color: #218838;
-}
-
-.form-grupo button.delete {
-  background-color: #dc3545;
-}
-.form-grupo button.delete:hover {
-  background-color: #c82333;
-}
-.form-grupo button.put {
-  background-color: #ffc107;
-  color: #212529;
-}
-.form-grupo button.put:hover {
-  background-color: #e0a800;
-}
-
-/* --- Seção de Resultados --- */
-.resultados {
-  max-height: 600px;
+  padding-left: 200px;
+  padding-top: 50px;
+  padding-right: 60px;
+  padding-bottom: 50px;
   overflow-y: auto;
+  height: 100%;
 }
 
-.resultados h2 {
-  margin-top: 0;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 1rem;
+.conteudo {
+  margin-top: 40px;
 }
 
-.resultados pre {
-  background-color: #282c34;
-  color: #ffffff;
-  padding: 1rem;
-  border-radius: 6px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: "Fira Code", "Courier New", Courier, monospace;
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 500;
+  animation: fadeIn 0.3s ease;
 }
 
-.loading,
-.error {
-  font-weight: 500;
-  text-align: center;
-  padding: 2rem;
-}
-
-.error {
-  color: #dc3545;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
