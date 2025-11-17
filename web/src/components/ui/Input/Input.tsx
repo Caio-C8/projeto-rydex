@@ -1,4 +1,5 @@
 import React from "react";
+import { IMaskInput } from "react-imask";
 import "./Input.css";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
@@ -8,6 +9,8 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   onIconClick?: () => void;
   iconPosition?: "left" | "right";
   mostrarIcone?: boolean;
+  mask?: string;
+  onAccept?: (value: string, mask: any) => void; 
 };
 
 const Input = ({
@@ -17,11 +20,19 @@ const Input = ({
   onIconClick,
   iconPosition = "left",
   mostrarIcone = true,
+  mask,
+  onAccept, 
   ...props
 }: InputProps) => {
+  const inputClasses = `input ${Icon ? `with-icon ${iconPosition}` : ""}`;
+
+  
+  const { value, onChange, ...restOfProps } = props; 
+
   return (
     <div className="input-container">
       {label && <label className="input-label">{label}</label>}
+
       <div className="input-wrapper">
         {Icon && mostrarIcone && (
           <Icon
@@ -29,11 +40,25 @@ const Input = ({
             onClick={onIconClick}
           />
         )}
-        <input
-          className={`input ${Icon ? `with-icon ${iconPosition}` : ""}`}
-          {...props}
-          disabled={desativado}
-        />
+
+        {mask ? (
+          <IMaskInput
+            mask={mask}
+            disabled={desativado}
+            onAccept={onAccept}
+            unmask={true}
+            className={inputClasses}
+            value={value} 
+            onChange={onChange}
+            {...(restOfProps as any)}
+          />
+        ) : (
+          <input
+            className={inputClasses}
+            disabled={desativado}
+            {...props}
+          />
+        )}
       </div>
     </div>
   );
