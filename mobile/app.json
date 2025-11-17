@@ -15,13 +15,13 @@
       "package": "com.gjdds.rydex",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBScDlz_hNoeSK9jj2-pcE48q4swHt_Kqg"
+          "apiKey": "insira SUA API"
         }
       },
       "ios": {
       "bundleIdentifier": "com.gustavo.rydex", 
       "config": {
-        "googleMapsApiKey": "AIzaSyBScDlz_hNoeSK9jj2-pcE48q4swHt_Kqg"
+        "googleMapsApiKey": "insira sua API"
       }
     },
       "adaptiveIcon": {
