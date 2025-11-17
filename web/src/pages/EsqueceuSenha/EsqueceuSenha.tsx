@@ -11,13 +11,10 @@ import { FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
 const EsqueceuSenha: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("CPF limpo (apenas números):", cpf);
   };
 
   const [mostrarSenha, setMostrarSenha] = React.useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = React.useState(false);
-  
-  const [cpf, setCpf] = React.useState(''); 
 
   return (
     <div className="container">
@@ -47,16 +44,6 @@ const EsqueceuSenha: React.FC = () => {
               onIconClick={() => setMostrarSenha(!mostrarSenha)}
               placeholder="Sua senha"
             />
-
-            <Input
-              label="CPF"
-              mask="000.000.000-00"
-              placeholder="000.000.000-00"
-              type="text"
-              value={cpf} 
-              onAccept={(value: string) => setCpf(value)} 
-            />
-
 
             <Input
               label="Confirmar senha"
