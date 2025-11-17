@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-
 import Header from "./components/layout/Header/Header";
 import SideBar from "./components/layout/SideBar/SideBar";
-
 import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
+import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 
 const getTitulo = (path: string): string => {
   switch (path) {
