@@ -8,25 +8,33 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
+  useColorScheme, // 1. Importado
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router"; // Adicionei 'router' para o futuro
 import { LogoHeader } from "../components/LogoHeader";
-import { EyeIcon, EyeOffIcon } from "../components/Icons"; // Correto
+import { EyeIcon, EyeOffIcon } from "../components/Icons";
+// 2. Importado do seu novo theme.ts
+import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // 3. Pega o tema (light/dark) e as cores corretas
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
+
   const handleSubmit = () => {
-    console.log("Login:", { email, password });
-    Alert.alert("Login", "Login realizado com sucesso! (simulação)");
-    // Aqui você navegaria para a tela principal
-    // Ex: router.push('/(tabs)/');
+    console.log("Login simulado:", { email, password });
+    // 1. Mostra um alerta rápido (opcional)
+    Alert.alert("Login", "Bem-vindo de volta!"); 
+    router.replace('/(tabs)/'); 
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // 4. Cor de fundo dinâmica aplicada
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
       <ScrollView
         contentContainerStyle={styles.cardContainer}
         keyboardShouldPersistTaps="handled"
@@ -36,66 +44,72 @@ export default function LoginScreen() {
           subHeading="Entre para começar a fazer entregas"
         />
 
-        <View style={styles.formContainer}>
-          {/* O campo de E-mail (permanece igual) */}
+        {/* 5. Cor de fundo do card dinâmica */}
+        <View style={[styles.formContainer, { backgroundColor: themeColors.background }]}>
+          
           <View style={styles.mb4}>
-            <Text style={styles.label}>E-mail:</Text>
+            {/* 6. Cor do texto dinâmica */}
+            <Text style={[styles.label, { color: themeColors.text }]}>E-mail:</Text>
             <TextInput
               placeholder="exemplo@email.com"
-              style={styles.textInput}
+              style={[
+                styles.textInput, // Estilo base
+                { 
+                  borderColor: themeColors.lightGray, // Cor dinâmica
+                  color: themeColors.text // Cor dinâmica
+                }
+              ]}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={themeColors.textGray} // Cor dinâmica
               value={email}
               onChangeText={setEmail}
             />
           </View>
 
-          {/* =================================== */}
-          {/* MUDANÇA FEITA AQUI (CAMPO DE SENHA) */}
-          {/* =================================== */}
           <View style={styles.mb4}>
-            {/* <-- Usamos mb4 para espaçamento */}
-            <Text style={styles.label}>Senha:</Text>
-            {/* Esta é a nova View "wrapper" */}
-            <View style={styles.inputWrapper}>
+            <Text style={[styles.label, { color: themeColors.text }]}>Senha:</Text>
+            {/* 7. Cor da borda dinâmica */}
+            <View style={[
+              styles.inputWrapper,
+              { borderColor: themeColors.lightGray }
+            ]}>
               <TextInput
                 placeholder="Sua senha"
-                style={styles.textInputInsideWrapper} // Estilo modificado
-                placeholderTextColor="#9CA3AF"
+                style={[styles.textInputInsideWrapper, { color: themeColors.text }]} // Cor dinâmica
+                placeholderTextColor={themeColors.textGray} // Cor dinâmica
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
               />
               <TouchableOpacity
-                style={styles.eyeIcon} // Estilo modificado
+                style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                {/* =================================== */}
-                {/* LÓGICA CORRIGIDA (INVERTIDA)        */}
-                {/* =================================== */}
+                {/* A cor do ícone (stroke) deve ser ajustada em Icons.tsx ou passada como prop */}
                 {showPassword ? <EyeIcon /> : <EyeOffIcon />}
               </TouchableOpacity>
             </View>
           </View>
-          {/* =================================== */}
-          {/* FIM DA MUDANÇA                  */}
-          {/* =================================== */}
 
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>ENTRAR</Text>
+          {/* 8. Cor do botão e do texto dinâmicas */}
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+            onPress={handleSubmit}
+          >
+            <Text style={[styles.buttonText, { color: themeColors.rydexGray }]}>ENTRAR</Text>
           </TouchableOpacity>
 
           <View style={styles.linksContainer}>
             <Link href="/forgot-password" asChild>
               <TouchableOpacity style={styles.mb2}>
-                <Text style={styles.linkOrange}>Esqueci a senha</Text>
+                <Text style={[styles.linkOrange, { color: themeColors.rydexOrange }]}>Esqueci a senha</Text>
               </TouchableOpacity>
             </Link>
 
             <Link href="/register" asChild>
               <TouchableOpacity>
-                <Text style={styles.linkGray}>Não estou cadastrado</Text>
+                <Text style={[styles.linkGray, { color: themeColors.rydexGray }]}>Não estou cadastrado</Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -106,26 +120,26 @@ export default function LoginScreen() {
 }
 
 // ===============================================
-// ESTILOS (ATUALIZADOS)
+// ESTILOS (AGORA USANDO FONTSIZES E SCALES)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#d4d4d4ff", // bg-light
+    // cor de fundo aplicada dinamicamente no JSX
   },
   cardContainer: {
     width: "100%",
     maxWidth: 450,
     alignSelf: "center",
     alignItems: "center",
-    padding: 16,
-    paddingTop: 20,
-    paddingBottom: 20,
+    padding: horizontalScale(16),
+    paddingTop: verticalScale(20),
+    paddingBottom: verticalScale(20),
   },
   formContainer: {
     width: "100%",
-    backgroundColor: "#FFFFFF",
-    padding: 24,
+    // cor de fundo aplicada dinamicamente no JSX
+    padding: horizontalScale(24),
     borderRadius: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -134,83 +148,70 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   mb4: {
-    marginBottom: 24, // <-- Aumentamos o espaçamento (era 16, como o inputGroup)
+    marginBottom: verticalScale(24), // Usa escala
   },
   label: {
-    color: "#2C2C2C",
-    fontSize: 14,
+    fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "500",
-    marginBottom: 8,
+    marginBottom: verticalScale(8), // Usa escala
+    fontFamily: Fonts.sans, // Usa Fonts
   },
   // Este estilo é usado apenas pelo campo de E-mail
   textInput: {
-    padding: 12,
+    padding: verticalScale(12),
     borderWidth: 1,
-    borderColor: "#D1D5DB",
     borderRadius: 12,
     width: "100%",
-    fontSize: 16,
-    color: "#2C2C2C",
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
+    // cores aplicadas dinamicamente no JSX
   },
-  // O 'inputGroup' foi removido, pois agora usamos 'mb4'
-
-  // ===================================
-  // NOVOS ESTILOS (Adicionados)
-  // ===================================
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     position: "relative",
     width: "100%",
-    borderColor: "#D1D5DB",
     borderWidth: 1,
     borderRadius: 12,
   },
   textInputInsideWrapper: {
     flex: 1,
-    padding: 12,
-    fontSize: 16,
-    color: "#2C2C2C",
-    paddingRight: 40,
+    padding: verticalScale(12),
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
+    paddingRight: horizontalScale(40),
   },
-  // ===================================
-
-  // Estilo do ícone (Modificado)
   eyeIcon: {
     position: "absolute",
-    // top: 45, <-- REMOVIDO
-    right: 12,
+    right: horizontalScale(12),
     opacity: 0.6,
   },
-
-  // O resto dos estilos
   button: {
     width: "100%",
-    paddingVertical: 12,
-    backgroundColor: "#FF5722",
+    paddingVertical: verticalScale(12),
     borderRadius: 12,
   },
   buttonText: {
-    color: "#2C2C2C",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 16,
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   linksContainer: {
     alignItems: "center",
-    marginTop: 24,
+    marginTop: verticalScale(24),
   },
   mb2: {
-    marginBottom: 8,
+    marginBottom: verticalScale(8),
   },
   linkOrange: {
-    color: "#FF5722",
-    fontSize: 14,
+    fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "700",
+    fontFamily: Fonts.sans,
   },
   linkGray: {
-    color: "#2C2C2C",
-    fontSize: 14,
+    fontSize: FontSizes.caption, // Usa FontSizes
     fontWeight: "700",
+    fontFamily: Fonts.sans,
   },
 });

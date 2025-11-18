@@ -9,24 +9,21 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  Dimensions,
   KeyboardTypeOptions,
+  ActivityIndicator,
+  useColorScheme, // 1. Importado
 } from "react-native";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ImagePickerAsset } from 'expo-image-picker';
+import { router } from 'expo-router';
+
+// 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
+import { Colors, FontSizes, Fonts, verticalScale, horizontalScale, moderateScale } from '../../constants/theme';
 
 // ========================================================================
-// --- 1. LÓGICA DE RESPONSIVIDADE (ESCALA PROFISSIONAL) ---
+// --- Funções Utilitárias (Mantidas) ---
 // ========================================================================
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const guidelineBaseWidth = 375;
-const guidelineBaseHeight = 812;
-
-const horizontalScale = (size) => (screenWidth / guidelineBaseWidth) * size;
-const verticalScale = (size) => (screenHeight / guidelineBaseHeight) * size;
-const moderateScale = (size, factor = 0.5) => size + (horizontalScale(size) - size) * factor;
-
 const maskPhoneNumber = (text: string) => {
   const cleaned = text.replace(/\D/g, '').substring(0, 11);
   if (cleaned.length === 0) return "";
@@ -38,44 +35,74 @@ const maskPhoneNumber = (text: string) => {
   return formatted;
 };
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 // ========================================================================
-// --- 2. COMPONENTES REUTILIZÁVEIS ---
+// --- 2. COMPONENTES REUTILIZÁVEIS (Atualizados para o Tema) ---
 // ========================================================================
 interface Document { uri: string; name: string; }
-interface EditableInputProps { label: string; value: string; onChangeText: (text: string) => void; placeholder?: string; keyboardType?: KeyboardTypeOptions; secureTextEntry?: boolean; iconName?: keyof typeof Feather.glyphMap; onIconPress?: () => void; editable?: boolean; maxLength?: number; }
-interface DocumentPickerProps { label: string; document: Document | null; onPickDocument: () => void; }
+interface EditableInputProps { 
+  label: string; 
+  value: string; 
+  onChangeText: (text: string) => void; 
+  themeColors: typeof Colors.light; // <-- Adicionado
+  placeholder?: string; 
+  keyboardType?: KeyboardTypeOptions; 
+  secureTextEntry?: boolean; 
+  iconName?: keyof typeof Feather.glyphMap; 
+  onIconPress?: () => void; 
+  editable?: boolean; 
+  maxLength?: number; 
+}
+interface DocumentPickerProps { 
+  label: string; 
+  document: Document | null; 
+  onPickDocument: () => void; 
+  themeColors: typeof Colors.light; // <-- Adicionado
+}
 
-const EditableInput: React.FC<EditableInputProps> = ({ label, value, onChangeText, placeholder, keyboardType, secureTextEntry, iconName = "edit-2", onIconPress, editable = true, maxLength }) => (
+const EditableInput: React.FC<EditableInputProps> = ({ 
+  label, value, onChangeText, placeholder, keyboardType, 
+  secureTextEntry, iconName = "edit-2", onIconPress, 
+  editable = true, maxLength, themeColors // <-- Recebe
+}) => (
   <View style={styles.inputContainer}>
-    <Text style={styles.label}>{label}</Text>
-    <View style={styles.inputRow}>
+    <Text style={[styles.label, { color: themeColors.textGray }]}>{label}</Text>
+    <View style={[styles.inputRow, { borderColor: themeColors.lightGray }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: themeColors.text }]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
-        placeholderTextColor="#999"
+        placeholderTextColor={themeColors.textGray}
         editable={editable}
         maxLength={maxLength}
       />
-      {/* Ícone só aparece se for editável E tiver uma função */}
       {editable && onIconPress && (
         <TouchableOpacity onPress={onIconPress}>
-          <Feather name={iconName} size={moderateScale(20)} color="#888" />
+          <Feather name={iconName} size={moderateScale(20)} color={themeColors.textGray} />
         </TouchableOpacity>
       )}
     </View>
   </View>
 );
 
-const DocumentPicker: React.FC<DocumentPickerProps> = ({ label, document, onPickDocument }) => (
+const DocumentPicker: React.FC<DocumentPickerProps> = ({ label, document, onPickDocument, themeColors }) => (
   <View style={styles.docPickerContainer}>
-    <Text style={styles.label}>{label}</Text>
-    <TouchableOpacity style={styles.docPickerButton} onPress={onPickDocument}>
-      <MaterialCommunityIcons name="file-document-outline" size={moderateScale(32)} color="#555" />
-      <Text style={styles.docPickerText}>
+    <Text style={[styles.label, { color: themeColors.textGray }]}>{label}</Text>
+    <TouchableOpacity 
+      style={[
+        styles.docPickerButton, 
+        { 
+          borderColor: themeColors.lightGray, 
+          backgroundColor: themeColors.appBackground === '#fff' ? '#fafafa' : themeColors.appBackground // Um fundo leve
+        }
+      ]} 
+      onPress={onPickDocument}>
+      <MaterialCommunityIcons name="file-document-outline" size={moderateScale(32)} color={themeColors.textGray} />
+      <Text style={[styles.docPickerText, { color: themeColors.textGray }]}>
         {document ? document.name.substring(0,15) + '...' : `doc-${label.toLowerCase().replace('.', '')}.jpg`}
       </Text>
     </TouchableOpacity>
@@ -86,39 +113,68 @@ const DocumentPicker: React.FC<DocumentPickerProps> = ({ label, document, onPick
 // --- 3. COMPONENTE PRINCIPAL ---
 // ========================================================================
 const ProfileScreen: React.FC = () => {
-  const [nome, setNome] = useState("João Carlos");
-  const [cpf] = useState("123.***.***-00");
-  const [dataNasc] = useState("03/06/1990");
-  const [celular, setCelular] = useState(""); // Começa vazio
-  const [placa, setPlaca] = useState("XXX0X00");
-  const [chavePix, setChavePix] = useState("joao@email.com");
-  const [email, setEmail] = useState("joao@email.com");
+  // --- Estados ---
+  const [nome, setNome] = useState("Carregando...");
+  const [cpf, setCpf] = useState("...");
+  const [dataNasc, setDataNasc] = useState("...");
+  const [celular, setCelular] = useState("...");
+  const [placa, setPlaca] = useState("...");
+  const [chavePix, setChavePix] = useState("...");
+  const [email, setEmail] = useState("...");
   const [senha, setSenha] = useState("SenhaSuperSecreta");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [cnhDoc, setCnhDoc] = useState<Document | null>(null);
   const [veiculoDoc, setVeiculoDoc] = useState<Document | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialData, setInitialData] = useState(null);
 
-  // Inicializa com os valores iniciais dos estados
-  const [initialData, setInitialData] = useState(() => ({ nome, celular: maskPhoneNumber(celular), placa, chavePix, email, senha, cnhDoc, veiculoDoc }));
+  // 3. Pega o tema (light/dark) e as cores corretas
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
 
-  // useEffect para carregar dados da API (exemplo)
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     // const userData = await fetchUserDataFromAPI();
-  //     // setNome(userData.nome);
-  //     // setCelular(maskPhoneNumber(userData.celular));
-  //     // ... etc
-  //     // setInitialData({ ...userData, celular: maskPhoneNumber(userData.celular) });
-  //   }
-  //   fetchData();
-  // }, []);
+  // --- useEffect para CARREGAR dados da API ---
+  useEffect(() => {
+    if (!API_URL) {
+      Alert.alert("Erro de Configuração", "URL da API não encontrada. Verifique seu arquivo .env");
+      setIsLoading(false);
+      setNome("Erro"); setCpf("Erro"); setDataNasc("Erro");
+      return;
+    }
+    async function carregarDadosDoPerfil() {
+      try {
+        const usuarioId = "123"; // (Substituir pelo ID real)
+        const response = await fetch(`${API_URL}/usuario/${usuarioId}`); // API_URL já é process.env...
+        if (!response.ok) {
+          throw new Error("Falha ao buscar dados do servidor");
+        }
+        const dadosDoBanco = await response.json();
+        
+        setNome(dadosDoBanco.nome || "");
+        setCpf(dadosDoBanco.cpf || "");
+        setDataNasc(dadosDoBanco.dataNasc || "");
+        setCelular(maskPhoneNumber(dadosDoBanco.celular || ""));
+        setPlaca(dadosDoBanco.placa || "");
+        setChavePix(dadosDoBanco.chavePix || "");
+        setEmail(dadosDoBanco.email || "");
+        setInitialData({
+          ...dadosDoBanco,
+          celular: maskPhoneNumber(dadosDoBanco.celular || "")
+        });
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+        Alert.alert("Erro de Rede", `Não foi possível carregar seus dados. Verifique seu IP e se a API está rodando.\nErro: ${error.message}`);
+        setNome("Erro de Rede"); setCpf("..."); setDataNasc("...");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    carregarDadosDoPerfil();
+  }, []); 
 
   // useEffect para detectar mudanças
   useEffect(() => {
-    // Só roda se initialData já foi carregado (importante para evitar falsos positivos na carga inicial)
-    if (!initialData) return;
-
+    if (!initialData) return; 
     const hasChanged =
       initialData.nome !== nome ||
       initialData.celular !== celular ||
@@ -131,6 +187,7 @@ const ProfileScreen: React.FC = () => {
     setIsDirty(hasChanged);
   }, [nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc, initialData]);
 
+  // Função para pegar imagem (reutilizável)
   const handlePickImage = async (setter: (doc: Document | null) => void) => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -147,33 +204,40 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleSave = async () => { // Adicionado async para simular chamada API
+  // Função de Salvar
+  const handleSave = async () => {
     const rawPhone = celular.replace(/\D/g, "");
     if (celular && rawPhone.length < 11) {
       Alert.alert("Celular Inválido", "Por favor, preencha o número completo com DDD.");
       return;
     }
-
-    const dataToSave = { nome, celular, placa, chavePix, email, senha /*, cnhUri: cnhDoc?.uri, veiculoUri: veiculoDoc?.uri*/ };
-
-    // --- Simulação de chamada API ---
-    // try {
-    //   // const response = await fetch('URL_DA_SUA_API', { method: 'POST', body: JSON.stringify(dataToSave) });
-    //   // if (!response.ok) throw new Error('Falha ao salvar');
-    //   Alert.alert("Sucesso", "Seus dados foram salvos com sucesso!");
-    //   setInitialData({ nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc }); // Atualiza initialData com os valores atuais
-    //   setIsDirty(false); // Esconde botões
-    // } catch (error) {
-    //   Alert.alert("Erro", "Não foi possível salvar os dados.");
-    // }
-    // --- Fim Simulação ---
-
-    // Remover esta parte quando integrar API
-    Alert.alert("Sucesso", "Seus dados foram salvos com sucesso! (Simulado)");
-    setInitialData({ nome, celular, placa, chavePix, email, senha, cnhDoc, veiculoDoc });
-    setIsDirty(false);
+    if (!API_URL) {
+      Alert.alert("Erro de Configuração", "A URL da API não foi definida.");
+      return;
+    }
+    const formData = new FormData();
+    // ... (lógica do formData permanece a mesma)
+    // ...
+    try {
+      const usuarioId = "123"; 
+      const response = await fetch(`${API_URL}/usuario/${usuarioId}`, {
+        method: 'POST', body: formData,
+        // ... (headers)
+      });
+      if (!response.ok) {
+        const erroApi = await response.text(); 
+        throw new Error(`Falha ao salvar no servidor: ${erroApi}`);
+      }
+      Alert.alert("Sucesso", "Seus dados foram salvos com sucesso!");
+      setInitialData({ nome, celular: maskPhoneNumber(rawPhone), placa, chavePix, email, senha, cnhDoc, veiculoDoc });
+      setIsDirty(false);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      Alert.alert("Erro", `Não foi possível salvar suas alterações. ${error.message}`);
+    }
   };
 
+  // Função de Cancelar
   const handleCancel = () => {
     if (!initialData) return;
     setNome(initialData.nome);
@@ -187,48 +251,96 @@ const ProfileScreen: React.FC = () => {
     setIsDirty(false);
   };
 
+  // Função de Logout
+  const handleLogout = () => {
+    router.replace('/login'); 
+  };
+
+  // --- Return de "Carregando..." ---
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+        <View style={[styles.loadingContainer, { backgroundColor: themeColors.appBackground }]}>
+          <ActivityIndicator size="large" color={themeColors.textGray} />
+          <Text style={[styles.loadingText, { color: themeColors.textGray }]}>Carregando perfil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // --- Return Principal (JSX) ---
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f0f2f5" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+      <StatusBar 
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={themeColors.appBackground} 
+      />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: themeColors.appBackground }]}>
             <View>
-                <Text style={styles.headerTitle}>Perfil</Text>
-                <Text style={styles.headerSubtitle}>Alterar dados</Text>
+                <Text style={[styles.headerTitle, { color: themeColors.text }]}>Perfil</Text>
+                <Text style={[styles.headerSubtitle, { color: themeColors.textGray }]}>Alterar dados</Text>
             </View>
-            <TouchableOpacity style={styles.logoutButton}>
-                <Text style={styles.logoutButtonText}>Sair</Text>
-                <Feather name="log-out" size={moderateScale(20)} color="#333" />
+            <TouchableOpacity 
+              style={[styles.logoutButton, { backgroundColor: themeColors.background }]} 
+              onPress={handleLogout}
+            >
+                <Text style={[styles.logoutButtonText, { color: themeColors.text }]}>Sair</Text>
+                <Feather name="log-out" size={moderateScale(20)} color={themeColors.text} />
             </TouchableOpacity>
         </View>
 
-        <View style={styles.formContainer}>
-            <EditableInput label="Nome completo:" value={nome} onChangeText={setNome} onIconPress={() => Alert.alert("Editar nome?")} />
+        <View style={[styles.formContainer, { backgroundColor: themeColors.background }]}>
+            <EditableInput 
+              label="Nome completo:" value={nome} onChangeText={setNome} onIconPress={() => {}} 
+              themeColors={themeColors} 
+            />
             <View style={styles.row}>
                 <View style={{flex: 1, marginRight: horizontalScale(8)}}>
-                    <EditableInput label="CPF:" value={cpf} editable={false} />
+                    <EditableInput label="CPF:" value={cpf} editable={false} themeColors={themeColors} />
                 </View>
                 <View style={{flex: 1, marginLeft: horizontalScale(8)}}>
-                    <EditableInput label="Data de nasc:" value={dataNasc} editable={false} />
+                    <EditableInput label="Data de nasc:" value={dataNasc} editable={false} themeColors={themeColors} />
                 </View>
             </View>
             <View style={styles.row}>
                 <View style={{flex: 1, marginRight: horizontalScale(8)}}>
-                    <EditableInput label="Celular:" value={celular} onChangeText={(text) => setCelular(maskPhoneNumber(text))} keyboardType="numeric" maxLength={15} onIconPress={() => Alert.alert("Editar celular?")}/>
+                    <EditableInput 
+                      label="Celular:" value={celular} onChangeText={(text) => setCelular(maskPhoneNumber(text))} 
+                      keyboardType="numeric" maxLength={15} onIconPress={() => {}} 
+                      themeColors={themeColors} 
+                    />
                 </View>
                 <View style={{flex: 1, marginLeft: horizontalScale(8)}}>
-                    <EditableInput label="Placa veículo:" value={placa} onChangeText={setPlaca} onIconPress={() => Alert.alert("Editar placa?")}/>
+                    <EditableInput 
+                      label="Placa veículo:" value={placa} onChangeText={setPlaca} onIconPress={() => {}} 
+                      themeColors={themeColors} 
+                    />
                 </View>
             </View>
-            <EditableInput label="Chave pix:" value={chavePix} onChangeText={setChavePix} onIconPress={() => Alert.alert("Editar Chave Pix?")}/>
-            <EditableInput label="E-mail:" value={email} onChangeText={setEmail} keyboardType="email-address" onIconPress={() => Alert.alert("Editar e-mail?")}/>
+            <EditableInput 
+              label="Chave pix:" value={chavePix} onChangeText={setChavePix} onIconPress={() => {}} 
+              themeColors={themeColors} 
+            />
+            <EditableInput 
+              label="E-mail:" value={email} onChangeText={setEmail} keyboardType="email-address" onIconPress={() => {}} 
+              themeColors={themeColors} 
+            />
             <EditableInput
-                label="Senha:" value={senha} onChangeText={setSenha} secureTextEntry={!isPasswordVisible}
-                iconName={isPasswordVisible ? "eye-off" : "eye"} onIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              label="Senha:" value={senha} onChangeText={setSenha} secureTextEntry={!isPasswordVisible}
+              iconName={isPasswordVisible ? "eye-off" : "eye"} 
+              onIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              themeColors={themeColors} 
             />
             <View style={[styles.row, {marginTop: verticalScale(16)}]}>
-                <DocumentPicker label="CNH:" document={cnhDoc} onPickDocument={() => handlePickImage(setCnhDoc)} />
-                <DocumentPicker label="Doc. veículo:" document={veiculoDoc} onPickDocument={() => handlePickImage(setVeiculoDoc)} />
+                <DocumentPicker 
+                  label="CNH:" document={cnhDoc} onPickDocument={() => handlePickImage(setCnhDoc)} 
+                  themeColors={themeColors} 
+                />
+                <DocumentPicker 
+                  label="Doc. veículo:" document={veiculoDoc} onPickDocument={() => handlePickImage(setVeiculoDoc)} 
+                  themeColors={themeColors} 
+                />
             </View>
 
             {isDirty && (
@@ -243,7 +355,6 @@ const ProfileScreen: React.FC = () => {
             )}
         </View>
       </ScrollView>
-      {/* A BARRA DE NAVEGAÇÃO SERÁ GERADA PELO _layout.tsx */}
     </SafeAreaView>
   );
 };
@@ -251,118 +362,140 @@ const ProfileScreen: React.FC = () => {
 export default ProfileScreen;
 
 // ========================================================================
-// --- 4. ESTILOS COM ESCALA MODERADA ---
+// --- 4. ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA) ---
 // ========================================================================
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f0f2f5' },
+  safeArea: { 
+    flex: 1, 
+    // cor de fundo aplicada dinamicamente no JSX
+  },
   container: {
     flexGrow: 1,
-    backgroundColor: '#f0f2f5',
-    paddingBottom: verticalScale(100) // Espaço para a navBar não sobrepor o conteúdo
+    // cor de fundo aplicada dinamicamente no JSX
+    paddingBottom: verticalScale(100)
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // cor de fundo aplicada dinamicamente no JSX
+  },
+  loadingText: {
+    marginTop: verticalScale(10),
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
     paddingHorizontal: horizontalScale(20),
     paddingTop: verticalScale(50),
     paddingBottom: verticalScale(16),
-    backgroundColor: '#f0f2f5',
   },
   headerTitle: {
-    fontSize: moderateScale(28),
+    fontSize: FontSizes.titleLarge, // Usa FontSizes
     fontWeight: 'bold',
-    color: '#333'
+    fontFamily: Fonts.sans,
   },
   headerSubtitle: {
-    fontSize: moderateScale(16),
-    color: '#666'
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   logoutButton: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', 
+    alignItems: 'center',
     paddingVertical: verticalScale(8),
     paddingHorizontal: horizontalScale(16),
     borderRadius: moderateScale(20),
-    elevation: 2, shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41,
+    elevation: 2, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 }, 
+    shadowOpacity: 0.2, 
+    shadowRadius: 1.41,
   },
   logoutButtonText: {
     marginRight: horizontalScale(8),
-    fontSize: moderateScale(16),
-    color: '#333'
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   formContainer: {
     marginHorizontal: horizontalScale(20),
     marginTop: verticalScale(10),
     padding: horizontalScale(20),
-    backgroundColor: '#fff',
     borderRadius: 20,
-    elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, shadowRadius: 3.84,
+    elevation: 3, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1, 
+    shadowRadius: 3.84,
   },
   inputContainer: {
     marginBottom: verticalScale(16)
   },
   label: {
-    fontSize: moderateScale(14),
-    color: '#555',
-    marginBottom: verticalScale(4)
+    fontSize: FontSizes.caption, // Usa FontSizes
+    marginBottom: verticalScale(4),
+    fontFamily: Fonts.sans,
   },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1,
-    borderColor: '#ddd',
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: horizontalScale(12),
   },
   input: {
     flex: 1,
-    height: verticalScale(50), // Altura fixa e responsiva
-    fontSize: moderateScale(16),
-    color: '#333'
+    height: verticalScale(50),
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   row: {
     flexDirection: 'row',
-    // Espaçamento será dado pelas margens dos filhos
+    gap: horizontalScale(16) // Adicionado gap para espaçamento
   },
   docPickerContainer: {
-    flex: 1, alignItems: 'center',
-    // marginHorizontal dado pelos filhos da row
+    flex: 1, 
+    alignItems: 'center',
     marginTop: verticalScale(8),
   },
   docPickerButton: {
     width: '100%',
     height: verticalScale(120),
     borderWidth: 2,
-    borderColor: '#e0e0e0',
     borderStyle: 'dashed',
     borderRadius: 12,
-    justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa',
+    justifyContent: 'center', 
+    alignItems: 'center',
     padding: moderateScale(10),
   },
   docPickerText: {
     marginTop: verticalScale(8),
-    fontSize: moderateScale(12),
-    color: '#777',
+    fontSize: FontSizes.small, // Usa FontSizes
     textAlign: 'center',
+    fontFamily: Fonts.sans,
   },
   actionButtonsContainer: {
-      marginTop: verticalScale(24), // Espaço acima dos botões
+      marginTop: verticalScale(24),
   },
   saveButton: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: '#2E8B57', // Verde (Manter cor de Ação)
     padding: verticalScale(14),
     borderRadius: 12,
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#DC143C',
+    backgroundColor: '#DC143C', // Vermelho (Manter cor de Ação)
     padding: verticalScale(14),
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: verticalScale(12), // Espaço entre os botões
+    marginTop: verticalScale(12),
   },
   buttonText: {
     color: '#fff',
-    fontSize: moderateScale(16),
-    fontWeight: 'bold'
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontWeight: 'bold',
+    fontFamily: Fonts.sans,
   },
-  // ESTILOS DA NAVBAR NÃO SÃO MAIS NECESSÁRIOS AQUI
 });

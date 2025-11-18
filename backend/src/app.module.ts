@@ -8,14 +8,19 @@ import { EmpresasModule } from "./empresas/empresas.module";
 import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
 import { PrismaModule } from "./prisma.module";
+import { SolicitacoesModule } from './solicitacoes/solicitacoes.module';
+
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), "uploads"),
-
-      serveRoot: "/public",
+    EventEmitterModule.forRoot({
+      global: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/public',
+    }),
+    SolicitacoesModule,     
     EventEmitterModule.forRoot(),
     PrismaModule,
     EntregadoresModule,

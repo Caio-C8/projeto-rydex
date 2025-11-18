@@ -1,4 +1,4 @@
-import { router } from "expo-router"; // <-- Importe o router
+import { router } from "expo-router"; 
 import React, { useState } from "react";
 import {
   View,
@@ -9,7 +9,11 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
+  useColorScheme, // 1. Importado
 } from "react-native";
+
+// 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
+import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../../constants/theme';
 
 // Valor inicial do saldo, pode vir de outro lugar no futuro
 const SALDO_INICIAL = 120.0;
@@ -17,11 +21,11 @@ const VALOR_MINIMO_SAQUE = 20.0;
 
 export default function CarteiraScreen() {
   const [valorSaque, setValorSaque] = useState("");
-  // ===================================
-  // MUDANÇA 1: USAR useState PARA O SALDO
-  // ===================================
   const [saldoAtual, setSaldoAtual] = useState(SALDO_INICIAL);
-  // ===================================
+
+  // 3. Pega o tema (light/dark) e as cores corretas
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
 
   // Função para formatar o saldo como moeda
   const formatCurrency = (value: number) => {
@@ -33,10 +37,8 @@ export default function CarteiraScreen() {
 
   // Função para lidar com o saque
   const handleSaque = () => {
-    // Converte o valor digitado (que pode ter vírgula) para número
     const valorNumerico = parseFloat(valorSaque.replace(",", "."));
 
-    // Validação 1: É um número válido?
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       Alert.alert(
         "Valor Inválido",
@@ -45,14 +47,11 @@ export default function CarteiraScreen() {
       return;
     }
 
-    // Validação 2: É maior ou igual ao mínimo?
     if (valorNumerico < VALOR_MINIMO_SAQUE) {
       router.push("/saque-erro");
       return;
     }
 
-    // Validação 3: Tem saldo suficiente?
-    // Agora usamos 'saldoAtual' em vez de SALDO_ACUMULADO
     if (valorNumerico > saldoAtual) {
       Alert.alert(
         "Saldo Insuficiente",
@@ -61,25 +60,15 @@ export default function CarteiraScreen() {
       return;
     }
 
-    // Se passou pelas validações iniciais:
     console.log("Solicitando saque de:", formatCurrency(valorNumerico));
 
-    // Simulação de erro/sucesso
     const sistemaOffline = valorNumerico === 1; // Nosso erro simulado
 
     if (sistemaOffline) {
       router.push("/saque-erro");
     } else {
-      // ===================================
-      // MUDANÇA 2: ATUALIZAR O SALDO NO SUCESSO
-      // ===================================
-      // Calcula o novo saldo
       const novoSaldo = saldoAtual - valorNumerico;
-      // Atualiza o estado do saldo
       setSaldoAtual(novoSaldo);
-      // ===================================
-
-      // Navega para a tela de sucesso
       router.push({
         pathname: "/saque-sucesso",
         params: { valor: valorNumerico },
@@ -93,34 +82,45 @@ export default function CarteiraScreen() {
   // O RETURN DA TELA COMEÇA AQUI
   // ===================================
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // 4. Cor de fundo dinâmica aplicada
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.card}>
-          <Text style={styles.title}>Sacar Saldo</Text>
-          <Text style={styles.saldoLabel}>Saldo Acumulado</Text>
-          <Text style={styles.saldoValor}>
-            {/* Mostra o saldo DO ESTADO (que pode mudar) */}
+        {/* 5. Cor de fundo do card dinâmica */}
+        <View style={[styles.card, { backgroundColor: themeColors.background }]}>
+          {/* 6. Cores e fontes dinâmicas */}
+          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>Sacar Saldo</Text>
+          <Text style={[styles.saldoLabel, { color: themeColors.rydexOrange }]}>Saldo Acumulado</Text>
+          <Text style={[styles.saldoValor, { color: themeColors.rydexOrange }]}>
             {formatCurrency(saldoAtual)}
           </Text>
 
-          <Text style={styles.inputLabel}>Valor para saque</Text>
+          <Text style={[styles.inputLabel, { color: themeColors.textGray }]}>Valor para saque</Text>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              { 
+                borderColor: themeColors.lightGray, 
+                color: themeColors.text 
+              }
+            ]}
             placeholder="Preencha o valor"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={themeColors.textGray} // Cor dinâmica
             keyboardType="numeric"
             value={valorSaque}
             onChangeText={setValorSaque}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleSaque}>
-            <Text style={styles.buttonText}>Sacar</Text>
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+            onPress={handleSaque}
+          >
+            <Text style={[styles.buttonText, { color: themeColors.white }]}>Sacar</Text>
           </TouchableOpacity>
 
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoText, { color: themeColors.textGray }]}>
             O saque pode ser feito apenas em um dia específico da semana e o
             valor mínimo é de R$20,00.
           </Text>
@@ -134,24 +134,24 @@ export default function CarteiraScreen() {
 } // <-- FIM DA FUNÇÃO CarteiraScreen
 
 // ===============================================
-// ESTILOS (Permanecem iguais)
+// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F0F0F0",
+    // cor de fundo aplicada dinamicamente no JSX
   },
   container: {
     flexGrow: 1,
-    padding: 16,
+    padding: horizontalScale(16),
     justifyContent: "center",
   },
   card: {
     width: "100%",
     maxWidth: 450,
     alignSelf: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 24,
+    // cor de fundo aplicada dinamicamente no JSX
+    padding: horizontalScale(24),
     borderRadius: 30,
     alignItems: "center",
     shadowColor: "#000",
@@ -161,57 +161,55 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 28,
+    fontSize: FontSizes.titleLarge, // Usa FontSizes
     fontWeight: "bold",
-    color: "#FF5722",
-    marginBottom: 16,
+    marginBottom: verticalScale(16),
+    fontFamily: Fonts.sans,
   },
   saldoLabel: {
-    fontSize: 16,
-    color: "#FF5722",
-    marginBottom: 4,
+    fontSize: FontSizes.body, // Usa FontSizes
+    marginBottom: verticalScale(4),
+    fontFamily: Fonts.sans,
   },
   saldoValor: {
-    fontSize: 32,
+    fontSize: FontSizes.xlarge, // Usa FontSizes
     fontWeight: "bold",
-    color: "#FF5722",
-    marginBottom: 32,
+    marginBottom: verticalScale(32),
+    fontFamily: Fonts.sans,
   },
   inputLabel: {
-    fontSize: 16,
-    color: "#6B7280",
-    marginBottom: 8,
+    fontSize: FontSizes.body, // Usa FontSizes
+    marginBottom: verticalScale(8),
     alignSelf: "flex-start",
-    marginLeft: 4,
+    marginLeft: horizontalScale(4),
+    fontFamily: Fonts.sans,
   },
   textInput: {
     width: "100%",
-    padding: 14,
+    padding: verticalScale(14),
     borderWidth: 1,
-    borderColor: "#D1D5DB",
     borderRadius: 12,
-    fontSize: 16,
-    color: "#2C2C2C",
-    marginBottom: 24,
+    fontSize: FontSizes.body, // Usa FontSizes
+    marginBottom: verticalScale(24),
     textAlign: "left",
+    fontFamily: Fonts.sans,
   },
   button: {
     width: "100%",
-    paddingVertical: 14,
-    backgroundColor: "#FF5722",
+    paddingVertical: verticalScale(14),
     borderRadius: 12,
-    marginBottom: 24,
+    marginBottom: verticalScale(24),
   },
   buttonText: {
-    color: "#FFFFFF",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 16,
+    fontSize: FontSizes.body, // Usa FontSizes
+    fontFamily: Fonts.sans,
   },
   infoText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: FontSizes.caption, // Usa FontSizes
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: verticalScale(20),
+    fontFamily: Fonts.sans,
   },
 });
