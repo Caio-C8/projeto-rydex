@@ -21,6 +21,7 @@ import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
 import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
+import { AtualizarLocalizacaoDto } from "./dto/atualizar-localizacao.dto";
 
 @Injectable()
 export class EntregadoresService {
@@ -384,6 +385,31 @@ export class EntregadoresService {
 
     const { senha, ...entregadorSemSenha } = entregadorAtualizado;
     return entregadorSemSenha;
+  }
+
+  async atualizarLocalizacao(
+    entregadorId: number, 
+    atualizarLocalizacaoDto: AtualizarLocalizacaoDto
+  ): Promise<any> {
+    return this.prisma.$transaction(async (prisma) => {
+      await prisma.entregador.update({
+        where: { id: entregadorId },
+        data: {
+          latitude: atualizarLocalizacaoDto.latitude,
+          longitude: atualizarLocalizacaoDto.longitude,
+        },
+      });
+
+      await prisma.$executeRaw`
+        UPDATE "entregadores"
+        SET 
+          "localizacao" = ST_SetSRID(ST_MakePoint(${atualizarLocalizacaoDto.longitude}, ${atualizarLocalizacaoDto.latitude}), 4326),
+          "ultima_atualizacao_localizacao" = NOW()
+        WHERE "id" = ${entregadorId}
+      `;
+
+      return { mensagem: 'Localização atualizada.' };
+    });
   }
 
   private async salvarArquivo(
