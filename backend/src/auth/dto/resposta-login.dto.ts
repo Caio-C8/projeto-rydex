@@ -20,6 +20,15 @@ class UsuarioLoginRespostaDto {
     example: TipoUsuario.EMPRESA,
   })
   tipo: TipoUsuario;
+
+  @ApiProperty({ required: false })
+  latitude: number | null; 
+  
+  @ApiProperty({ required: false })
+  longitude: number | null;
+
+  @ApiProperty({ required: false })
+  ultimaAtualizacaoLocalizacao: Date | null;
 }
 
 export class RespostaLoginDto {
