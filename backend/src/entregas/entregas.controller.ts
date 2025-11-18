@@ -7,7 +7,7 @@ import {
   ParseIntPipe,
 } from "@nestjs/common";
 import { EntregasService } from "./entregas.service";
-import { AuthGuard } from "src/auth/auth.guard";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { EntregadorGuard } from "src/auth/guards/entregador.guard";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 
@@ -16,7 +16,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 export class EntregasController {
   constructor(private readonly entregasService: EntregasService) {}
 
-  @UseGuards(AuthGuard, EntregadorGuard)
+  @UseGuards(JwtAuthGuard, EntregadorGuard)
   @Post(":id/aceitar")
   @ApiBearerAuth()
   @ApiOperation({

@@ -37,7 +37,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
-        {children}
+        
+        <div className="conteudo">
+          {children}
+        </div>
       </main>
 
       {isSideBarExpandida && (
@@ -58,7 +61,7 @@ const App: React.FC = () => {
           <Layout>
             <Routes>
               <Route path="/" />
-              <Route path="/adicionar-saldo" />
+              <Route path="/adicionar-saldo" element={<AdicionarSaldo />}/>
               <Route path="/historico" />
               <Route path="/solicitar-entrega" />
               <Route path="/perfil" />

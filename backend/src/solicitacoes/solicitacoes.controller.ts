@@ -15,6 +15,7 @@ import type { UsuarioPayload } from '../auth/jwt.strategy'; // ✅ O Gerente est
 
 import { CriarSolicitacaoDto } from './dto/criar-solicitacao.dto';
 import { SolicitacoesService } from './solicitacoes.service';
+import { EmpresaGuard } from 'src/auth/guards/empresa.guard';
 
 @ApiTags('Solicitações (Empresa)')
 @Controller('solicitacoes')
@@ -25,7 +26,7 @@ export class SolicitacoesController {
    * (EMPRESA) Cria uma nova solicitação de entrega.
    */
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
   async criarSolicitacao(
     @Body() dto: CriarSolicitacaoDto,
     @Usuario() empresa: UsuarioPayload,
