@@ -39,7 +39,7 @@
   margin-bottom: 20px;
 }
 
-.card {
+.right .card {
   width: 520px !important;     
   max-width: 95%;
   display: flex;

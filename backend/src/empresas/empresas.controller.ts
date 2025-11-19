@@ -16,14 +16,14 @@ import { CriarEmpresaDto } from "./dto/criar-empresa.dto";
 import { Empresa } from "@prisma/client";
 import { AlterarEmpresaDto } from "./dto/alterar-empresa.dto";
 import { TransacaoSaldoDto } from "./dto/empresa-transacao-saldo.dto";
-import { AuthGuard } from "src/auth/auth.guard";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { EmpresaGuard } from "src/auth/guards/empresa.guard";
 
 @Controller("empresas")
 export class EmpresasController {
   constructor(private readonly empresasService: EmpresasServices) {}
 
-  @UseGuards(AuthGuard, EmpresaGuard)
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
   @Post(":id/adicionar-saldo")
   adicionarSaldo(
     @Param("id", ParseIntPipe) id: number,
@@ -33,7 +33,7 @@ export class EmpresasController {
     return this.empresasService.adicionarSaldo(id, transacaoSaldoDto.valor);
   }
 
-  @UseGuards(AuthGuard, EmpresaGuard)
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
   @Post(":id/remover-saldo")
   removerSaldo(
     @Param("id", ParseIntPipe) id: number,
@@ -54,7 +54,7 @@ export class EmpresasController {
     return this.empresasService.criarEmpresa(criarEmpresaDto);
   }
 
-  @UseGuards(AuthGuard, EmpresaGuard)
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
   @Patch(":id")
   alterarEmpresa(
     @Param("id", ParseIntPipe) id: number,

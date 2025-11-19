@@ -2,8 +2,9 @@ import { Module } from "@nestjs/common";
 import { EmpresasController } from "./empresas.controller";
 import { EmpresasServices } from "./empresas.service";
 import { HttpModule } from "@nestjs/axios";
+import { AuthModule } from "src/auth/auth.module";
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, AuthModule],
   controllers: [EmpresasController],
   providers: [EmpresasServices],
 })

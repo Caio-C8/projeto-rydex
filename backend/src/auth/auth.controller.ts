@@ -1,9 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from "@nestjs/common";
-
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-
 import { AuthService } from "./auth.service";
-
 import { LoginDto } from "./dto/login.dto";
 import { RespostaLoginDto } from "./dto/resposta-login.dto";
 
