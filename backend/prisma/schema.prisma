@@ -54,6 +54,7 @@ model Empresa {
 model SolicitacoesEntregas {
   id                     Int                                    @id @default(autoincrement())
   valor_estimado         Int
+  valor_entregador       Int
   item_retorno           Boolean                                @default(false)
   descricao_item_retorno String?
   observacao             String?
