@@ -2,8 +2,8 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
-  Logger, // Já estava
-  BadRequestException, // Já estava
+  Logger,
+  BadRequestException,
 } from "@nestjs/common";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { PrismaService } from "src/prisma.service";
@@ -13,73 +13,91 @@ import * as bcrypt from "bcrypt";
 import { AlterarEmpresaDto } from "./dto/alterar-empresa.dto";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class EmpresasServices {
   private readonly logger = new Logger(EmpresasServices.name);
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private configService: ConfigService
   ) {}
 
-  // A SUA FUNÇÃO (está perfeita, sem alterações)
-  private async _getCoordenadasFromAddress(
+  private async getCoordenadas(
     enderecoInfo: any
   ): Promise<{ latitude: number; longitude: number }> {
     try {
+      const apiKey = this.configService.get<string>("GOOGLE_MAPS_API_KEY");
+
+      if (!apiKey) {
+        throw new Error("Chave GOOGLE_MAPS_API_KEY não configurada.");
+      }
+
       const endereco = `${enderecoInfo.logradouro}, ${enderecoInfo.numero}, ${enderecoInfo.bairro}, ${enderecoInfo.cidade}, ${enderecoInfo.cep}`;
 
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURI(
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         endereco
-      )}&format=json&limit=1`;
+      )}&key=${apiKey}`;
 
-      const { data } = await firstValueFrom(
-        this.httpService.get(url, {
-          headers: { "User-Agent": "Rydex-API/1.0" },
-        })
-      );
+      const { data } = await firstValueFrom(this.httpService.get(url));
 
-      if (data && data.length > 0) {
+      if (
+        data &&
+        data.status === "OK" &&
+        data.results &&
+        data.results.length > 0
+      ) {
+        const location = data.results[0].geometry.location;
         return {
-          latitude: parseFloat(data[0].lat),
-          longitude: parseFloat(data[0].lon),
+          latitude: location.lat,
+          longitude: location.lng,
         };
+      } else if (data && data.status === "ZERO_RESULTS") {
+        throw new NotFoundException(
+          "Endereço não encontrado ou inválido. Não foi possível obter as coordenadas."
+        );
       }
+
+      const errorMessage =
+        data?.error_message ||
+        `Erro desconhecido da API do Google Maps: Status ${data?.status}`;
+      throw new Error(errorMessage);
     } catch (error) {
       this.logger.error(
         `Falha ao geocodificar endereço: ${error.message}`,
         error.stack
       );
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
       throw new BadRequestException(
-        `Falha ao buscar coordenadas para o endereço fornecido. Erro: ${error.message}`
+        `Falha ao buscar coordenadas para o endereço fornecido. Verifique o endereço. Detalhes: ${error.message}`
       );
     }
-    throw new BadRequestException(
-      "Endereço não encontrado ou inválido. Não foi possível obter as coordenadas."
-    );
   }
 
   async criarEmpresa(criarEmpresaDto: CriarEmpresaDto): Promise<Empresa> {
-    // CORREÇÃO 1: Validar senha (REINTEGRADO)
     if (criarEmpresaDto.senha !== criarEmpresaDto.confirmar_senha) {
       throw new BadRequestException("As senhas não conferem.");
     }
 
-    // Hash da senha (como você fez)
     const salt = 10;
     criarEmpresaDto.senha = await bcrypt.hash(criarEmpresaDto.senha, salt);
 
-    // Geocodificação (como você fez)
-    const { latitude, longitude } =
-      await this._getCoordenadasFromAddress(criarEmpresaDto);
+    const { latitude, longitude } = await this.getCoordenadas(criarEmpresaDto);
 
     try {
-      // CORREÇÃO 2: Remover confirmar_senha (REINTEGRADO)
       const { confirmar_senha, ...dadosParaCriar } = criarEmpresaDto;
 
       return await this.prismaService.empresa.create({
         data: {
-          ...dadosParaCriar, // Usamos os dados limpos
+          ...dadosParaCriar,
           latitude: latitude,
           longitude: longitude,
         },
@@ -107,12 +125,11 @@ export class EmpresasServices {
   ): Promise<Empresa> {
     const dadosParaAtualizar: any = { ...alterarEmpresaDto };
 
-    // CORREÇÃO 1: Validar senha (REINTEGRADO)
     if (alterarEmpresaDto.senha) {
       if (alterarEmpresaDto.senha !== alterarEmpresaDto.confirmar_senha) {
         throw new BadRequestException("As senhas não conferem.");
       }
-      // Hash (como você fez)
+
       const salt = 10;
       dadosParaAtualizar.senha = await bcrypt.hash(
         alterarEmpresaDto.senha,
@@ -120,8 +137,8 @@ export class EmpresasServices {
       );
     }
 
-    // Lógica de Geocodificação (a sua lógica, está perfeita)
     const chavesEndereco = ["logradouro", "numero", "bairro", "cidade", "cep"];
+
     const enderecoMudou = chavesEndereco.some(
       (key) => alterarEmpresaDto[key] !== undefined
     );
@@ -134,9 +151,11 @@ export class EmpresasServices {
       const empresaAtual = await this.prismaService.empresa.findUnique({
         where: { id },
       });
+
       if (!empresaAtual) {
         throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
       }
+
       const dadosCompletosEndereco = {
         logradouro: alterarEmpresaDto.logradouro ?? empresaAtual.logradouro,
         numero: alterarEmpresaDto.numero ?? empresaAtual.numero,
@@ -144,15 +163,15 @@ export class EmpresasServices {
         cidade: alterarEmpresaDto.cidade ?? empresaAtual.cidade,
         cep: alterarEmpresaDto.cep ?? empresaAtual.cep,
       };
-      const { latitude, longitude } = await this._getCoordenadasFromAddress(
+
+      const { latitude, longitude } = await this.getCoordenadas(
         dadosCompletosEndereco
       );
+
       dadosParaAtualizar.latitude = latitude;
       dadosParaAtualizar.longitude = longitude;
     }
 
-    // CORREÇÃO 2: Remover confirmar_senha (REINTEGRADO)
-    // Usamos delete aqui pois 'dadosParaAtualizar' já é 'any'
     if (dadosParaAtualizar.confirmar_senha) {
       delete dadosParaAtualizar.confirmar_senha;
     }
@@ -163,18 +182,20 @@ export class EmpresasServices {
         data: dadosParaAtualizar,
       });
     } catch (error) {
-      //... (seu tratamento de erro está ótimo)
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           const target = (error.meta?.target as string[]) || [];
+
           if (target.includes("email")) {
             throw new ConflictException("O Email informado já está em uso.");
           }
         }
+
         if (error.code === "P2025") {
           throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
         }
       }
+      
       throw error;
     }
   }
@@ -252,6 +273,7 @@ export class EmpresasServices {
       throw error;
     }
   }
+
   async removerEmpresa(id: number): Promise<void> {
     try {
       await this.prismaService.empresa.delete({

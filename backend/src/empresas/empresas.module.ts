@@ -3,8 +3,11 @@ import { EmpresasController } from "./empresas.controller";
 import { EmpresasServices } from "./empresas.service";
 import { HttpModule } from "@nestjs/axios";
 import { AuthModule } from "src/auth/auth.module";
+import { PrismaModule } from "src/prisma.module";
+import { ConfigModule } from "@nestjs/config";
+
 @Module({
-  imports: [HttpModule, AuthModule],
+  imports: [HttpModule, AuthModule, PrismaModule, ConfigModule],
   controllers: [EmpresasController],
   providers: [EmpresasServices],
 })
