@@ -8,8 +8,8 @@ import { EmpresasModule } from "./empresas/empresas.module";
 import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
 import { PrismaModule } from "./prisma.module";
-import { SolicitacoesModule } from './solicitacoes/solicitacoes.module';
-
+import { SolicitacoesModule } from "./solicitacoes/solicitacoes.module";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -17,10 +17,13 @@ import { SolicitacoesModule } from './solicitacoes/solicitacoes.module';
       global: true,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/public',
+      rootPath: join(process.cwd(), "uploads"),
+      serveRoot: "/public",
     }),
-    SolicitacoesModule,     
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    SolicitacoesModule,
     EventEmitterModule.forRoot(),
     PrismaModule,
     EntregadoresModule,
