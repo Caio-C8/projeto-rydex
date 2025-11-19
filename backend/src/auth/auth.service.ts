@@ -1,16 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
-import { LoginDto, TipoUsuario } from './dto/login.dto';
-import { RespostaLoginDto } from './dto/resposta-login.dto';
-import * as bcrypt from 'bcrypt';
-import { UsuarioPayload } from './jwt.strategy';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PrismaService } from "src/prisma.service";
+import { LoginDto, TipoUsuario } from "./dto/login.dto";
+import { RespostaLoginDto } from "./dto/resposta-login.dto";
+import * as bcrypt from "bcrypt";
+import { UsuarioPayload } from "./jwt.strategy";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
   async login(loginDto: LoginDto): Promise<RespostaLoginDto> {
@@ -20,27 +20,27 @@ export class AuthService {
 
     if (tipo === TipoUsuario.EMPRESA) {
       usuario = await this.prisma.empresa.findUnique({ where: { email } });
-    } else {    
-      usuario = await this.prisma.entregador.findUnique({ 
+    } else {
+      usuario = await this.prisma.entregador.findUnique({
         where: { email },
-        select: { 
-          id: true, 
-          email: true, 
+        select: {
+          id: true,
+          email: true,
           senha: true,
-          latitude: true, 
-          longitude: true, 
-          ultima_atualizacao_localizacao: true 
-        }
+          latitude: true,
+          longitude: true,
+          ultima_atualizacao_localizacao: true,
+        },
       });
     }
 
     if (!usuario) {
-      throw new UnauthorizedException('E-mail ou senha inválidos.');
+      throw new UnauthorizedException("E-mail ou senha inválidos.");
     }
 
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
     if (!senhaCorreta) {
-      throw new UnauthorizedException('E-mail ou senha inválidos.');
+      throw new UnauthorizedException("E-mail ou senha inválidos.");
     }
 
     const payload: UsuarioPayload = {
@@ -48,7 +48,7 @@ export class AuthService {
       email: usuario.email,
       tipo: tipo,
     };
-    
+
     const token = this.jwtService.sign(payload);
 
     return {
@@ -57,9 +57,10 @@ export class AuthService {
         id: usuario.id,
         email: usuario.email,
         tipo: tipo,
-        latitude: usuario.latitude ?? null, 
+        latitude: usuario.latitude ?? null,
         longitude: usuario.longitude ?? null,
-        ultimaAtualizacaoLocalizacao: usuario.ultima_atualizacao_localizacao ?? null
+        ultimaAtualizacaoLocalizacao:
+          usuario.ultima_atualizacao_localizacao ?? null,
       },
     };
   }

@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
 import { EntregadoresController } from "./entregadores.controller";
 import { EntregadoresService } from "./entregadores.service";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
-  imports: [],
+  imports: [AuthModule],
   controllers: [EntregadoresController],
   providers: [EntregadoresService],
 })

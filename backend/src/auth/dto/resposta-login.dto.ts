@@ -22,8 +22,8 @@ class UsuarioLoginRespostaDto {
   tipo: TipoUsuario;
 
   @ApiProperty({ required: false })
-  latitude: number | null; 
-  
+  latitude: number | null;
+
   @ApiProperty({ required: false })
   longitude: number | null;
 

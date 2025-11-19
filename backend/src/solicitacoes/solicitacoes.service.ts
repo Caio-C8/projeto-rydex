@@ -1,26 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SolicitacoesEntregas } from '@prisma/client';
-import { PrismaService } from '../prisma.service'; // Verifique se o caminho está correto
-import { CriarSolicitacaoDto } from './dto/criar-solicitacao.dto';
+import { Injectable } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { SolicitacoesEntregas } from "@prisma/client";
+import { PrismaService } from "../prisma.service";
+import { CriarSolicitacaoDto } from "./dto/criar-solicitacao.dto";
 
 @Injectable()
 export class SolicitacoesService {
   constructor(
     private prisma: PrismaService,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: EventEmitter2
   ) {}
 
-  /**
-   * Cria uma nova solicitação de entrega e dispara o evento.
-   * @param dto Dados da solicitação (endereço, valor, etc.)
-   * @param empresaId ID da empresa (vinda do token)
-   */
   async criarSolicitacaoEntrega(
     dto: CriarSolicitacaoDto,
-    empresaId: number,
+    empresaId: number
   ): Promise<SolicitacoesEntregas> {
-    // 1. Salva a solicitação no banco de dados (quase todos os campos)
     const solicitacao = await this.prisma.solicitacoesEntregas.create({
       data: {
         valor_estimado: dto.valor_estimado,
@@ -38,17 +32,17 @@ export class SolicitacoesService {
         descricao_item_retorno: dto.descricao_item_retorno,
         observacao: dto.observacao,
         empresa_id: empresaId,
-        status: 'pendente', 
+        status: "pendente",
       },
     });
 
     await this.prisma.$queryRawUnsafe(
       `UPDATE "solicitacoes_entregas"
        SET "localizacao" = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
-       WHERE "id" = ${solicitacao.id}`,
+       WHERE "id" = ${solicitacao.id}`
     );
 
-    this.eventEmitter.emit('solicitacao.criada', solicitacao);
+    this.eventEmitter.emit("solicitacao.criada", solicitacao);
 
     return solicitacao;
   }

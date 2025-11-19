@@ -10,6 +10,7 @@ import { AuthModule } from "./auth/auth.module";
 import { PrismaModule } from "./prisma.module";
 import { SolicitacoesModule } from "./solicitacoes/solicitacoes.module";
 import { ConfigModule } from "@nestjs/config";
+import { EntregasModule } from "./entregas/entregas.module";
 
 @Module({
   imports: [
@@ -23,12 +24,13 @@ import { ConfigModule } from "@nestjs/config";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    SolicitacoesModule,
     EventEmitterModule.forRoot(),
+    SolicitacoesModule,
     PrismaModule,
     EntregadoresModule,
     EmpresasModule,
     AuthModule,
+    EntregasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
