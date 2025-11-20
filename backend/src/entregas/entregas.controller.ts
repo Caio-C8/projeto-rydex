@@ -101,4 +101,40 @@ export class EntregasController {
     const idEntregador = req.user.sub;
     return this.entregasService.finalizarEntrega(idEntrega, idEntregador);
   }
+
+  @UseGuards(JwtAuthGuard, EntregadorGuard)
+  @Post(":id/cancelar")
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Cancela uma entrega em andamento (Desistência)",
+    description:
+      "O entregador desiste da entrega. O status dele volta para 'online' e a solicitação volta para 'pendente' (disponível para outros entregadores).",
+  })
+  @ApiParam({
+    name: "id",
+    type: Number,
+    description: "ID da entrega a ser cancelada.",
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Entrega cancelada com sucesso.",
+    schema: {
+      example: {
+        message: "Entrega cancelada com sucesso. Você está online novamente.",
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entrega não encontrada ou não pertence ao entregador.",
+    type: RespostaErroGeralDto,
+  })
+  async cancelarEntrega(
+    @Param("id", ParseIntPipe) idEntrega: number,
+    @Request() req
+  ) {
+    const idEntregador = req.user.sub;
+    return this.entregasService.cancelarEntrega(idEntrega, idEntregador);
+  }
 }

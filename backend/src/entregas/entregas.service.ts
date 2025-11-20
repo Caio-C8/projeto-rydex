@@ -30,152 +30,8 @@ export class EntregasService {
 
   @OnEvent("solicitacao.criada")
   async handleSolicitacaoCriada(solicitacao: SolicitacoesEntregas) {
-    this.logger.log(
-      `Ouvindo evento: solicitacao.criada (ID: ${solicitacao.id})`
-    );
-
-    try {
-      const solicitacaoCompleta =
-        await this.prisma.solicitacoesEntregas.findUnique({
-          where: { id: solicitacao.id },
-          select: {
-            id: true,
-            valor_entregador: true,
-            distancia_m: true,
-            item_retorno: true,
-            descricao_item_retorno: true,
-            observacao: true,
-            cep: true,
-            cidade: true,
-            bairro: true,
-            logradouro: true,
-            numero: true,
-            complemento: true,
-            ponto_referencia: true,
-            latitude: true,
-            longitude: true,
-            status: true,
-            empresa: {
-              select: {
-                id: true,
-                nome_empresa: true,
-                cep: true,
-                cidade: true,
-                bairro: true,
-                logradouro: true,
-                numero: true,
-                latitude: true,
-                longitude: true,
-              },
-            },
-          },
-        });
-
-      if (!solicitacaoCompleta) {
-        this.logger.error(
-          `Solicitação ${solicitacao.id} não encontrada no banco para notificação.`
-        );
-        return;
-      }
-
-      if (
-        !solicitacaoCompleta.empresa.latitude ||
-        !solicitacaoCompleta.empresa.longitude
-      ) {
-        this.logger.error(
-          `Empresa da solicitação ${solicitacao.id} sem coordenadas.`
-        );
-        return;
-      }
-
-      const entregadoresProximos = await this.buscarEntregadoresProximos(
-        solicitacaoCompleta.empresa.longitude,
-        solicitacaoCompleta.empresa.latitude
-      );
-
-      this.logger.log(
-        `Encontrados ${entregadoresProximos.length} entregadores próximos.`
-      );
-
-      const notificacaoPayload: NotificacaoSolicitacao = {
-        id: solicitacaoCompleta.id,
-        valor_entregador: solicitacaoCompleta.valor_entregador,
-        distancia_m: solicitacaoCompleta.distancia_m ?? 0,
-        item_retorno: solicitacaoCompleta.item_retorno,
-        descricao_item_retorno:
-          solicitacaoCompleta.descricao_item_retorno ?? undefined,
-        observacao: solicitacaoCompleta.observacao ?? undefined,
-        cep: solicitacaoCompleta.cep,
-        cidade: solicitacaoCompleta.cidade,
-        bairro: solicitacaoCompleta.bairro,
-        logradouro: solicitacaoCompleta.logradouro,
-        numero: solicitacaoCompleta.numero,
-        complemento: solicitacaoCompleta.complemento ?? undefined,
-        ponto_referencia: solicitacaoCompleta.ponto_referencia ?? undefined,
-        latitude: solicitacaoCompleta.latitude ?? 0,
-        longitude: solicitacaoCompleta.longitude ?? 0,
-        status: solicitacaoCompleta.status,
-        empresa: {
-          id: solicitacaoCompleta.empresa.id,
-          nome_empresa: solicitacaoCompleta.empresa.nome_empresa,
-          cep: solicitacaoCompleta.empresa.cep,
-          cidade: solicitacaoCompleta.empresa.cidade,
-          bairro: solicitacaoCompleta.empresa.bairro,
-          logradouro: solicitacaoCompleta.empresa.logradouro,
-          numero: solicitacaoCompleta.empresa.numero,
-          latitude: solicitacaoCompleta.empresa.latitude,
-          longitude: solicitacaoCompleta.empresa.longitude,
-        },
-      };
-
-      for (const entregador of entregadoresProximos) {
-        this.entregasGateway.notificarEntregador(
-          String(entregador.id),
-          notificacaoPayload
-        );
-      }
-    } catch (error) {
-      this.logger.error(
-        `Falha ao processar evento 'solicitacao.criada': ${error.message}`,
-        error.stack
-      );
-    }
-  }
-
-  private async buscarEntregadoresProximos(
-    lon: number,
-    lat: number
-  ): Promise<Entregador[]> {
-    this.logger.log(
-      `Buscando entregadores. Centro: [${lon}, ${lat}]. Raio: ${RAIO_BUSCA_METROS}m`
-    );
-
-    const longitude = Number(lon);
-    const latitude = Number(lat);
-
-    const query = Prisma.sql`
-    SELECT id, nome, latitude, longitude, status
-    FROM "entregadores" 
-    WHERE
-      status = 'online' AND 
-      ST_DWithin(
-        ST_MakePoint(longitude, latitude)::geography,
-        ST_MakePoint(${longitude}, ${latitude})::geography,
-        ${RAIO_BUSCA_METROS}::double precision
-      )
-    LIMIT 10;
-  `;
-
-    try {
-      const entregadores = await this.prisma.$queryRaw<Entregador[]>(query);
-      return entregadores;
-    } catch (error) {
-      this.logger.error(
-        `Erro na query PostGIS 'buscarEntregadoresProximos': ${error.message}`,
-        error.stack
-      );
-      return [];
-    }
+    this.logger.log(`Evento recebido: Nova solicitação ${solicitacao.id}`);
+    await this.buscarENotificarEntregadores(solicitacao.id);
   }
 
   async aceitarEntrega(idSolicitacao: number, idEntregador: number) {
@@ -309,6 +165,233 @@ export class EntregasService {
         throw error;
       }
       throw new ConflictException("Não foi possível finalizar a entrega.");
+    }
+  }
+
+  async cancelarEntrega(idEntrega: number, idEntregador: number) {
+    this.logger.log(
+      `Cancelando entrega ${idEntrega} (Entregador ${idEntregador})`
+    );
+
+    let idSolicitacaoParaNotificar: number | null = null;
+
+    try {
+      await this.prisma.$transaction(async (prisma) => {
+        const entrega = await prisma.entregas.findFirst({
+          where: {
+            id: idEntrega,
+            entregador_id: idEntregador,
+            status: "em_andamento",
+          },
+        });
+
+        if (!entrega) {
+          throw new NotFoundException(
+            "Entrega não encontrada ou já finalizada."
+          );
+        }
+
+        idSolicitacaoParaNotificar = entrega.solicitacao_entrega_id;
+
+        await prisma.entregas.update({
+          where: { id: idEntrega },
+          data: {
+            status: StatusEntregas.cancelada,
+            cancelado_em: new Date(),
+          },
+        });
+
+        await prisma.entregador.update({
+          where: { id: idEntregador },
+          data: { status: StatusEntregadores.online },
+        });
+
+        await prisma.solicitacoesEntregas.update({
+          where: { id: entrega.solicitacao_entrega_id },
+          data: { status: StatusSolicitacoes.pendente },
+        });
+      });
+
+      if (idSolicitacaoParaNotificar) {
+        this.logger.log(
+          `Reenviando solicitação ${idSolicitacaoParaNotificar} para a fila.`
+        );
+
+        this.buscarENotificarEntregadores(idSolicitacaoParaNotificar);
+      }
+
+      return {
+        message: "Entrega cancelada. A solicitação foi devolvida para a fila.",
+      };
+    } catch (error) {
+      this.logger.error(`Erro no cancelamento: ${error.message}`);
+      if (error instanceof NotFoundException) throw error;
+      throw new ConflictException("Erro ao cancelar entrega.");
+    }
+  }
+
+  private async buscarEntregadoresProximos(
+    lon: number,
+    lat: number
+  ): Promise<Entregador[]> {
+    this.logger.log(
+      `Buscando entregadores. Centro: [${lon}, ${lat}]. Raio: ${RAIO_BUSCA_METROS}m`
+    );
+
+    const longitude = Number(lon);
+    const latitude = Number(lat);
+
+    const query = Prisma.sql`
+      SELECT id, nome, latitude, longitude, status
+      FROM "entregadores" 
+      WHERE
+        status = 'online' AND 
+        ST_DWithin(
+          ST_MakePoint(longitude, latitude)::geography,
+          ST_MakePoint(${longitude}, ${latitude})::geography,
+          ${RAIO_BUSCA_METROS}::double precision
+        )
+      LIMIT 10;
+    `;
+
+    try {
+      const entregadores = await this.prisma.$queryRaw<Entregador[]>(query);
+      return entregadores;
+    } catch (error) {
+      this.logger.error(
+        `Erro na query PostGIS 'buscarEntregadoresProximos': ${error.message}`,
+        error.stack
+      );
+      return [];
+    }
+  }
+
+  private async buscarENotificarEntregadores(idSolicitacao: number) {
+    try {
+      const solicitacaoCompleta =
+        await this.prisma.solicitacoesEntregas.findUnique({
+          where: { id: idSolicitacao },
+          select: {
+            id: true,
+            valor_entregador: true,
+            distancia_m: true,
+            item_retorno: true,
+            descricao_item_retorno: true,
+            observacao: true,
+            cep: true,
+            cidade: true,
+            bairro: true,
+            logradouro: true,
+            numero: true,
+            complemento: true,
+            ponto_referencia: true,
+            latitude: true,
+            longitude: true,
+            status: true,
+            empresa: {
+              select: {
+                id: true,
+                nome_empresa: true,
+                cep: true,
+                cidade: true,
+                bairro: true,
+                logradouro: true,
+                numero: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        });
+
+      if (!solicitacaoCompleta) {
+        this.logger.error(
+          `Solicitação ${idSolicitacao} não encontrada no banco para notificação.`
+        );
+        return;
+      }
+
+      if (solicitacaoCompleta.status !== "pendente") {
+        this.logger.warn(`Solicitação ${idSolicitacao} não está pendente.`);
+        return;
+      }
+
+      if (
+        !solicitacaoCompleta.empresa.latitude ||
+        !solicitacaoCompleta.empresa.longitude
+      ) {
+        this.logger.error(
+          `Empresa ${solicitacaoCompleta.empresa.id} sem coordenadas.`
+        );
+        return;
+      }
+
+      const entregasCanceladas = await this.prisma.entregas.findMany({
+        where: {
+          solicitacao_entrega_id: idSolicitacao,
+          status: StatusEntregas.cancelada,
+        },
+        select: {
+          entregador_id: true,
+        },
+      });
+
+      const idsIgnorar = new Set(
+        entregasCanceladas.map((e) => e.entregador_id)
+      );
+
+      const entregadoresProximos = await this.buscarEntregadoresProximos(
+        solicitacaoCompleta.empresa.longitude,
+        solicitacaoCompleta.empresa.latitude
+      );
+
+      this.logger.log(
+        `Notificando solicitação ${idSolicitacao} para ${entregadoresProximos.length} entregadores.`
+      );
+
+      const notificacaoPayload: NotificacaoSolicitacao = {
+        id: solicitacaoCompleta.id,
+        valor_entregador: solicitacaoCompleta.valor_entregador,
+        distancia_m: solicitacaoCompleta.distancia_m ?? 0,
+        item_retorno: solicitacaoCompleta.item_retorno,
+        descricao_item_retorno:
+          solicitacaoCompleta.descricao_item_retorno ?? undefined,
+        observacao: solicitacaoCompleta.observacao ?? undefined,
+        cep: solicitacaoCompleta.cep,
+        cidade: solicitacaoCompleta.cidade,
+        bairro: solicitacaoCompleta.bairro,
+        logradouro: solicitacaoCompleta.logradouro,
+        numero: solicitacaoCompleta.numero,
+        complemento: solicitacaoCompleta.complemento ?? undefined,
+        ponto_referencia: solicitacaoCompleta.ponto_referencia ?? undefined,
+        latitude: solicitacaoCompleta.latitude ?? 0,
+        longitude: solicitacaoCompleta.longitude ?? 0,
+        status: solicitacaoCompleta.status,
+        empresa: {
+          id: solicitacaoCompleta.empresa.id,
+          nome_empresa: solicitacaoCompleta.empresa.nome_empresa,
+          cep: solicitacaoCompleta.empresa.cep,
+          cidade: solicitacaoCompleta.empresa.cidade,
+          bairro: solicitacaoCompleta.empresa.bairro,
+          logradouro: solicitacaoCompleta.empresa.logradouro,
+          numero: solicitacaoCompleta.empresa.numero,
+          latitude: solicitacaoCompleta.empresa.latitude,
+          longitude: solicitacaoCompleta.empresa.longitude,
+        },
+      };
+
+      for (const entregador of entregadoresProximos) {
+        if (idsIgnorar.has(entregador.id)) {
+          continue;
+        }
+
+        this.entregasGateway.notificarEntregador(
+          String(entregador.id),
+          notificacaoPayload
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Erro ao notificar entregadores: ${error.message}`);
     }
   }
 }
