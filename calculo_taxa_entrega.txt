@@ -1,3 +1,5 @@
 valor_empresa = valor_entregador + valor_taxa_serviço
 valor_entregador = (valor_por_m * distancia_m) + (valor_por_seg * tempo_seg)
-valor_taxa_serviço = 6
+valor_taxa_serviço = 500
+valor_por_m = 50
+valor_por_seg = 50

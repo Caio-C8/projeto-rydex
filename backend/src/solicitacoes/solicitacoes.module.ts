@@ -4,9 +4,17 @@ import { SolicitacoesController } from "./solicitacoes.controller";
 import { PrismaModule } from "../prisma.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { AuthModule } from "src/auth/auth.module";
+import { HttpModule } from "@nestjs/axios";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
-  imports: [PrismaModule, EventEmitterModule, AuthModule],
+  imports: [
+    PrismaModule, 
+    EventEmitterModule, 
+    AuthModule,
+    HttpModule, 
+    ConfigModule 
+  ],
   controllers: [SolicitacoesController],
   providers: [SolicitacoesService],
 })
