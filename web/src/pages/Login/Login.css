@@ -1,0 +1,107 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: #f2f2f2;
+  align-items: flex-start;    
+  justify-content: center;
+  gap: 100px;
+  padding-top: 150px;          
+}
+
+/* Lado Esquerdo */
+.left {
+  display: flex;
+  align-items: flex-start;
+}
+
+.login-logo-img {
+  width: 260px;
+  height: auto;
+  display: block;
+}
+
+/* Lado Direito */
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0;
+}
+
+.title {
+  font-size: 35px;
+  color: #ff6a00; /* Laranja Rydex */
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 35px;
+  color: #004457; 
+  margin-bottom: 20px;
+}
+
+.right .card {
+  width: 520px !important;     
+  max-width: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;      
+}
+
+/* Botão */
+.botao-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* Links Específicos do Login */
+.login-links {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px; /* Aproxima do input de senha */
+  margin-bottom: 10px;
+}
+
+.link-esqueceu {
+  font-size: 14px;
+  color: #004457;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-esqueceu:hover {
+  text-decoration: underline;
+  color: #ff6a00;
+}
+
+.mensagem-erro-box {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 10px;
+  border: 1px solid #FFCDD2;
+}
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding-top: 50px;
+  }
+  
+  .login-logo-img {
+    width: 200px;
+  }
+
+  .title, .subtitle {
+    font-size: 24px;
+  }
+}

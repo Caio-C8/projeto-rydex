@@ -8,7 +8,7 @@ type BotaoTextoProps = {
   corTextoHover?: string;
   corBorda?: string;
   onClick?: () => void;
-  type?: "button" | "submit" | "reset";
+  type?: "button" | "submit" | "reset"; 
 };
 
 export default function BotaoTexto({
@@ -18,9 +18,11 @@ export default function BotaoTexto({
   corTextoHover = "#FFFFFF",
   corBorda = "#FF5722",
   onClick,
+  type = "button", 
 }: BotaoTextoProps) {
   return (
     <button
+      type={type}
       className="botao"
       onClick={onClick}
       style={
