@@ -70,4 +70,35 @@ export class EntregasController {
 
     return this.entregasService.aceitarEntrega(idSolicitacao, idEntregador);
   }
+
+  @UseGuards(JwtAuthGuard, EntregadorGuard)
+  @Post(":id/finalizar")
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Finaliza uma entrega em andamento",
+    description:
+      "Marca a entrega e a solicitação como finalizadas, libera o entregador para novas corridas e transfere o saldo da empresa para o entregador.",
+  })
+  @ApiParam({
+    name: "id",
+    type: Number,
+    description: "ID da entrega (não da solicitação) a ser finalizada.",
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Entrega finalizada com sucesso.",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entrega não encontrada ou não pertence ao entregador.",
+    type: RespostaErroGeralDto,
+  })
+  async finalizarEntrega(
+    @Param("id", ParseIntPipe) idEntrega: number,
+    @Request() req
+  ) {
+    const idEntregador = req.user.sub;
+    return this.entregasService.finalizarEntrega(idEntrega, idEntregador);
+  }
 }

@@ -5,7 +5,14 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import { Entregador, Prisma, type SolicitacoesEntregas } from "@prisma/client";
+import {
+  Entregador,
+  Prisma,
+  StatusEntregadores,
+  StatusEntregas,
+  StatusSolicitacoes,
+  type SolicitacoesEntregas,
+} from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
 import { EntregasGateway } from "./entregas.gateway";
 import { NotificacaoSolicitacao } from "./dto/notificacao-solicitacao.dto";
@@ -238,6 +245,70 @@ export class EntregasService {
       throw new NotFoundException(
         "Não foi possível aceitar a entrega. Tenta novamente."
       );
+    }
+  }
+
+  async finalizarEntrega(idEntrega: number, idEntregador: number) {
+    this.logger.log(
+      `Tentativa de finalizar entrega ${idEntrega} pelo entregador ${idEntregador}`
+    );
+
+    try {
+      const resultado = await this.prisma.$transaction(async (prisma) => {
+        const entrega = await prisma.entregas.findFirst({
+          where: {
+            id: idEntrega,
+            entregador_id: idEntregador,
+            status: "em_andamento",
+          },
+          include: {
+            solicitacao_entrega: true,
+          },
+        });
+
+        if (!entrega) {
+          throw new NotFoundException(
+            "Entrega não encontrada ou não está em andamento para este entregador."
+          );
+        }
+
+        const valorEntrega = entrega.valor_entrega;
+
+        const entregaAtualizada = await prisma.entregas.update({
+          where: { id: idEntrega },
+          data: {
+            status: StatusEntregas.finalizada,
+          },
+        });
+
+        await prisma.solicitacoesEntregas.update({
+          where: { id: entrega.solicitacao_entrega_id },
+          data: { status: StatusSolicitacoes.finalizada },
+        });
+
+        await prisma.entregador.update({
+          where: { id: idEntregador },
+          data: {
+            status: StatusEntregadores.online,
+            saldo: { increment: valorEntrega },
+          },
+        });
+
+        this.logger.log(`Entrega ${idEntrega} finalizada com sucesso.`);
+
+        return entregaAtualizada;
+      });
+
+      return resultado;
+    } catch (error) {
+      this.logger.error(
+        `Erro ao finalizar entrega ${idEntrega}: ${error.message}`,
+        error.stack
+      );
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new ConflictException("Não foi possível finalizar a entrega.");
     }
   }
 }
