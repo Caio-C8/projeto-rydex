@@ -7,8 +7,7 @@ import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 import { Login } from "./pages/Login/Login"; 
 
 const getTitulo = (path: string): string => {
-  if (path.startsWith("/home")) return "Início"; 
-  
+  if (path.startsWith("/")) return "Início"; 
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
   if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";

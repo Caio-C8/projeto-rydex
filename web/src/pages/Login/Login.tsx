@@ -33,7 +33,7 @@ export function Login() {
 
     try {
       await authService.login(email, senha);
-      navigate('/home'); 
+      navigate('/'); 
     } catch (error: any) {
       console.error("Erro no login:", error);
       if (error.response && error.response.data) {
