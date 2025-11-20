@@ -26,7 +26,6 @@ CREATE TABLE "entregadores" (
     "localizacao" GEOGRAPHY(POINT, 4326),
     "ultima_atualizacao_localizacao" TIMESTAMP(6),
     "chave_pix" VARCHAR(100) NOT NULL,
-
     CONSTRAINT "entregadores_pkey" PRIMARY KEY ("id")
 );
 
@@ -48,7 +47,6 @@ CREATE TABLE "empresas" (
     "latitude" DOUBLE PRECISION,
     "longitude" DOUBLE PRECISION,
     "localizacao" GEOGRAPHY(POINT, 4326),
-
     CONSTRAINT "empresas_pkey" PRIMARY KEY ("id")
 );
 
@@ -75,7 +73,6 @@ CREATE TABLE "solicitacoes_entregas" (
     "longitude" DOUBLE PRECISION,
     "localizacao" GEOGRAPHY(POINT, 4326),
     "empresa_id" INTEGER NOT NULL,
-
     CONSTRAINT "solicitacoes_entregas_pkey" PRIMARY KEY ("id")
 );
 
@@ -89,7 +86,6 @@ CREATE TABLE "entregas" (
     "status" "status_entregas" NOT NULL DEFAULT 'em_andamento',
     "solicitacao_entrega_id" INTEGER NOT NULL,
     "entregador_id" INTEGER NOT NULL,
-
     CONSTRAINT "entregas_pkey" PRIMARY KEY ("id")
 );
 
@@ -99,7 +95,6 @@ CREATE TABLE "arquivos" (
     "nome" VARCHAR(255) NOT NULL,
     "caminho" TEXT NOT NULL,
     "entregador_id" INTEGER,
-
     CONSTRAINT "arquivos_pkey" PRIMARY KEY ("id")
 );
 
@@ -119,13 +114,27 @@ CREATE UNIQUE INDEX "empresas_email_key" ON "empresas"("email");
 CREATE UNIQUE INDEX "entregas_solicitacao_entrega_id_key" ON "entregas"("solicitacao_entrega_id");
 
 -- AddForeignKey
-ALTER TABLE "solicitacoes_entregas" ADD CONSTRAINT "fk_empresa" FOREIGN KEY ("empresa_id") REFERENCES "empresas"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE
+    "solicitacoes_entregas"
+ADD
+    CONSTRAINT "fk_empresa" FOREIGN KEY ("empresa_id") REFERENCES "empresas"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "entregas" ADD CONSTRAINT "fk_entregador_entrega" FOREIGN KEY ("entregador_id") REFERENCES "entregadores"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+ALTER TABLE
+    "entregas"
+ADD
+    CONSTRAINT "fk_entregador_entrega" FOREIGN KEY ("entregador_id") REFERENCES "entregadores"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "entregas" ADD CONSTRAINT "fk_solicitacao_entrega" FOREIGN KEY ("solicitacao_entrega_id") REFERENCES "solicitacoes_entregas"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+ALTER TABLE
+    "entregas"
+ADD
+    CONSTRAINT "fk_solicitacao_entrega" FOREIGN KEY ("solicitacao_entrega_id") REFERENCES "solicitacoes_entregas"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "arquivos" ADD CONSTRAINT "fk_entregador" FOREIGN KEY ("entregador_id") REFERENCES "entregadores"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+ALTER TABLE
+    "arquivos"
+ADD
+    CONSTRAINT "fk_entregador" FOREIGN KEY ("entregador_id") REFERENCES "entregadores"("id") ON DELETE
+SET
+    NULL ON UPDATE NO ACTION;

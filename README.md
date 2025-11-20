@@ -24,6 +24,12 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 docker-compose exec backend npx prisma migrate dev
 ```
 
+OU
+
+```bash
+docker-compose exec backend npx prisma migrate reset
+```
+
 - Rodar normalemente:
 
 ```bash
