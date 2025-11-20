@@ -124,6 +124,7 @@ enum StatusEntregadores {
 enum StatusSolicitacoes {
   pendente
   atribuida
+  finalizada
   cancelada
 
   @@map("status_solicitacoes")
