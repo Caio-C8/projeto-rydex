@@ -10,6 +10,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { TipoUsuario } from "src/auth/dto/login.dto";
+import { NotificacaoSolicitacao } from "./dto/notificacao-solicitacao.dto";
 
 @WebSocketGateway({
   cors: {
@@ -24,8 +25,6 @@ export class EntregasGateway
 
   private readonly logger = new Logger(EntregasGateway.name);
 
-  private entregadoresConectados = new Map<string, string>();
-
   constructor(private readonly jwtService: JwtService) {}
 
   afterInit() {
@@ -34,7 +33,10 @@ export class EntregasGateway
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token;
+      const token =
+        client.handshake.auth.token ||
+        client.handshake.headers["authorization"];
+
       if (!token) {
         throw new Error("Token de autenticação não fornecido.");
       }
@@ -55,16 +57,15 @@ export class EntregasGateway
 
       const entregadorIdString = String(entregadorIdNumerico);
 
-      this.entregadoresConectados.set(entregadorIdString, client.id);
-
-      this.logger.log(
-        `Entregador conectado: ${entregadorIdString} (Socket: ${client.id})`
-      );
-      this.logger.log(
-        `Atualmente conectados: ${this.entregadoresConectados.size}`
-      );
-
       client.join(entregadorIdString);
+
+      this.logger.log(
+        `Entregador conectado e adicionado à sala ${entregadorIdString} (Socket: ${client.id})`
+      );
+
+      this.logger.log(
+        `Atualmente conectados: ${this.server.engine.clientsCount}`
+      );
     } catch (error) {
       this.logger.error(`Falha na conexão do socket: ${error.message}`);
       client.disconnect(true);
@@ -72,38 +73,17 @@ export class EntregasGateway
   }
 
   handleDisconnect(client: Socket) {
-    let entregadorId: string | null = null;
-    for (const [key, value] of this.entregadoresConectados.entries()) {
-      if (value === client.id) {
-        entregadorId = key;
-        break;
-      }
-    }
-
-    if (entregadorId) {
-      this.entregadoresConectados.delete(entregadorId);
-      this.logger.log(
-        `Entregador desconectado: ${entregadorId} (Socket: ${client.id})`
-      );
-    } else {
-      this.logger.log(
-        `Socket desconectado antes da autenticação: ${client.id}`
-      );
-    }
+    this.logger.log(`Socket desconectado: ${client.id}`);
   }
 
-  notificarEntregador(entregadorId: string, solicitacao: SolicitacoesEntregas) {
-    const socketId = this.entregadoresConectados.get(entregadorId);
+  notificarEntregador(
+    entregadorId: string,
+    solicitacao: NotificacaoSolicitacao
+  ) {
+    this.server.to(entregadorId).emit("nova.solicitacao", solicitacao);
 
-    if (socketId) {
-      this.server.to(socketId).emit("nova.solicitacao", solicitacao);
-      this.logger.log(
-        `Notificação enviada para Entregador: ${entregadorId} (Socket: ${socketId})`
-      );
-    } else {
-      this.logger.warn(
-        `Tentativa de notificar entregador ${entregadorId}, mas ele não está conectado.`
-      );
-    }
+    this.logger.log(
+      `Notificação enviada para a sala do Entregador: ${entregadorId}`
+    );
   }
 }
