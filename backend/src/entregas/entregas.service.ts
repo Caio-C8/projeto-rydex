@@ -138,7 +138,7 @@ export class EntregasService {
             status: "em_andamento",
             solicitacao_entrega_id: idSolicitacao,
             entregador_id: idEntregador,
-            valor_entrega: solicitacao.valor_estimado,
+            valor_entrega: solicitacao.valor_entregador,
           },
         });
 
