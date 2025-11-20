@@ -4,34 +4,22 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const authService = {
   async login(email: string, senha: string) {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        senha,
-        tipo: 'empresa'
-      });
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email,
+      senha,
+      tipo: 'empresa'
+    });
 
-      // 🚨 ALERTA DE DEBUG: Vai mostrar exatamente o que chegou!
-      const jsonResposta = JSON.stringify(response.data, null, 2);
-      alert("RESPOSTA DO BACKEND:\n" + jsonResposta);
+    // Tenta encontrar o token em vários lugares possíveis
+    const token = response.data.dados?.access_token || response.data.access_token;
 
-      // Tenta pegar o token no caminho padrão do teu projeto
-      // O backend Rydex costuma retornar: { dados: { access_token: "..." } }
-      const token = response.data?.dados?.access_token;
-
-      if (token) {
-        localStorage.setItem('token', token);
-        alert("✅ SUCESSO: Token salvo no localStorage!");
-      } else {
-        alert("❌ ERRO: Não encontrei 'access_token' dentro de 'dados'. Verifique o JSON acima!");
-        console.error("JSON Recebido:", response.data);
-      }
-      
-      return response.data;
-    } catch (error) {
-      alert("❌ ERRO NA REQUISIÇÃO: Veja o console para detalhes.");
-      throw error;
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      console.error("Token não encontrado na resposta:", response.data);
     }
+    
+    return response.data;
   },
 
   logout() {
@@ -41,5 +29,27 @@ export const authService = {
 
   getToken() {
     return localStorage.getItem('token');
+  },
+
+  // Atenção: O nome da função é getEmpresaId (com I de Igreja maiúsculo)
+  getEmpresaId(): number | null {
+    const token = localStorage.getItem('token'); // Lemos diretamente para evitar erros com 'this'
+    if (!token) return null;
+
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      
+      // Retorna o ID se existir (convertendo para número)
+      return payload.sub ? Number(payload.sub) : null;
+    } catch (error) {
+      console.error("Erro ao decodificar token:", error);
+      return null;
+    }
   }
 };
