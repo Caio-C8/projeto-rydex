@@ -1,0 +1,398 @@
+/* web/src/pages/Historico/Historico.css */
+
+/* --- MUDANÇA PRINCIPAL AQUI --- */
+.historico-container {
+  padding: 20px;
+  width: 100%;            /* Ocupa toda a largura disponível */
+  max-width: 100%;        /* Remove o limite de 800px */
+  box-sizing: border-box; /* Garante que o padding não estoure a tela */
+  margin: 0;              /* Remove margens laterais automáticas */
+  padding-bottom: 100px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* --- CABEÇALHO --- */
+.historico-header {
+  margin-bottom: 40px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  /* Opcional: Se quiser limitar a largura só do título para não ficar muito solto */
+  /* max-width: 1200px; margin: 0 auto 40px auto; */
+}
+
+.historico-titulo {
+  font-size: 1.8rem;
+  color: #1A1A1A;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* --- STATUS DE CARREGAMENTO --- */
+.historico-loading, .historico-erro {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.historico-erro {
+  color: #D32F2F;
+  background-color: #FFEBEE;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.historico-vazio {
+  text-align: center;
+  padding: 80px 20px;
+  color: #888;
+  background-color: #FAFAFA;
+  border-radius: 16px;
+  border: 2px dashed #E0E0E0;
+  margin-top: 20px;
+}
+
+.vazio-icon {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* --- DATA E GRUPOS --- */
+.grupo-dia {
+  margin-bottom: 30px;
+}
+
+.data-separator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 14px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #F0F0F0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 15px;
+  user-select: none;
+}
+
+.data-separator:hover {
+  border-color: #FFCCBC;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.1);
+}
+
+.data-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: #333;
+  font-size: 1.05rem;
+}
+
+.qtd-items {
+  font-size: 0.8rem;
+  color: #999;
+  font-weight: 400;
+  background-color: #F5F5F5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.calendar-icon {
+  color: #FF5722;
+  font-size: 1.1rem;
+}
+
+/* --- CARD --- */
+.lista-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 5px;
+  width: 100%; /* Garante que a lista ocupe tudo */
+}
+
+/* Garante que o card interno estique */
+.lista-cards > div { 
+  width: 100%;
+}
+
+.card-entrega-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.entrega-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 12px;
+}
+
+.entrega-id {
+  font-weight: 700;
+  color: #FF5722;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.entrega-status {
+  font-size: 0.7rem;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.entrega-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  color: #444;
+}
+
+.icon-laranja, .icon-cinza {
+  margin-top: 3px; 
+  min-width: 18px;
+  font-size: 1.1rem;
+}
+
+.icon-laranja { color: #FF5722; }
+.icon-cinza { color: #9E9E9E; }
+
+.endereco-texto {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+.bairro-cidade {
+  display: block;
+  font-size: 0.85rem;
+  color: #777;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.entrega-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid #f5f5f5;
+}
+
+.entrega-valor {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2C3E50;
+  letter-spacing: -0.5px;
+}
+
+.btn-detalhes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #FFF3E0;
+  border: 1px solid transparent;
+  color: #E64A19;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-detalhes:hover {
+  background-color: #FF5722;
+  color: white;
+  box-shadow: 0 4px 10px rgba(255, 87, 34, 0.2);
+  transform: translateY(-1px);
+}
+
+.anime-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- MODAL (Mantendo o estilo que gostaste, centralizado) --- */
+/* O modal não deve esticar 100%, senão fica feio. Mantemos ele contido. */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 500px; /* Mantém o modal elegante e não esticado */
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.modal-close:hover {
+  color: #FF5722;
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-section {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 15px;
+}
+
+.modal-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.destaque {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-status-badge {
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.modal-valor {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #2C3E50;
+}
+
+.modal-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.modal-texto {
+  font-size: 1.05rem;
+  color: #333;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-texto-bold {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.modal-subtexto {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.entregador-box {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.retorno-box {
+  margin-top: 10px;
+  background-color: #FFF8E1;
+  color: #F57C00;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.horarios {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+/* Ajuste para telas pequenas */
+@media (max-width: 600px) {
+  .historico-container {
+    padding: 15px;
+  }
+  
+  .entrega-valor {
+    font-size: 1.2rem;
+  }
+  
+  .btn-detalhes {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
