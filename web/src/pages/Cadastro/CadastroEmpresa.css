@@ -1,0 +1,76 @@
+.container_cadastro_empresa {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 10px;
+  background: #f5f5f5;
+}
+
+.topo_cadastro_empresa {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 100px;
+  margin-bottom: 25px;
+}
+
+.textos_cadastro_empresa {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.logo_cadastro_empresa {
+  width: 260px;
+}
+
+.titulo_cadastro_empresa {
+  margin: 0;
+  font-size: 2rem;
+  color: #ff5722;
+  text-align: center;
+  width: 100%;
+}
+
+
+.subtitulo_cadastro_empresa {
+  margin-top: 8px;
+  color: #004457;
+  font-size: 1.9rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.titulo_secao_cadastro_empresa {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-weight: 400;
+  font-size: 1.3rem;
+}
+
+.linha_dupla_cadastro_empresa {
+  display: flex;
+  gap: 1rem;
+}
+
+.botao_cadastro_empresa {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.login_link_cadastro_empresa {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  color: #ff5722;
+  cursor: pointer;
+  display: block;
+}
+
+.login_link_cadastro_empresa:hover {
+  text-decoration: underline;
+}
