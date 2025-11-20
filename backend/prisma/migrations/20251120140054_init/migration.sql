@@ -4,7 +4,12 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TYPE "status_entregadores" AS ENUM ('offline', 'online', 'em_entrega');
 
 -- CreateEnum
-CREATE TYPE "status_solicitacoes" AS ENUM ('pendente', 'atribuida', 'cancelada');
+CREATE TYPE "status_solicitacoes" AS ENUM (
+    'pendente',
+    'atribuida',
+    'finalizada',
+    'cancelada'
+);
 
 -- CreateEnum
 CREATE TYPE "status_entregas" AS ENUM ('em_andamento', 'finalizada', 'cancelada');
