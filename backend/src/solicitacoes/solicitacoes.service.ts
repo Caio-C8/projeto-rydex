@@ -108,6 +108,22 @@ export class SolicitacoesService {
     });
   }
 
+async findAllByEmpresa(empresaId: number): Promise<SolicitacoesEntregas[]> {
+    return this.prisma.solicitacoesEntregas.findMany({
+      where: {
+        empresa_id: empresaId, 
+      },
+      orderBy: {
+        id: 'desc', 
+      },
+      
+    });
+  }
+
+
+
+
+  
   private async getCoordenadas(enderecoInfo: any): Promise<Coordenadas> {
     const apiKey = this.configService.get<string>("GOOGLE_MAPS_API_KEY");
 
