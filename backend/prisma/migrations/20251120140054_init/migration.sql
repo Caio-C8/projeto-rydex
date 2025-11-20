@@ -116,8 +116,7 @@ CREATE UNIQUE INDEX "empresas_cnpj_key" ON "empresas"("cnpj");
 CREATE UNIQUE INDEX "empresas_email_key" ON "empresas"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "entregas_solicitacao_entrega_id_key" ON "entregas"("solicitacao_entrega_id");
-
+-- CREATE UNIQUE INDEX "entregas_solicitacao_entrega_id_key" ON "entregas"("solicitacao_entrega_id");
 -- AddForeignKey
 ALTER TABLE
     "solicitacoes_entregas"
