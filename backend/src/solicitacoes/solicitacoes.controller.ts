@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body,Get, Controller, Post, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiBody,
@@ -60,4 +60,19 @@ export class SolicitacoesController {
   ): Promise<SolicitacoesEntregas> {
     return this.solicitacoesService.criarSolicitacaoEntrega(dto, empresa.sub);
   }
+
+  @Get()
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
+  @ApiOperation({
+    summary: "Lista o histórico de solicitações da empresa.",
+    description: "Retorna todas as entregas criadas pela empresa logada, ordenadas da mais recente para a mais antiga.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Histórico recuperado com sucesso.",
+  })
+  async findAll(@Usuario() empresa: UsuarioPayload): Promise<SolicitacoesEntregas[]> {
+    return this.solicitacoesService.findAllByEmpresa(empresa.sub);
+  }
+
 }
