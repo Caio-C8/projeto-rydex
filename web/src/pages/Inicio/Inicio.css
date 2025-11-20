@@ -1,0 +1,33 @@
+.inicio {
+  padding: 20px;
+}
+
+.inicio-header {
+  font-size: 52px;
+  font-weight: 500;
+  color: #2C2C2C;
+  text-align: left;
+}
+
+.inicio-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.inicio-empty {
+  color: #004457;
+  font-size: 62px;
+}
+
+.inicio-call {
+  color: #FF5722;
+  font-weight: 800;
+  font-size: 75px;
+  margin-top: 10px;
+}
+
+.inicio-btn-wrap {
+  margin-top: 30px;
+}
