@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom"; 
 import Header from "./components/layout/Header/Header";
 import SideBar from "./components/layout/SideBar/SideBar";
 import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
@@ -11,14 +11,27 @@ import Inicio from "./pages/Inicio/Inicio";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
+import { Historico } from "./pages/Historico/Historico";
+import { Inicio } from "./pages/Inicio/Inicio"
+
+const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 const getTitulo = (path: string): string => {
-  if (path === "/") return "Início";
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
   if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
   if (path.startsWith("/perfil")) return "Perfil";
-  return "Rydex";
+  if (path === "/") return "Início";
+  
+  return "Rydex"; 
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,11 +48,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         isExpandido={isSideBarExpandida}
         setIsExpandido={setIsSideBarExpandida}
       />
+
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
 
         <div className="conteudo">{children}</div>
+        
+        <div className="conteudo">
+          {children}
+        </div>
       </main>
+
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
@@ -78,6 +97,19 @@ const App: React.FC = () => {
 
             <ToastContainer theme="colored" />
           </Layout>
+          <RotaProtegida>
+            <Layout>
+              <Routes>
+                {/* 👈 Rota Raiz agora aponta para o Inicio */}
+                <Route path="/" element={<Inicio />} />
+                
+                <Route path="/adicionar-saldo" element={<AdicionarSaldo />}/>
+                <Route path="/historico" element={<Historico />} />
+                <Route path="/solicitar-entrega" element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} />
+                <Route path="/perfil" element={<div style={{padding: 20}}>Perfil (Em breve)</div>} />
+              </Routes>
+            </Layout>
+          </RotaProtegida>
         }
       />
     </Routes>
