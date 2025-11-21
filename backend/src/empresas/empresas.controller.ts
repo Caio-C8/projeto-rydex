@@ -6,9 +6,8 @@ import {
   Patch,
   Param,
   ParseIntPipe,
-  Delete,
-  HttpCode,
   HttpStatus,
+  HttpCode,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -30,6 +29,7 @@ import { Usuario } from "src/auth/usuario.decorator";
 import { type UsuarioPayload } from "src/auth/jwt.strategy";
 import { RespostaErroGeralDto } from "src/utils/dto/resposta-erro-geral.dto";
 import { RespostaErroValidacaoDto } from "src/utils/dto/resposta-erro-validacao.dto";
+import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
 
 @ApiTags("Empresas")
 @Controller("empresas")
@@ -188,5 +188,33 @@ export class EmpresasController {
   @Get(":id")
   buscarEmpresaPorId(@Param("id", ParseIntPipe) id: number): Promise<Empresa> {
     return this.empresasService.buscarEmpresaPorId(id);
+  }
+
+  @ApiOperation({
+    summary: "Redefinir senha (Esqueci minha senha)",
+    description:
+      "Permite alterar a senha sem estar logado, validando o E-mail e o CNPJ da empresa.",
+  })
+  @ApiBody({ type: RedefinirSenhaDto })
+  @ApiResponse({
+    status: 204,
+    description: "Senha alterada com sucesso.",
+    type: String,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Senhas não conferem ou dados inválidos.",
+    type: RespostaErroValidacaoDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Empresa não encontrada com os dados informados.",
+    type: RespostaErroGeralDto,
+  })
+  @Patch("recuperacao-senha")
+  async redefinirSenha(
+    @Body() redefinirSenhaDto: RedefinirSenhaDto
+  ): Promise<String> {
+    return this.empresasService.redefinirSenha(redefinirSenhaDto);
   }
 }
