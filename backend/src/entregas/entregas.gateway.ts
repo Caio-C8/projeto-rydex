@@ -5,7 +5,6 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { SolicitacoesEntregas } from "@prisma/client";
 import { JwtService } from "@nestjs/jwt";
 import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
@@ -41,31 +40,26 @@ export class EntregasGateway
         throw new Error("Token de autenticação não fornecido.");
       }
 
-      const payload = await this.jwtService.verifyAsync(token);
+      const tokenLimpo = token.replace("Bearer ", "");
+      const payload = await this.jwtService.verifyAsync(tokenLimpo);
 
-      const entregadorIdNumerico = payload.sub;
+      const usuarioId = payload.sub;
 
-      if (payload.tipo !== TipoUsuario.ENTREGADOR) {
-        throw new Error(
-          "Apenas entregadores podem conectar-se a este gateway."
-        );
+      if (!usuarioId) {
+        throw new Error("Token inválido.");
       }
 
-      if (!entregadorIdNumerico) {
-        throw new Error("Token inválido ou não contém ID.");
+      if (payload.tipo === TipoUsuario.ENTREGADOR) {
+        const roomName = `entregador-${usuarioId}`;
+        client.join(roomName);
+        this.logger.log(`Entregador conectado na sala: ${roomName}`);
+      } else if (payload.tipo === TipoUsuario.EMPRESA) {
+        const roomName = `empresa-${usuarioId}`;
+        client.join(roomName);
+        this.logger.log(`Empresa conectada na sala: ${roomName}`);
+      } else {
+        client.disconnect();
       }
-
-      const entregadorIdString = String(entregadorIdNumerico);
-
-      client.join(entregadorIdString);
-
-      this.logger.log(
-        `Entregador conectado e adicionado à sala ${entregadorIdString} (Socket: ${client.id})`
-      );
-
-      this.logger.log(
-        `Atualmente conectados: ${this.server.engine.clientsCount}`
-      );
     } catch (error) {
       this.logger.error(`Falha na conexão do socket: ${error.message}`);
       client.disconnect(true);
@@ -80,10 +74,21 @@ export class EntregasGateway
     entregadorId: string,
     solicitacao: NotificacaoSolicitacao
   ) {
-    this.server.to(entregadorId).emit("nova.solicitacao", solicitacao);
+    this.server
+      .to(`entregador-${entregadorId}`)
+      .emit("nova.solicitacao", solicitacao);
+  }
 
-    this.logger.log(
-      `Notificação enviada para a sala do Entregador: ${entregadorId}`
-    );
+  notificarEmpresaStatus(
+    empresaId: number,
+    dados: {
+      solicitacaoId: number;
+      status: string;
+      mensagem: string;
+      entregadorNome?: string;
+    }
+  ) {
+    this.server.to(`empresa-${empresaId}`).emit("status.entrega", dados);
+    this.logger.log(`Notificação de status enviada para empresa ${empresaId}`);
   }
 }
