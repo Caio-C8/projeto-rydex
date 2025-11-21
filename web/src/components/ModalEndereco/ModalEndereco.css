@@ -1,0 +1,88 @@
+.modal-overlay-mapa {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
+  padding: 20px;
+}
+
+.modal-mapa-content {
+  background: white;
+  width: 100%;
+  max-width: 900px; /* Bem largo para ver o mapa bem */
+  height: 85vh;     /* Bem alto */
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.mapa-header {
+  padding: 15px 25px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mapa-header h3 { margin: 0; color: #333; font-size: 1.2rem; }
+
+.btn-close {
+  background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #999;
+  transition: color 0.2s;
+}
+.btn-close:hover { color: #FF5722; }
+
+/* Área do Mapa */
+.mapa-wrapper {
+  flex: 1; /* Ocupa todo o espaço disponível no meio */
+  background-color: #eee;
+  position: relative;
+}
+
+/* Garante que o Leaflet renderize */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.mapa-footer {
+  padding: 20px 25px;
+  background: white;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.info-selecao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #555;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.icon-pin { color: #FF5722; font-size: 1.4rem; }
+
+.btn-confirmar-mapa { min-width: 220px; }
+
+@media (max-width: 700px) {
+  .mapa-footer { flex-direction: column; text-align: center; gap: 15px; }
+  .btn-confirmar-mapa { width: 100%; }
+  .modal-mapa-content { height: 90vh; }
+}

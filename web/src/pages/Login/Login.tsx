@@ -91,7 +91,7 @@ export function Login() {
 
                 {/* LINK CENTRALIZADO PELO CSS */}
                 <div className="login-links">
-                  <Link to="/esqueceu-senha" classNam e="link-esqueceu">
+                  <Link to="/esqueceu-senha" className="link-esqueceu">
                     Esqueceu sua senha?
                   </Link>
                 </div>

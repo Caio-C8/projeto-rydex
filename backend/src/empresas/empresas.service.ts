@@ -4,6 +4,7 @@ import {
   NotFoundException,
   Logger,
   BadRequestException,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { PrismaService } from "src/prisma.service";
@@ -83,16 +84,46 @@ export class EmpresasServices {
   }
 
   async criarEmpresa(criarEmpresaDto: CriarEmpresaDto): Promise<Empresa> {
+    // 1. Validação de Senha (Regra de Negócio)
     if (criarEmpresaDto.senha !== criarEmpresaDto.confirmar_senha) {
-      throw new BadRequestException("As senhas não conferem.");
+      throw new BadRequestException("As senhas digitadas não conferem.");
     }
 
-    const salt = 10;
-    criarEmpresaDto.senha = await bcrypt.hash(criarEmpresaDto.senha, salt);
+    // 2. Criptografia da Senha
+    try {
+      const salt = 10;
+      criarEmpresaDto.senha = await bcrypt.hash(criarEmpresaDto.senha, salt);
+    } catch (error) {
+      this.logger.error("Erro ao gerar hash da senha", error);
+      throw new InternalServerErrorException("Erro de segurança ao processar a senha.");
+    }
 
-    const { latitude, longitude } = await this.getCoordenadas(criarEmpresaDto);
+    // 3. Geocodificação (Google Maps)
+    // O método getCoordenadas já lança erros específicos (NotFound/BadRequest),
+    // então aqui vamos capturar apenas erros inesperados da API (ex: timeout, chave inválida).
+    let latitude: number;
+    let longitude: number;
 
     try {
+      const coords = await this.getCoordenadas(criarEmpresaDto);
+      latitude = coords.latitude;
+      longitude = coords.longitude;
+    } catch (error) {
+      // Se for um erro de validação que nós mesmos lançamos no getCoordenadas, repassa pro front
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      // Se for erro técnico (API fora do ar, etc), loga e avisa
+      this.logger.error("Falha crítica na API de Mapas", error);
+      throw new InternalServerErrorException(
+        "Não foi possível validar o endereço. Verifique se o CEP e número estão corretos."
+      );
+    }
+
+    // 4. Salvar no Banco de Dados
+    try {
+      // Remove o campo confirmar_senha que não vai para o banco
       const { confirmar_senha, ...dadosParaCriar } = criarEmpresaDto;
 
       return await this.prismaService.empresa.create({
@@ -102,23 +133,30 @@ export class EmpresasServices {
           longitude: longitude,
         },
       });
+
     } catch (error) {
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      // Tratamento de Duplicidade (Erro P2002 do Prisma)
+      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
         const target = (error.meta?.target as string[]) || [];
+        
         if (target.includes("cnpj")) {
-          throw new ConflictException("O CNPJ informado já está em uso.");
+          throw new ConflictException("Este CNPJ já está cadastrado em nosso sistema.");
         }
         if (target.includes("email")) {
-          throw new ConflictException("O Email informado já está em uso.");
+          throw new ConflictException("Este e-mail já possui uma conta associada.");
         }
+        
+        // Fallback para outros campos únicos
+        throw new ConflictException("Já existe um registro com estes dados (Email ou CNPJ).");
       }
-      throw error;
+
+      // Erros genéricos de banco (Conexão caiu, tabela não existe, etc)
+      this.logger.error("Erro crítico ao salvar empresa no banco", error);
+      throw new InternalServerErrorException(
+        "Falha ao registrar a empresa no banco de dados. Por favor, tente novamente mais tarde."
+      );
     }
   }
-
   async alterarEmpresa(
     id: number,
     alterarEmpresaDto: AlterarEmpresaDto

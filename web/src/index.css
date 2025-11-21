@@ -1,3 +1,5 @@
+/* web/src/index.css */
+
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 * {
@@ -22,6 +24,8 @@ li {
 body {
   background-color: #f7f7f7;
   height: 100vh;
+  /* Evita scroll duplo se o conteúdo interno já tiver scroll */
+  overflow: hidden; 
 }
 
 #root {
@@ -29,12 +33,18 @@ body {
 }
 
 main {
-  padding-left: 200px;
+  /* Ajuste para considerar a Sidebar fixa (se houver) */
+  padding-left: 200px; 
   padding-top: 50px;
   padding-right: 60px;
   padding-bottom: 50px;
+  
+  /* Permite scroll apenas no conteúdo principal, mantendo o resto fixo */
   overflow-y: auto;
   height: 100%;
+  
+  /* Suaviza o scroll */
+  scroll-behavior: smooth;
 }
 
 .conteudo {
@@ -58,5 +68,19 @@ main {
   }
   to {
     opacity: 1;
+  }
+}
+
+*/
+.Toastify__toast-container {
+  z-index: 999999 !important;
+  position: fixed !important; 
+}
+
+@media (max-width: 768px) {
+  main {
+    padding-left: 0;
+    padding: 20px;   
+    padding-top: 80px;
   }
 }

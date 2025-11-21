@@ -1,76 +1,271 @@
-.container_cadastro_empresa {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 30px 10px;
-  background: #f5f5f5;
-}
-
-.topo_cadastro_empresa {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 100px;
-  margin-bottom: 25px;
-}
-
-.textos_cadastro_empresa {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.logo_cadastro_empresa {
-  width: 260px;
-}
-
-.titulo_cadastro_empresa {
+/* RESET E CONTAINER PRINCIPAL */
+body, html {
   margin: 0;
-  font-size: 2rem;
-  color: #ff5722;
-  text-align: center;
-  width: 100%;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* O scroll será interno na direita */
 }
 
-
-.subtitulo_cadastro_empresa {
-  margin-top: 8px;
-  color: #004457;
-  font-size: 1.9rem;
-  text-align: center;
-  line-height: 1.4;
-}
-
-.titulo_secao_cadastro_empresa {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-weight: 400;
-  font-size: 1.3rem;
-}
-
-.linha_dupla_cadastro_empresa {
+.cadastro-split-container {
   display: flex;
-  gap: 1rem;
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Inter', sans-serif;
+  background-color: #fff;
 }
 
-.botao_cadastro_empresa {
+/* --- LADO ESQUERDO (LOGO) --- */
+.cadastro-left {
+  flex: 1; /* Ocupa 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #F8F9FA;
+  position: relative;
+}
+
+.cadastro-left::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.logo-box {
+  z-index: 2;
+  padding: 40px;
+  animation: fadeScale 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cadastro-logo-img {
+  width: 350px;
+  max-width: 90%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.08));
+}
+
+/* --- LADO DIREITO (FORMULÁRIO) --- */
+.cadastro-right {
+  flex: 1.2; /* Um pouco maior que a logo para caber o form confortavelmente */
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  padding: 40px;
+  background-color: #fff;
+  overflow-y: auto; /* Scroll independente aqui */
 }
 
-.login_link_cadastro_empresa {
+.cadastro-form-wrapper {
+  width: 100%;
+  max-width: 600px;
+  animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: 60px; /* Espaço extra no final do scroll */
+}
+
+.cadastro-header {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.cadastro-title {
+  font-size: 2.2rem;
+  color: #1A1A1A;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+.cadastro-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* CARD CUSTOMIZADO (Transparente) */
+.cadastro-card-custom .card {
+  width: 100% !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* SEÇÕES DO FORMULÁRIO */
+.secao-form {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.secao-form:last-of-type {
+  border-bottom: none;
+}
+
+.secao-titulo {
+  font-size: 1.1rem;
+  color: #FF5722;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.icon-secao {
+  font-size: 1rem;
+}
+
+/* GRIDS DE INPUTS */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.linha-dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.linha-dupla-assimetrica {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+/* BOTÃO E LINKS */
+.botao-wrapper-cadastro {
+  margin-top: 20px;
+}
+
+.botao-wrapper-cadastro button {
+  width: 100%;
+  height: 55px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(255, 87, 34, 0.2);
+  transition: all 0.2s;
+}
+
+.botao-wrapper-cadastro button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(255, 87, 34, 0.3);
+}
+
+.login-link-footer {
+  margin-top: 25px;
   text-align: center;
-  font-size: 0.85rem;
-  margin-top: 10px;
-  color: #ff5722;
-  cursor: pointer;
-  display: block;
 }
 
-.login_link_cadastro_empresa:hover {
+.link-voltar {
+  color: #666;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.link-voltar strong {
+  color: #004457;
+  font-weight: 700;
+}
+
+.link-voltar:hover strong {
+  color: #FF5722;
   text-decoration: underline;
+}
+
+/* ANIMAÇÕES */
+@keyframes fadeScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 900px) {
+  .cadastro-split-container {
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  body, html {
+    overflow: auto;
+  }
+
+  .cadastro-left {
+    height: 200px;
+    flex: none;
+    padding: 20px;
+  }
+
+  .cadastro-logo-img {
+    width: 180px;
+  }
+
+  .cadastro-right {
+    flex: none;
+    width: 100%;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+
+  .cadastro-header {
+    text-align: center;
+  }
+
+  .linha-dupla, .linha-dupla-assimetrica {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+/* ... (resto do CSS igual) ... */
+
+/* CABEÇALHO DA SEÇÃO LOCALIZAÇÃO */
+.secao-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Quebra linha em mobile se precisar */
+  gap: 10px;
+}
+
+/* BOTÃO DE AJUDA DO MAPA */
+.btn-mapa-ajuda {
+  background: transparent;
+  border: 1px solid #FF5722;
+  color: #FF5722;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-mapa-ajuda:hover {
+  background-color: #FF5722;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(255, 87, 34, 0.2);
+}
+
+/* Ajuste para garantir que o título não perca o estilo */
+.secao-header-row .secao-titulo {
+  margin-bottom: 0; /* Remove margem inferior pois o pai controla */
 }

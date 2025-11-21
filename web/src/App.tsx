@@ -29,7 +29,6 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// --- AUXILIAR DE TÍTULO ---
 const getTitulo = (path: string): string => {
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
@@ -47,7 +46,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const tituloDinamico = getTitulo(location.pathname);
   const isPerfil = location.pathname === "/perfil";
 
-  // Hook de notificações (mantido da outra versão)
   useNotificacoesEmpresa();
 
   return (
@@ -65,9 +63,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </main>
 
-      {/* ToastContainer dentro do Layout para aparecer nas telas internas */}
-      <ToastContainer theme="colored" />
-
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
@@ -78,38 +73,54 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // --- APP E ROTAS ---
 const App: React.FC = () => {
   return (
-    <Routes>
-      {/* --- ROTAS PÚBLICAS --- */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
-      <Route path="/cadastro" element={<CadastroEmpresa />} />
+    <>
+      <Routes>
+        {/* --- ROTAS PÚBLICAS --- */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
+        <Route path="/cadastro" element={<CadastroEmpresa />} />
 
-      {/* --- ROTAS PROTEGIDAS (DASHBOARD) --- */}
-      <Route
-        path="/*"
-        element={
-          <RotaProtegida>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Inicio />} />
-                <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
-                <Route path="/historico" element={<Historico />} />
-                
-                {/* Placeholders */}
-                <Route 
-                  path="/solicitar-entrega" 
-                  element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} 
-                />
-                <Route 
-                  path="/perfil" 
-                  element={<div style={{padding: 20}}>Perfil (Em breve)</div>} 
-                />
-              </Routes>
-            </Layout>
-          </RotaProtegida>
-        }
+        {/* --- ROTAS PROTEGIDAS (DASHBOARD) --- */}
+        <Route
+          path="/*"
+          element={
+            <RotaProtegida>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Inicio />} />
+                  <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
+                  <Route path="/historico" element={<Historico />} />
+                  
+                  <Route 
+                    path="/solicitar-entrega" 
+                    element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} 
+                  />
+                  <Route 
+                    path="/perfil" 
+                    element={<div style={{padding: 20}}>Perfil (Em breve)</div>} 
+                  />
+                </Routes>
+              </Layout>
+            </RotaProtegida>
+          }
+        />
+      </Routes>
+
+      {/* 👇 A CORREÇÃO ESTÁ AQUI: Z-INDEX ALTO PARA APARECER SOBRE O MODAL */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        style={{ zIndex: 99999 }} 
       />
-    </Routes>
+    </>
   );
 };
 
