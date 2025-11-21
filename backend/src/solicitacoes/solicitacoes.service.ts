@@ -126,17 +126,45 @@ export class SolicitacoesService {
       orderBy: {
         id: "desc",
       },
+      include: {
+        entrega: {
+          include: {
+            entregador: {
+              select: {
+                id: true,
+                nome: true,
+                celular: true,
+                placa_veiculo: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
-  async buscarUmPorEmpresa(
-    id: number,
-    empresaId: number
-  ): Promise<SolicitacoesEntregas> {
+  async buscarUm(id: number): Promise<SolicitacoesEntregas> {
     const solicitacao = await this.prisma.solicitacoesEntregas.findFirst({
       where: {
         id: id,
-        empresa_id: empresaId,
+      },
+      include: {
+        entrega: {
+          include: {
+            entregador: {
+              select: {
+                id: true,
+                nome: true,
+                celular: true,
+                placa_veiculo: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -147,6 +175,38 @@ export class SolicitacoesService {
     }
 
     return solicitacao;
+  }
+
+  async buscarTodas(): Promise<SolicitacoesEntregas[]> {
+    return this.prisma.solicitacoesEntregas.findMany({
+      orderBy: {
+        id: "desc",
+      },
+      include: {
+        empresa: {
+          select: {
+            id: true,
+            nome_empresa: true,
+            latitude: true,
+            longitude: true,
+          },
+        },
+        entrega: {
+          include: {
+            entregador: {
+              select: {
+                id: true,
+                nome: true,
+                celular: true,
+                placa_veiculo: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   private async getCoordenadas(enderecoInfo: any): Promise<Coordenadas> {
@@ -190,11 +250,6 @@ export class SolicitacoesService {
     }
   }
 
-  /**
-   * ------------------------------------------------------------------
-   * UTILS: Distância e Tempo (Origem -> Destino)
-   * ------------------------------------------------------------------
-   */
   private async getDadosRota(
     origem: Coordenadas,
     destino: Coordenadas
@@ -203,7 +258,6 @@ export class SolicitacoesService {
     const origins = `${origem.latitude},${origem.longitude}`;
     const destinations = `${destino.latitude},${destino.longitude}`;
 
-    // Usamos o Distance Matrix API que é mais simples para ponto-a-ponto
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origins}&destinations=${destinations}&mode=driving&key=${apiKey}`;
 
     try {
@@ -213,8 +267,8 @@ export class SolicitacoesService {
 
       if (element && element.status === "OK") {
         return {
-          distancia_m: element.distance.value, // em metros
-          tempo_seg: element.duration.value, // em segundos
+          distancia_m: element.distance.value,
+          tempo_seg: element.duration.value,
         };
       } else {
         const status = element?.status || data?.status;
