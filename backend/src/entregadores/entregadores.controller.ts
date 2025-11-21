@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   UseGuards,
+  Redirect,
 } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import {
@@ -38,6 +39,7 @@ import { EntregadorGuard } from "src/auth/guards/entregador.guard";
 import { Usuario } from "src/auth/usuario.decorator";
 import { type UsuarioPayload } from "src/auth/jwt.strategy";
 import { AtualizarLocalizacaoDto } from "./dto/atualizar-localizacao.dto";
+import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
 
 @ApiTags("Entregadores")
 @Controller("entregadores")
@@ -340,5 +342,33 @@ export class EntregadoresController {
       imagemCnh,
       imagemDocVeiculo
     );
+  }
+
+  @ApiOperation({
+    summary: "Redefinir senha (Esqueci minha senha)",
+    description:
+      "Permite alterar a senha sem estar logado, validando o E-mail e o CPF do entregador.",
+  })
+  @ApiBody({ type: RedefinirSenhaDto })
+  @ApiResponse({
+    status: 204,
+    description: "Senha alterada com sucesso.",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Senhas não conferem ou dados inválidos.",
+    type: RespostaErroValidacaoDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Entregador não encontrado com os dados informados.",
+    type: RespostaErroGeralDto,
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch("recuperacao-senha")
+  async redefinirSenha(
+    @Body() redefinirSenhaDto: RedefinirSenhaDto
+  ): Promise<void> {
+    return this.entregadoresService.redefinirSenha(redefinirSenhaDto);
   }
 }
