@@ -18,13 +18,12 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
 };
 
 const getTitulo = (path: string): string => {
-  if (path.startsWith("/")) return "Início";
+  if (path === "/") return "Início";
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
   if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
   if (path.startsWith("/perfil")) return "Perfil";
-  
-  return "Rydex"; 
+  return "Rydex";
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -39,15 +38,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         isExpandido={isSideBarExpandida}
         setIsExpandido={setIsSideBarExpandida}
       />
-
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
-        
+
         <div className="conteudo">
           {children}
         </div>
       </main>
-
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
@@ -60,7 +57,8 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
-
+      <Route path="/cadastro" element={<CadastroEmpresa />} />
+      
       <Route
         path="/*"
         element={
