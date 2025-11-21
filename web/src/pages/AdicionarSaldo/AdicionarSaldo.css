@@ -1,12 +1,49 @@
 .adicionar-saldo-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 40px 20px;
+  max-width: 1100px; /* Aumentei um pouco a largura total da página */
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.adicionar-saldo-container .card {
-  display: flex;
-  flex-direction: column;
+.adicionar-saldo-container h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 40px;
+  font-weight: 700;
+}
+
+/* Grid Responsivo */
+.grid-cards {
+  display: grid;
+  /* 👇 MUDANÇA AQUI: De 280px para 320px (Cards mais largos) */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
-  width: 400px;
+  justify-content: center;
+  align-items: start;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .adicionar-saldo-container {
+    padding: 20px 15px;
+  }
+  
+  .grid-cards {
+    /* No celular, deixa ocupar a tela toda */
+    grid-template-columns: 1fr;
+  }
+
+  .adicionar-saldo-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+  }
 }

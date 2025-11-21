@@ -13,7 +13,20 @@ export const empresasService = {
       }
     });
     
-    // O backend coloca os dados reais dentro da propriedade 'dados'
     return response.data.dados || response.data;
+  },
+
+  async adicionarSaldo(valor: number) {
+    const token = authService.getToken();
+    
+    const response = await axios.post(
+      `${API_URL}/empresas/adicionar-saldo`, 
+      { valor }, 
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    
+    return response.data;
   }
 };

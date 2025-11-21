@@ -1,19 +1,27 @@
 .adicionar-saldo-card-texto {
-  font-size: 1.3rem;
+  font-size: 1.35rem; /* Fonte um pouquinho maior */
+  color: #333;
+  margin: 8px 0; /* Mais espaçamento vertical */
 }
 
-.card .adicionar-saldo-card-texto:nth-child(1) {
+.card > .adicionar-saldo-card-texto:first-child {
   font-weight: bold;
+  margin-bottom: 20px; /* Mais espaço abaixo do título */
+  font-size: 1.4rem;
 }
 
 .saldo-atual {
   display: flex;
   justify-content: space-between;
+  margin-top: 20px; /* Mais respiro */
+  border-top: 1px solid #eee;
+  padding-top: 15px;
 }
 
 .saldo-depois {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 25px; /* Mais espaço antes do botão */
 }
 
 .adicionar-saldo-btn {
@@ -21,14 +29,32 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  margin-top: 15px;
+}
+
+.adicionar-saldo-btn button {
+  padding: 12px 0; /* Botão mais alto */
+  font-size: 1.1rem;
 }
 
 .valor-adicionar {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: 5px;
+  color: #4CAF50;
+  margin: 10px 0; /* Destaque no preço */
+}
+
+.valor-adicionar h3 {
+  font-size: 1.8rem; /* R$ maior */
+  font-weight: 500;
+  color: #666;
 }
 
 .valor-adicionar h1 {
-  font-size: 4rem;
+  font-size: 4.2rem; /* 👇 MUDANÇA: Número bem grande e impactante */
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -2px;
 }
