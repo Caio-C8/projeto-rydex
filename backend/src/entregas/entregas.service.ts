@@ -69,17 +69,17 @@ export class EntregasService {
 
         await prisma.solicitacoesEntregas.update({
           where: { id: idSolicitacao },
-          data: { status: "atribuida" },
+          data: { status: StatusSolicitacoes.atribuida },
         });
 
         await prisma.entregador.update({
           where: { id: idEntregador },
-          data: { status: "em_entrega" },
+          data: { status: StatusEntregadores.em_entrega },
         });
 
         const entregaCriada = await prisma.entregas.create({
           data: {
-            status: "em_andamento",
+            status: StatusEntregas.em_andamento,
             solicitacao_entrega_id: idSolicitacao,
             entregador_id: idEntregador,
             valor_entrega: solicitacao.valor_entregador,
@@ -115,7 +115,7 @@ export class EntregasService {
           where: {
             id: idEntrega,
             entregador_id: idEntregador,
-            status: "em_andamento",
+            status: StatusEntregas.em_andamento,
           },
           include: {
             solicitacao_entrega: true,
@@ -181,7 +181,7 @@ export class EntregasService {
           where: {
             id: idEntrega,
             entregador_id: idEntregador,
-            status: "em_andamento",
+            status: StatusEntregas.em_andamento,
           },
         });
 
@@ -274,6 +274,7 @@ export class EntregasService {
           select: {
             id: true,
             valor_entregador: true,
+            valor_estimado: true,
             distancia_m: true,
             item_retorno: true,
             descricao_item_retorno: true,
@@ -345,8 +346,37 @@ export class EntregasService {
         solicitacaoCompleta.empresa.latitude
       );
 
+      const entregadoresParaNotificar = entregadoresProximos.filter(
+        (entregador) => !idsIgnorar.has(entregador.id)
+      );
+
+      if (entregadoresParaNotificar.length === 0) {
+        this.logger.warn(
+          `Nenhum entregador próximo disponível para a solicitação ${idSolicitacao}. Cancelando solicitação e estornando valor.`
+        );
+
+        await this.prisma.$transaction(async (prisma) => {
+          await prisma.solicitacoesEntregas.update({
+            where: { id: idSolicitacao },
+            data: {
+              status: StatusSolicitacoes.cancelada,
+              cancelado_em: new Date(),
+            },
+          });
+
+          await prisma.empresa.update({
+            where: { id: solicitacaoCompleta.empresa.id },
+            data: {
+              saldo: { increment: solicitacaoCompleta.valor_estimado },
+            },
+          });
+        });
+
+        return;
+      }
+
       this.logger.log(
-        `Notificando solicitação ${idSolicitacao} para ${entregadoresProximos.length} entregadores.`
+        `Notificando solicitação ${idSolicitacao} para ${entregadoresParaNotificar.length} entregadores.`
       );
 
       const notificacaoPayload: NotificacaoSolicitacao = {
@@ -380,11 +410,7 @@ export class EntregasService {
         },
       };
 
-      for (const entregador of entregadoresProximos) {
-        if (idsIgnorar.has(entregador.id)) {
-          continue;
-        }
-
+      for (const entregador of entregadoresParaNotificar) {
         this.entregasGateway.notificarEntregador(
           String(entregador.id),
           notificacaoPayload
