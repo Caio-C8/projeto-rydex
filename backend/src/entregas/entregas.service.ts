@@ -88,14 +88,18 @@ export class EntregasService {
 
         this.logger.log(`TRANSAÇÃO OK: Entrega ${entregaCriada.id} criada.`);
 
-        return { entrega: entregaCriada, empresaId: solicitacao.empresa_id };
+        return {
+          entrega: entregaCriada,
+          empresaId: solicitacao.empresa_id,
+          entregador: entregador,
+        };
       });
 
       this.entregasGateway.notificarEmpresaStatus(resultado.empresaId, {
         solicitacaoId: idSolicitacao,
         status: "atribuida",
         mensagem: "Um entregador aceitou o seu pedido!",
-        entregadorNome: "Entregador a caminho", // COLOCAR NOME DO ENTREGADOR
+        entregadorNome: resultado.entregador.nome || "Entregador a caminho",
       });
 
       return resultado.entrega;
