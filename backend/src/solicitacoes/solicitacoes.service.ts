@@ -237,41 +237,34 @@ export class SolicitacoesService {
     distancia_m: number,
     tempo_seg: number
   ): RespostaCalculoValorEstimado {
-    const VALOR_TAXA_SERVICO = this.configService.get<number>(
-      "VALOR_TAXA_SERVICO",
-      { infer: true }
+    const TAXA_FIXA = Number(
+      this.configService.get<string>("VALOR_TAXA_SERVICO") || 0
     );
-    const VALOR_POR_M_STR = this.configService.get<string>("VALOR_POR_M");
-    const VALOR_POR_SEG_STR = this.configService.get<string>("VALOR_POR_SEG");
+    const VALOR_POR_M = Number(
+      this.configService.get<string>("VALOR_POR_M") || 0
+    );
+    const VALOR_POR_SEG = Number(
+      this.configService.get<string>("VALOR_POR_SEG") || 0
+    );
 
-    if (
-      VALOR_TAXA_SERVICO === undefined ||
-      !VALOR_POR_M_STR ||
-      !VALOR_POR_SEG_STR
-    ) {
-      throw new Error(
-        "Erro de configuração: Uma ou mais constantes de precificação estão faltando ou são inválidas (VALOR_TAXA_SERVICO, VALOR_POR_M, ou VALOR_POR_SEG)"
+    if (VALOR_POR_M === 0 && VALOR_POR_SEG === 0) {
+      this.logger.warn(
+        "Avisos de precificação: VALOR_POR_M e VALOR_POR_SEG parecem ser zero."
       );
     }
 
-    const VALOR_POR_M = parseFloat(VALOR_POR_M_STR);
-    const VALOR_POR_SEG = parseFloat(VALOR_POR_SEG_STR);
+    const custo_distancia = VALOR_POR_M * distancia_m;
+    const custo_tempo = VALOR_POR_SEG * tempo_seg;
 
-    if (isNaN(VALOR_POR_M) || isNaN(VALOR_POR_SEG)) {
-      throw new BadRequestException(
-        "Erro: As constantes de valor por metro ou por segundo não são números válidos no sistema."
-      );
-    }
+    const valor_entregador = custo_distancia + custo_tempo;
+    const valor_estimado_empresa = valor_entregador + TAXA_FIXA;
 
-    const valor_por_distancia = VALOR_POR_M * distancia_m;
-    const valor_por_tempo = VALOR_POR_SEG * tempo_seg;
-
-    const valor_entregador = valor_por_distancia + valor_por_tempo;
-
-    const valor_estimado_total = valor_entregador + VALOR_TAXA_SERVICO;
+    this.logger.debug(
+      `Cálculo: Dist(${distancia_m}m) Tempo(${tempo_seg}s) | Base: ${valor_entregador} | Taxa: ${TAXA_FIXA} | Empresa: ${valor_estimado_empresa} | Entregador: ${valor_entregador}`
+    );
 
     return {
-      valor_estimado: Math.round(valor_estimado_total),
+      valor_estimado: Math.round(valor_estimado_empresa),
       valor_entregador: Math.round(valor_entregador),
     };
   }
