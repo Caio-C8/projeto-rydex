@@ -58,7 +58,10 @@ export class SolicitacoesService {
 
     const { distancia_m, tempo_seg } = await this.getDadosRota(origem, destino);
 
-    const {valor_estimado, valor_entregador} = this.calcularValorEstimado(distancia_m, tempo_seg);
+    const { valor_estimado, valor_entregador } = this.calcularValorEstimado(
+      distancia_m,
+      tempo_seg
+    );
 
     if (empresa.saldo < valor_estimado) {
       throw new BadRequestException(
@@ -108,22 +111,17 @@ export class SolicitacoesService {
     });
   }
 
-async findAllByEmpresa(empresaId: number): Promise<SolicitacoesEntregas[]> {
+  async findAllByEmpresa(empresaId: number): Promise<SolicitacoesEntregas[]> {
     return this.prisma.solicitacoesEntregas.findMany({
       where: {
-        empresa_id: empresaId, 
+        empresa_id: empresaId,
       },
       orderBy: {
-        id: 'desc', 
+        id: "desc",
       },
-      
     });
   }
 
-
-
-
-  
   private async getCoordenadas(enderecoInfo: any): Promise<Coordenadas> {
     const apiKey = this.configService.get<string>("GOOGLE_MAPS_API_KEY");
 
