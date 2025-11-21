@@ -82,6 +82,10 @@ export class EntregadoresService {
     imagemCnh?: Express.Multer.File,
     imagemDocVeiculo?: Express.Multer.File
   ): Promise<RespostaEntregadorDto> {
+    if (criarEntregadorDto.senha !== criarEntregadorDto.confirmar_senha) {
+      throw new BadRequestException("As senhas não conferem.");
+    }
+
     const senhaCriptografada = await bcrypt.hash(criarEntregadorDto.senha, 10);
 
     return this.prisma.$transaction(async (prisma) => {
