@@ -70,28 +70,41 @@ export class SolicitacoesController {
     return this.solicitacoesService.criarSolicitacaoEntrega(dto, empresa.sub);
   }
 
+  @ApiOperation({
+    summary: "Listar TODAS as solicitações (Público/Feed)",
+    description:
+      "Retorna todas as solicitações de entrega registradas no sistema, sem filtro de empresa.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Lista completa de solicitações.",
+  })
+  @Get()
+  async buscarTodasSolicitacoes(): Promise<SolicitacoesEntregas[]> {
+    return this.solicitacoesService.buscarTodas();
+  }
+
   @UseGuards(JwtAuthGuard, EmpresaGuard)
   @ApiOperation({
     summary: "Lista o histórico de solicitações da empresa.",
     description:
-      "Retorna todas as entregas criadas pela empresa logada, ordenadas da mais recente para a mais antiga.",
+      "Retorna todas as entregas criadas pela empresa logada, incluindo dados do entregador caso já tenha sido aceita.",
   })
   @ApiResponse({
     status: 200,
     description: "Histórico recuperado com sucesso.",
   })
-  @Get()
+  @Get("me")
   async buscarSolicitacoes(
     @Usuario() empresa: UsuarioPayload
   ): Promise<SolicitacoesEntregas[]> {
     return this.solicitacoesService.buscarTodosPorEmpresa(empresa.sub);
   }
 
-  @UseGuards(JwtAuthGuard, EmpresaGuard)
   @ApiOperation({
     summary: "Buscar detalhes de uma solicitação específica",
     description:
-      "Retorna os detalhes de uma solicitação se ela pertencer à empresa logada.",
+      "Retorna os detalhes de uma solicitação se ela pertencer à empresa logada, incluindo dados do entregador se houver.",
   })
   @ApiParam({ name: "id", description: "ID da solicitação" })
   @ApiResponse({
@@ -105,9 +118,8 @@ export class SolicitacoesController {
   })
   @Get(":id")
   async buscarSolicitacao(
-    @Param("id", ParseIntPipe) id: number,
-    @Usuario() empresa: UsuarioPayload
+    @Param("id", ParseIntPipe) id: number
   ): Promise<SolicitacoesEntregas> {
-    return this.solicitacoesService.buscarUmPorEmpresa(id, empresa.sub);
+    return this.solicitacoesService.buscarUm(id);
   }
 }
