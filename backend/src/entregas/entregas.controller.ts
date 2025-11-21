@@ -3,7 +3,6 @@ import {
   Param,
   Post,
   UseGuards,
-  Request,
   ParseIntPipe,
 } from "@nestjs/common";
 import { EntregasService } from "./entregas.service";
@@ -17,6 +16,8 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { RespostaErroGeralDto } from "src/utils/dto/resposta-erro-geral.dto";
+import { Usuario } from "src/auth/usuario.decorator";
+import { type UsuarioPayload } from "src/auth/jwt.strategy";
 
 @ApiTags("Entregas")
 @Controller("entregas")
@@ -24,7 +25,6 @@ export class EntregasController {
   constructor(private readonly entregasService: EntregasService) {}
 
   @UseGuards(JwtAuthGuard, EntregadorGuard)
-  @Post(":id/aceitar")
   @ApiBearerAuth()
   @ApiOperation({
     summary: "Aceita uma solicitação de entrega (Apenas Entregadores)",
@@ -62,17 +62,15 @@ export class EntregasController {
     description: "Proibido (Usuário autenticado não é um entregador).",
     type: RespostaErroGeralDto,
   })
+  @Post(":id/aceitar")
   async aceitarEntrega(
     @Param("id", ParseIntPipe) idSolicitacao: number,
-    @Request() req
+    @Usuario() usuario: UsuarioPayload
   ) {
-    const idEntregador = req.user.sub;
-
-    return this.entregasService.aceitarEntrega(idSolicitacao, idEntregador);
+    return this.entregasService.aceitarEntrega(idSolicitacao, usuario.sub);
   }
 
   @UseGuards(JwtAuthGuard, EntregadorGuard)
-  @Post(":id/finalizar")
   @ApiBearerAuth()
   @ApiOperation({
     summary: "Finaliza uma entrega em andamento",
@@ -94,16 +92,15 @@ export class EntregasController {
     description: "Entrega não encontrada ou não pertence ao entregador.",
     type: RespostaErroGeralDto,
   })
+  @Post(":id/finalizar")
   async finalizarEntrega(
     @Param("id", ParseIntPipe) idEntrega: number,
-    @Request() req
+    @Usuario() usuario: UsuarioPayload
   ) {
-    const idEntregador = req.user.sub;
-    return this.entregasService.finalizarEntrega(idEntrega, idEntregador);
+    return this.entregasService.finalizarEntrega(idEntrega, usuario.sub);
   }
 
   @UseGuards(JwtAuthGuard, EntregadorGuard)
-  @Post(":id/cancelar")
   @ApiBearerAuth()
   @ApiOperation({
     summary: "Cancela uma entrega em andamento (Desistência)",
@@ -130,11 +127,11 @@ export class EntregasController {
     description: "Entrega não encontrada ou não pertence ao entregador.",
     type: RespostaErroGeralDto,
   })
+  @Post(":id/cancelar")
   async cancelarEntrega(
     @Param("id", ParseIntPipe) idEntrega: number,
-    @Request() req
+    @Usuario() usuario: UsuarioPayload
   ) {
-    const idEntregador = req.user.sub;
-    return this.entregasService.cancelarEntrega(idEntrega, idEntregador);
+    return this.entregasService.cancelarEntrega(idEntrega, usuario.sub);
   }
 }
