@@ -5,11 +5,12 @@ import SideBar from "./components/layout/SideBar/SideBar";
 import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
 import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 import { Login } from "./pages/Login/Login";
-import Inicio from "./pages/Inicio/Inicio";
 import { Historico } from "./pages/Historico.tsx/Historico";
+import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
+import Inicio from "./pages/Inicio/Inicio";
 
 const getTitulo = (path: string): string => {
-  if (path.startsWith("/")) return "Início";
+  if (path === "/") return "Início";
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
   if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
@@ -29,7 +30,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         isExpandido={isSideBarExpandida}
         setIsExpandido={setIsSideBarExpandida}
       />
-
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
 
@@ -37,7 +37,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </div>
       </main>
-
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
@@ -50,7 +49,8 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
-
+      <Route path="/cadastro" element={<CadastroEmpresa />} />
+      
       <Route
         path="/*"
         element={
