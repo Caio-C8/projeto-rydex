@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { SolicitacoesEntregas } from "@prisma/client";
 import { PrismaService } from "../prisma.service";
@@ -111,7 +116,9 @@ export class SolicitacoesService {
     });
   }
 
-  async findAllByEmpresa(empresaId: number): Promise<SolicitacoesEntregas[]> {
+  async buscarTodosPorEmpresa(
+    empresaId: number
+  ): Promise<SolicitacoesEntregas[]> {
     return this.prisma.solicitacoesEntregas.findMany({
       where: {
         empresa_id: empresaId,
@@ -120,6 +127,26 @@ export class SolicitacoesService {
         id: "desc",
       },
     });
+  }
+
+  async buscarUmPorEmpresa(
+    id: number,
+    empresaId: number
+  ): Promise<SolicitacoesEntregas> {
+    const solicitacao = await this.prisma.solicitacoesEntregas.findFirst({
+      where: {
+        id: id,
+        empresa_id: empresaId,
+      },
+    });
+
+    if (!solicitacao) {
+      throw new NotFoundException(
+        `Solicitação ${id} não encontrada ou não pertence à sua empresa.`
+      );
+    }
+
+    return solicitacao;
   }
 
   private async getCoordenadas(enderecoInfo: any): Promise<Coordenadas> {
