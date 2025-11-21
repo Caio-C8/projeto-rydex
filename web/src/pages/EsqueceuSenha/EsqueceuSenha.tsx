@@ -1,71 +1,94 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom"; // Usei Link em vez de <a> para SPA
 import Card from "../../components/ui/Card/Card";
 import Formulario from "../../components/ui/Formulario/Formulario";
 import Input from "../../components/ui/Input/Input";
 import BotaoTexto from "../../components/ui/Botao/BotaoTexto";
 import logoRydex from "../../assets/logo-rydex.png";
-import "./EsqueceuSenha.css";
+import "./EsqueceuSenha.css"; // Vamos atualizar este CSS
 
 import { FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
 
 const EsqueceuSenha: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Lógica de recuperação aqui
   };
 
-  const [mostrarSenha, setMostrarSenha] = React.useState(false);
-  const [mostrarConfirmar, setMostrarConfirmar] = React.useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
 
   return (
-    <div className="container">
-      <div className="left">
-        <img src={logoRydex} alt="Logo Rydex" className="esq-logo" />
+    <div className="login-split-container">
+      
+      {/* LADO ESQUERDO: LOGO */}
+      <div className="login-left">
+        <div className="logo-box anime-fade-in">
+          <img src={logoRydex} alt="Logo Rydex" className="login-logo-img" />
+        </div>
       </div>
 
-      <div className="right">
-        <h1 className="title">Troque sua senha</h1>
-        <p className="subtitle">E faça o login novamente</p>
+      {/* LADO DIREITO: FORMULÁRIO */}
+      <div className="login-right">
+        <div className="login-form-wrapper anime-slide-up">
+          
+          <div className="login-header">
+            <h1 className="login-title">Troque sua senha</h1>
+            <p className="login-subtitle">Defina uma nova senha segura</p>
+          </div>
 
-        <Card isPointer={false}>
-          <Formulario onSubmit={handleSubmit} titulo="">
-            <Input
-              label="E-mail"
-              type="email"
-              Icon={FaEnvelope}
-              placeholder="exemplo@email.com"
-            />
+          <div className="login-card-custom">
+            <Card>
+              <Formulario onSubmit={handleSubmit} titulo="">
+                
+                <div className="input-group">
+                  <Input
+                    label="E-mail"
+                    type="email"
+                    placeholder="exemplo@email.com"
+                    // Sem ícone para manter o padrão clean do login
+                  />
+                </div>
 
-            <Input
-              label="Senha"
-              type={mostrarSenha ? "text" : "password"}
-              Icon={mostrarSenha ? FaEye : FaEyeSlash}
-              iconPosition="right"
-              mostrarIcone={true}
-              onIconClick={() => setMostrarSenha(!mostrarSenha)}
-              placeholder="Sua senha"
-            />
+                <div className="input-group">
+                  <Input
+                    label="Nova Senha"
+                    type={mostrarSenha ? "text" : "password"}
+                    placeholder="Sua nova senha"
+                    Icon={mostrarSenha ? FaEye : FaEyeSlash}
+                    iconPosition="right"
+                    mostrarIcone={true}
+                    onIconClick={() => setMostrarSenha(!mostrarSenha)}
+                  />
+                </div>
 
-            <Input
-              label="Confirmar senha"
-              type={mostrarConfirmar ? "text" : "password"}
-              Icon={mostrarConfirmar ? FaEye : FaEyeSlash}
-              iconPosition="right"
-              mostrarIcone={true}
-              onIconClick={() => setMostrarConfirmar(!mostrarConfirmar)}
-              placeholder="Confirme sua senha"
-            />
+                <div className="input-group">
+                  <Input
+                    label="Confirmar Senha"
+                    type={mostrarConfirmar ? "text" : "password"}
+                    placeholder="Repita a senha"
+                    Icon={mostrarConfirmar ? FaEye : FaEyeSlash}
+                    iconPosition="right"
+                    mostrarIcone={true}
+                    onIconClick={() => setMostrarConfirmar(!mostrarConfirmar)}
+                  />
+                </div>
 
+                <div className="botao-wrapper" style={{ marginTop: '25px' }}>
+                  <BotaoTexto texto="ALTERAR SENHA" type="submit" corFundo="#FF5722" />
+                </div>
 
-            <div className="botao-wrapper">
-              <BotaoTexto texto="ALTERAR" type="submit" />
-            </div>
+                <div className="login-links">
+                  <Link to="/login" className="link-esqueceu">
+                    ← Voltar ao login
+                  </Link>
+                </div>
 
+              </Formulario>
+            </Card>
+          </div>
 
-            <a href="/login" className="returnLogin">
-              voltar ao login
-            </a>
-          </Formulario>
-        </Card>
+        </div>
       </div>
     </div>
   );
