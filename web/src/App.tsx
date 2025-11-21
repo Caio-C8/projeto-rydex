@@ -5,6 +5,12 @@ import SideBar from "./components/layout/SideBar/SideBar";
 import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
 import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 import { Login } from "./pages/Login/Login";
+import { Historico } from "./pages/Historico.tsx/Historico";
+import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
+import Inicio from "./pages/Inicio/Inicio";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
 import { Historico } from "./pages/Historico/Historico";
 import { Inicio } from "./pages/Inicio/Inicio"
 
@@ -34,6 +40,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const tituloDinamico = getTitulo(location.pathname);
   const isPerfil = location.pathname === "/perfil";
 
+  useNotificacoesEmpresa();
+
   return (
     <>
       <SideBar
@@ -43,6 +51,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
+
+        <div className="conteudo">{children}</div>
         
         <div className="conteudo">
           {children}
@@ -61,10 +71,32 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
+      <Route path="/cadastro" element={<CadastroEmpresa />} />
 
       <Route
         path="/*"
         element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Inicio />} />
+              <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
+              <Route path="/historico" element={<Historico />} />
+              <Route
+                path="/solicitar-entrega"
+                element={
+                  <div style={{ padding: 20 }}>
+                    Solicitar Entrega (Em breve)
+                  </div>
+                }
+              />
+              <Route
+                path="/perfil"
+                element={<div style={{ padding: 20 }}>Perfil (Em breve)</div>}
+              />
+            </Routes>
+
+            <ToastContainer theme="colored" />
+          </Layout>
           <RotaProtegida>
             <Layout>
               <Routes>

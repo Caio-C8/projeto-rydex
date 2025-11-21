@@ -40,7 +40,7 @@ export class EntregasService {
     );
 
     try {
-      const novaEntrega = await this.prisma.$transaction(async (prisma) => {
+      const resultado = await this.prisma.$transaction(async (prisma) => {
         const solicitacao = await prisma.solicitacoesEntregas.findFirst({
           where: {
             id: idSolicitacao,
@@ -87,10 +87,18 @@ export class EntregasService {
         });
 
         this.logger.log(`TRANSAÇÃO OK: Entrega ${entregaCriada.id} criada.`);
-        return entregaCriada;
+
+        return { entrega: entregaCriada, empresaId: solicitacao.empresa_id };
       });
 
-      return novaEntrega;
+      this.entregasGateway.notificarEmpresaStatus(resultado.empresaId, {
+        solicitacaoId: idSolicitacao,
+        status: "atribuida",
+        mensagem: "Um entregador aceitou o seu pedido!",
+        entregadorNome: "Entregador a caminho", // COLOCAR NOME DO ENTREGADOR
+      });
+
+      return resultado.entrega;
     } catch (error) {
       this.logger.error(
         `Falha na transação 'aceitarEntrega': ${error.message}`
@@ -152,10 +160,18 @@ export class EntregasService {
 
         this.logger.log(`Entrega ${idEntrega} finalizada com sucesso.`);
 
-        return entregaAtualizada;
+        return { entregaAtualizada: entregaAtualizada, entrega: entrega };
       });
 
-      return resultado;
+      const empresaId = resultado.entrega.solicitacao_entrega.empresa_id;
+
+      this.entregasGateway.notificarEmpresaStatus(empresaId, {
+        solicitacaoId: resultado.entrega.solicitacao_entrega_id,
+        status: "finalizada",
+        mensagem: "A entrega foi concluída com sucesso!",
+      });
+
+      return resultado.entregaAtualizada;
     } catch (error) {
       this.logger.error(
         `Erro ao finalizar entrega ${idEntrega}: ${error.message}`,
@@ -371,6 +387,16 @@ export class EntregasService {
             },
           });
         });
+
+        this.entregasGateway.notificarEmpresaStatus(
+          solicitacaoCompleta.empresa.id,
+          {
+            solicitacaoId: idSolicitacao,
+            status: "cancelada",
+            mensagem:
+              "Não foram encontrados entregadores próximos. O valor foi estornado.",
+          }
+        );
 
         return;
       }
