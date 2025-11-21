@@ -12,6 +12,7 @@ import {
   StatusEntregas,
   StatusSolicitacoes,
   type SolicitacoesEntregas,
+  Entregas,
 } from "@prisma/client";
 import { PrismaService } from "src/prisma.service";
 import { EntregasGateway } from "./entregas.gateway";
@@ -88,14 +89,18 @@ export class EntregasService {
 
         this.logger.log(`TRANSAÇÃO OK: Entrega ${entregaCriada.id} criada.`);
 
-        return { entrega: entregaCriada, empresaId: solicitacao.empresa_id };
+        return {
+          entrega: entregaCriada,
+          empresaId: solicitacao.empresa_id,
+          entregador: entregador,
+        };
       });
 
       this.entregasGateway.notificarEmpresaStatus(resultado.empresaId, {
         solicitacaoId: idSolicitacao,
         status: "atribuida",
         mensagem: "Um entregador aceitou o seu pedido!",
-        entregadorNome: "Entregador a caminho", // COLOCAR NOME DO ENTREGADOR
+        entregadorNome: resultado.entregador.nome || "Entregador a caminho",
       });
 
       return resultado.entrega;
@@ -244,6 +249,74 @@ export class EntregasService {
       if (error instanceof NotFoundException) throw error;
       throw new ConflictException("Erro ao cancelar entrega.");
     }
+  }
+
+  async buscarTodas(): Promise<Entregas[]> {
+    return this.prisma.entregas.findMany({
+      orderBy: {
+        criado_em: "desc",
+      },
+      include: {
+        solicitacao_entrega: {
+          include: {
+            empresa: {
+              select: {
+                nome_empresa: true,
+              },
+            },
+          },
+        },
+        entregador: {
+          select: {
+            nome: true,
+          },
+        },
+      },
+    });
+  }
+
+  async buscarPorEntregador(idEntregador: number): Promise<Entregas[]> {
+    return this.prisma.entregas.findMany({
+      where: {
+        entregador_id: idEntregador,
+      },
+      orderBy: {
+        criado_em: "desc",
+      },
+      include: {
+        solicitacao_entrega: {
+          include: {
+            empresa: {
+              select: {
+                nome_empresa: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async buscarPorId(id: number): Promise<Entregas> {
+    const entrega = await this.prisma.entregas.findUnique({
+      where: { id },
+      include: {
+        solicitacao_entrega: true,
+        entregador: {
+          select: {
+            id: true,
+            nome: true,
+            placa_veiculo: true,
+          },
+        },
+      },
+    });
+
+    if (!entrega) {
+      throw new NotFoundException(`Entrega com ID ${id} não encontrada.`);
+    }
+
+    return entrega;
   }
 
   private async buscarEntregadoresProximos(

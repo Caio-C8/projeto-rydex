@@ -15,6 +15,7 @@ import { AlterarEmpresaDto } from "./dto/alterar-empresa.dto";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { ConfigService } from "@nestjs/config";
+import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
 
 @Injectable()
 export class EmpresasServices {
@@ -233,7 +234,7 @@ export class EmpresasServices {
           throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
         }
       }
-      
+
       throw error;
     }
   }
@@ -312,19 +313,31 @@ export class EmpresasServices {
     }
   }
 
-  async removerEmpresa(id: number): Promise<void> {
-    try {
-      await this.prismaService.empresa.delete({
-        where: { id: id },
-      });
-    } catch (error) {
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new NotFoundException(`Empresa com ID ${id} não encontrada.`);
-      }
-      throw error;
+  async redefinirSenha(dto: RedefinirSenhaDto): Promise<String> {
+    const { email, nova_senha, confirmar_senha } = dto;
+
+    if (nova_senha !== confirmar_senha) {
+      throw new BadRequestException("As senhas não conferem.");
     }
+
+    const empresa = await this.prismaService.empresa.findUnique({
+      where: { email },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException(
+        "Dados inválidos. Verifique o E-mail e o CNPJ informados."
+      );
+    }
+
+    const salt = 10;
+    const novaSenhaHash = await bcrypt.hash(nova_senha, salt);
+
+    await this.prismaService.empresa.update({
+      where: { id: empresa.id },
+      data: { senha: novaSenhaHash },
+    });
+
+    return "Senha alterada.";
   }
 }

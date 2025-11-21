@@ -9,19 +9,17 @@ import {
   StatusEntregadores,
   Prisma,
 } from "@prisma/client";
-
 import * as fs from "fs/promises";
 import * as path from "path";
 import { posix } from "path";
 import * as bcrypt from "bcrypt";
-
 import { PrismaService } from "src/prisma.service";
-
 import { CriarEntregadorDto } from "./dto/criar-entregador.dto";
 import { AlterarEntregadorDto } from "./dto/alterar-entregador.dto";
 import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
 import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
 import { AtualizarLocalizacaoDto } from "./dto/atualizar-localizacao.dto";
+import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
 
 @Injectable()
 export class EntregadoresService {
@@ -84,6 +82,10 @@ export class EntregadoresService {
     imagemCnh?: Express.Multer.File,
     imagemDocVeiculo?: Express.Multer.File
   ): Promise<RespostaEntregadorDto> {
+    if (criarEntregadorDto.senha !== criarEntregadorDto.confirmar_senha) {
+      throw new BadRequestException("As senhas não conferem.");
+    }
+
     const senhaCriptografada = await bcrypt.hash(criarEntregadorDto.senha, 10);
 
     return this.prisma.$transaction(async (prisma) => {
@@ -388,7 +390,7 @@ export class EntregadoresService {
   }
 
   async atualizarLocalizacao(
-    entregadorId: number, 
+    entregadorId: number,
     atualizarLocalizacaoDto: AtualizarLocalizacaoDto
   ): Promise<any> {
     return this.prisma.$transaction(async (prisma) => {
@@ -408,8 +410,36 @@ export class EntregadoresService {
         WHERE "id" = ${entregadorId}
       `;
 
-      return { mensagem: 'Localização atualizada.' };
+      return { mensagem: "Localização atualizada." };
     });
+  }
+
+  async redefinirSenha(dto: RedefinirSenhaDto): Promise<String> {
+    const { email, nova_senha, confirmar_senha } = dto;
+
+    if (nova_senha !== confirmar_senha) {
+      throw new BadRequestException("As senhas não conferem.");
+    }
+
+    const entregador = await this.prisma.entregador.findUnique({
+      where: { email },
+    });
+
+    if (!entregador) {
+      throw new NotFoundException(
+        "Dados inválidos. Verifique o E-mail e o CPF informados."
+      );
+    }
+
+    const salt = 10;
+    const novaSenhaHash = await bcrypt.hash(nova_senha, salt);
+
+    await this.prisma.entregador.update({
+      where: { id: entregador.id },
+      data: { senha: novaSenhaHash },
+    });
+
+    return "Senha alterada.";
   }
 
   private async salvarArquivo(
