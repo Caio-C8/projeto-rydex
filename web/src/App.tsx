@@ -5,7 +5,8 @@ import SideBar from "./components/layout/SideBar/SideBar";
 import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
 import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
 import { Login } from "./pages/Login/Login";
-import { Historico } from "./pages/Historico/Historico"; 
+import { Historico } from "./pages/Historico/Historico";
+import { Inicio } from "./pages/Inicio/Inicio"
 
 const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
@@ -18,11 +19,11 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
 };
 
 const getTitulo = (path: string): string => {
-  if (path.startsWith("/")) return "Início";
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
   if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
   if (path.startsWith("/perfil")) return "Perfil";
+  if (path === "/") return "Início";
   
   return "Rydex"; 
 };
@@ -67,7 +68,9 @@ const App: React.FC = () => {
           <RotaProtegida>
             <Layout>
               <Routes>
-                <Route path="/" element={<div style={{padding: 20}}>Bem-vindo à Rydex!</div>} />
+                {/* 👈 Rota Raiz agora aponta para o Inicio */}
+                <Route path="/" element={<Inicio />} />
+                
                 <Route path="/adicionar-saldo" element={<AdicionarSaldo />}/>
                 <Route path="/historico" element={<Historico />} />
                 <Route path="/solicitar-entrega" element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} />

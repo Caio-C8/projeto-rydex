@@ -185,7 +185,7 @@ export function Historico() {
         break;
       case 'concluida':
       case 'finalizada':
-        mensagem = "Entrega finalizada (Entregador não registrado).";
+        mensagem = "Entrega finalizada.";
         classeExtra = "aviso-sucesso";
         break;
       case 'pendente':
