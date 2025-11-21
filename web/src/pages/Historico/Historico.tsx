@@ -4,19 +4,12 @@ import Card from '../../components/ui/Card/Card';
 import { normalizarDinheiro } from '../../utils/normalizar-dinheiro';
 import { authService } from '../../services/authService';
 import { 
-  FaMapMarkerAlt, 
-  FaClock, 
-  FaBox, 
-  FaCalendarAlt, 
-  FaChevronDown, 
-  FaChevronUp, 
-  FaInfoCircle,
-  FaTimes,
-  FaMotorcycle
+  FaMapMarkerAlt, FaClock, FaBox, FaCalendarAlt, 
+  FaChevronDown, FaChevronUp, FaInfoCircle, FaTimes, FaMotorcycle
 } from 'react-icons/fa';
 import './Historico.css';
 
-// Tipagem atualizada para incluir dados do entregador e da entrega real
+// ... (Interfaces mantêm-se iguais) ...
 interface Solicitacao {
   id: number;
   valor_estimado: number;
@@ -30,15 +23,8 @@ interface Solicitacao {
   observacao?: string;
   descricao_item_retorno?: string;
   item_retorno: boolean;
-  // Dados que vêm do relacionamento (include) do Prisma
-  entregador?: {
-    nome: string;
-    placa_veiculo: string;
-  };
-  entrega?: {
-    aceito_em: string;
-    finalizado_em: string;
-  };
+  entregador?: { nome: string; placa_veiculo: string; };
+  entrega?: { aceito_em: string; finalizado_em: string; };
 }
 
 interface GrupoHistorico {
@@ -50,21 +36,19 @@ export function Historico() {
   const [grupos, setGrupos] = useState<GrupoHistorico[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
-  
   const [diasExpandidos, setDiasExpandidos] = useState<Record<string, boolean>>({});
-
   const [entregaSelecionada, setEntregaSelecionada] = useState<Solicitacao | null>(null);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-  useEffect(() => {
-    fetchHistorico();
-  }, []);
-
   const fetchHistorico = async () => {
     try {
       const token = authService.getToken();
-      if (!token) return;
+      // Verificação de Segurança Local
+      if (!token) {
+        window.location.href = '/'; // Redireciona se o token sumir
+        return;
+      }
 
       const response = await axios.get(`${API_URL}/solicitacoes`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -72,8 +56,14 @@ export function Historico() {
       
       const lista = response.data.dados || response.data;
       agruparPorData(Array.isArray(lista) ? lista : []);
+      setErro(''); // Limpa erros se tiver sucesso
       
     } catch (error) {
+      // Se der erro 401 (Não autorizado), expulsa o usuário
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        authService.logout();
+        return;
+      }
       console.error("Erro ao buscar histórico:", error);
       setErro("Não foi possível carregar o histórico.");
     } finally {
@@ -81,9 +71,22 @@ export function Historico() {
     }
   };
 
+  useEffect(() => {
+    fetchHistorico();
+
+    // Hot Reload: Atualiza a cada 5 segundos
+    const intervalo = setInterval(fetchHistorico, 5000);
+
+    return () => clearInterval(intervalo);
+  }, []);
+
   const agruparPorData = (lista: Solicitacao[]) => {
     const gruposTemp: Record<string, Solicitacao[]> = {};
-    const expansaoInicial: Record<string, boolean> = {};
+    
+    // Preserva o estado de expansão atual se já existir
+    // Se for a primeira carga, abre tudo.
+    const novaExpansao: Record<string, boolean> = { ...diasExpandidos };
+    const isPrimeiraCarga = Object.keys(diasExpandidos).length === 0;
 
     lista.forEach(item => {
       const dataObj = new Date(item.criado_em);
@@ -91,7 +94,9 @@ export function Historico() {
       
       if (!gruposTemp[dataFormatada]) {
         gruposTemp[dataFormatada] = [];
-        expansaoInicial[dataFormatada] = true;
+        if (isPrimeiraCarga) {
+           novaExpansao[dataFormatada] = true;
+        }
       }
       gruposTemp[dataFormatada].push(item);
     });
@@ -102,23 +107,19 @@ export function Historico() {
     }));
 
     setGrupos(arrayGrupos);
-    setDiasExpandidos(expansaoInicial);
+    if (isPrimeiraCarga) setDiasExpandidos(novaExpansao);
   };
 
   const toggleDia = (data: string) => {
-    setDiasExpandidos(prev => ({
-      ...prev,
-      [data]: !prev[data] 
-    }));
+    setDiasExpandidos(prev => ({ ...prev, [data]: !prev[data] }));
   };
 
   const getStatusColor = (status: string) => {
     switch(status?.toLowerCase()) {
       case 'pendente': return '#FFC107';
-      case 'atribuida': 
-      case 'aceita': return '#2196F3';
+      case 'atribuida': case 'aceita': return '#2196F3';
       case 'em_andamento': return '#FF9800';
-      case 'concluida': return '#4CAF50';
+      case 'concluida': case 'finalizada': return '#4CAF50';
       case 'cancelada': return '#F44336';
       default: return '#9E9E9E';
     }
@@ -130,7 +131,7 @@ export function Historico() {
         <h1 className="historico-titulo">Histórico de Entregas</h1>
       </div>
 
-      {loading ? (
+      {loading && grupos.length === 0 ? (
         <div className="historico-loading"><p>Carregando suas entregas...</p></div>
       ) : erro ? (
         <div className="historico-erro"><p>{erro}</p></div>
@@ -143,61 +144,38 @@ export function Historico() {
         <div className="timeline">
           {grupos.map((grupo) => (
             <div key={grupo.data} className="grupo-dia">
-              
-              {/* --- CABEÇALHO DO DIA (Clicável) --- */}
-              <div 
-                className="data-separator" 
-                onClick={() => toggleDia(grupo.data)}
-              >
+              <div className="data-separator" onClick={() => toggleDia(grupo.data)}>
                 <div className="data-info">
                   <FaCalendarAlt className="calendar-icon" />
                   <span>{grupo.data}</span>
                   <span className="qtd-items">({grupo.items.length})</span>
                 </div>
-                {/* Seta muda dependendo se está aberto ou fechado */}
                 {diasExpandidos[grupo.data] ? <FaChevronUp /> : <FaChevronDown />}
               </div>
               
-              {/* --- LISTA DE CARDS (Só mostra se estiver expandido) --- */}
               {diasExpandidos[grupo.data] && (
                 <div className="lista-cards anime-fade-in">
                   {grupo.items.map((entrega) => (
                     <Card key={entrega.id} isPointer={false}>
                       <div className="card-entrega-content">
-                        
                         <div className="entrega-header">
                           <span className="entrega-id">Pedido #{entrega.id}</span>
-                          <span 
-                            className="entrega-status" 
-                            style={{ backgroundColor: getStatusColor(entrega.status) }}
-                          >
+                          <span className="entrega-status" style={{ backgroundColor: getStatusColor(entrega.status) }}>
                             {entrega.status ? entrega.status.toUpperCase().replace('_', ' ') : 'DESCONHECIDO'}
                           </span>
                         </div>
-
                         <div className="entrega-info">
                           <div className="info-row">
                             <FaMapMarkerAlt className="icon-laranja" />
-                            <p className="endereco-texto">
-                              {entrega.logradouro}, {entrega.numero} - {entrega.bairro}
-                            </p>
+                            <p className="endereco-texto">{entrega.logradouro}, {entrega.numero} - {entrega.bairro}</p>
                           </div>
                         </div>
-
                         <div className="entrega-footer">
-                          <span className="entrega-valor">
-                            {normalizarDinheiro(entrega.valor_estimado)}
-                          </span>
-                          
-                          {/* --- BOTÃO VER DETALHES --- */}
-                          <button 
-                            className="btn-detalhes"
-                            onClick={() => setEntregaSelecionada(entrega)}
-                          >
+                          <span className="entrega-valor">{normalizarDinheiro(entrega.valor_estimado)}</span>
+                          <button className="btn-detalhes" onClick={() => setEntregaSelecionada(entrega)}>
                             <FaInfoCircle /> Detalhes
                           </button>
                         </div>
-
                       </div>
                     </Card>
                   ))}
@@ -208,42 +186,27 @@ export function Historico() {
         </div>
       )}
 
-      {/* --- MODAL DE DETALHES --- */}
+      {/* MODAL MANTIDO IGUAL AO ANTERIOR */}
       {entregaSelecionada && (
         <div className="modal-overlay" onClick={() => setEntregaSelecionada(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            
             <div className="modal-header">
               <h2>Detalhes do Pedido #{entregaSelecionada.id}</h2>
-              <button className="modal-close" onClick={() => setEntregaSelecionada(null)}>
-                <FaTimes />
-              </button>
+              <button className="modal-close" onClick={() => setEntregaSelecionada(null)}><FaTimes /></button>
             </div>
-
             <div className="modal-body">
-              {/* Seção 1: Status e Valor */}
               <div className="modal-section destaque">
                 <div className="modal-status-badge" style={{ backgroundColor: getStatusColor(entregaSelecionada.status) }}>
                   {entregaSelecionada.status.toUpperCase()}
                 </div>
-                <div className="modal-valor">
-                  {normalizarDinheiro(entregaSelecionada.valor_estimado)}
-                </div>
+                <div className="modal-valor">{normalizarDinheiro(entregaSelecionada.valor_estimado)}</div>
               </div>
-
-              {/* Seção 2: Endereço Completo */}
               <div className="modal-section">
                 <h4 className="modal-label">Endereço de Entrega</h4>
-                <p className="modal-texto">
-                  {entregaSelecionada.logradouro}, {entregaSelecionada.numero}
-                </p>
-                <p className="modal-subtexto">
-                  {entregaSelecionada.bairro} - {entregaSelecionada.cidade}
-                </p>
+                <p className="modal-texto">{entregaSelecionada.logradouro}, {entregaSelecionada.numero}</p>
+                <p className="modal-subtexto">{entregaSelecionada.bairro} - {entregaSelecionada.cidade}</p>
                 <p className="modal-subtexto">Distância: {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km</p>
               </div>
-
-              {/* Seção 3: Dados do Entregador (Se houver) */}
               {entregaSelecionada.entregador ? (
                 <div className="modal-section entregador-box">
                   <h4 className="modal-label"><FaMotorcycle /> Entregador</h4>
@@ -251,36 +214,24 @@ export function Historico() {
                   <p className="modal-subtexto">Veículo: {entregaSelecionada.entregador.placa_veiculo}</p>
                 </div>
               ) : (
-                <div className="modal-section">
-                  <p className="modal-aviso">Aguardando entregador...</p>
-                </div>
+                <div className="modal-section"><p className="modal-aviso">Aguardando entregador...</p></div>
               )}
-
-              {/* Seção 4: Detalhes Extras */}
               <div className="modal-section">
                 <h4 className="modal-label">Observações</h4>
                 <p className="modal-texto">{entregaSelecionada.observacao || "Nenhuma observação."}</p>
-                
                 {entregaSelecionada.item_retorno && (
-                  <div className="retorno-box">
-                    <strong>⚠️ Item de Retorno:</strong> {entregaSelecionada.descricao_item_retorno}
-                  </div>
+                  <div className="retorno-box"><strong>⚠️ Item de Retorno:</strong> {entregaSelecionada.descricao_item_retorno}</div>
                 )}
               </div>
-
-              {/* Seção 5: Horários */}
               <div className="modal-section horarios">
                 <div className="horario-item">
-                  <span>Criado em:</span>
-                  <strong>{new Date(entregaSelecionada.criado_em).toLocaleString('pt-BR')}</strong>
+                  <span>Criado em:</span> <strong>{new Date(entregaSelecionada.criado_em).toLocaleString('pt-BR')}</strong>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
