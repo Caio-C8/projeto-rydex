@@ -353,6 +353,7 @@ export class EntregadoresController {
   @ApiResponse({
     status: 204,
     description: "Senha alterada com sucesso.",
+    type: String,
   })
   @ApiResponse({
     status: 400,
@@ -364,11 +365,10 @@ export class EntregadoresController {
     description: "Entregador não encontrado com os dados informados.",
     type: RespostaErroGeralDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Patch("recuperacao-senha")
   async redefinirSenha(
     @Body() redefinirSenhaDto: RedefinirSenhaDto
-  ): Promise<void> {
+  ): Promise<String> {
     return this.entregadoresService.redefinirSenha(redefinirSenhaDto);
   }
 }

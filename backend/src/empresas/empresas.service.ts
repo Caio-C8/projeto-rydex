@@ -275,7 +275,7 @@ export class EmpresasServices {
     }
   }
 
-  async redefinirSenha(dto: RedefinirSenhaDto): Promise<void> {
+  async redefinirSenha(dto: RedefinirSenhaDto): Promise<String> {
     const { email, nova_senha, confirmar_senha } = dto;
 
     if (nova_senha !== confirmar_senha) {
@@ -299,5 +299,7 @@ export class EmpresasServices {
       where: { id: empresa.id },
       data: { senha: novaSenhaHash },
     });
+
+    return "Senha alterada.";
   }
 }

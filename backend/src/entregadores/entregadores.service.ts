@@ -410,7 +410,7 @@ export class EntregadoresService {
     });
   }
 
-  async redefinirSenha(dto: RedefinirSenhaDto): Promise<void> {
+  async redefinirSenha(dto: RedefinirSenhaDto): Promise<String> {
     const { email, nova_senha, confirmar_senha } = dto;
 
     if (nova_senha !== confirmar_senha) {
@@ -434,6 +434,8 @@ export class EntregadoresService {
       where: { id: entregador.id },
       data: { senha: novaSenhaHash },
     });
+
+    return "Senha alterada.";
   }
 
   private async salvarArquivo(

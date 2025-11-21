@@ -199,6 +199,7 @@ export class EmpresasController {
   @ApiResponse({
     status: 204,
     description: "Senha alterada com sucesso.",
+    type: String,
   })
   @ApiResponse({
     status: 400,
@@ -210,11 +211,10 @@ export class EmpresasController {
     description: "Empresa não encontrada com os dados informados.",
     type: RespostaErroGeralDto,
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Patch("recuperacao-senha")
   async redefinirSenha(
     @Body() redefinirSenhaDto: RedefinirSenhaDto
-  ): Promise<void> {
+  ): Promise<String> {
     return this.empresasService.redefinirSenha(redefinirSenhaDto);
   }
 }
