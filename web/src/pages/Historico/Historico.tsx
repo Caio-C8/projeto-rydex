@@ -5,11 +5,11 @@ import { normalizarDinheiro } from '../../utils/normalizar-dinheiro';
 import { authService } from '../../services/authService';
 import { 
   FaMapMarkerAlt, FaClock, FaBox, FaCalendarAlt, 
-  FaChevronDown, FaChevronUp, FaInfoCircle, FaTimes, FaMotorcycle
+  FaChevronDown, FaChevronUp, FaInfoCircle, FaTimes, FaMotorcycle, FaFilter
 } from 'react-icons/fa';
 import './Historico.css';
 
-// ... (Interfaces mantêm-se iguais) ...
+// ... (Interfaces mantêm-se iguais)
 interface Solicitacao {
   id: number;
   valor_estimado: number;
@@ -33,20 +33,27 @@ interface GrupoHistorico {
 }
 
 export function Historico() {
-  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]);
+  const [listaCompleta, setListaCompleta] = useState<Solicitacao[]>([]); // Guarda tudo
+  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]); // O que é exibido
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
   const [diasExpandidos, setDiasExpandidos] = useState<Record<string, boolean>>({});
   const [entregaSelecionada, setEntregaSelecionada] = useState<Solicitacao | null>(null);
+
+  // --- ESTADOS DOS FILTROS ---
+  const [filtroData, setFiltroData] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('todos');
+  const [filtroValorMin, setFiltroValorMin] = useState('');
+  const [filtroValorMax, setFiltroValorMax] = useState('');
+  const [mostrarFiltros, setMostrarFiltros] = useState(false); // Para mobile/toggle
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const fetchHistorico = async () => {
     try {
       const token = authService.getToken();
-      // Verificação de Segurança Local
       if (!token) {
-        window.location.href = '/'; // Redireciona se o token sumir
+        window.location.href = '/'; 
         return;
       }
 
@@ -55,11 +62,13 @@ export function Historico() {
       });
       
       const lista = response.data.dados || response.data;
-      agruparPorData(Array.isArray(lista) ? lista : []);
-      setErro(''); // Limpa erros se tiver sucesso
+      const arrayLista = Array.isArray(lista) ? lista : [];
+      
+      setListaCompleta(arrayLista); // Guarda a lista bruta
+      aplicarFiltros(arrayLista);   // Aplica filtros iniciais (mostra tudo)
+      setErro('');
       
     } catch (error) {
-      // Se der erro 401 (Não autorizado), expulsa o usuário
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         authService.logout();
         return;
@@ -73,18 +82,48 @@ export function Historico() {
 
   useEffect(() => {
     fetchHistorico();
-
-    // Hot Reload: Atualiza a cada 5 segundos
     const intervalo = setInterval(fetchHistorico, 5000);
-
     return () => clearInterval(intervalo);
   }, []);
 
+  // Re-aplica filtros sempre que os critérios ou a lista mudarem
+  useEffect(() => {
+    aplicarFiltros(listaCompleta);
+  }, [filtroData, filtroStatus, filtroValorMin, filtroValorMax]);
+
+  const aplicarFiltros = (lista: Solicitacao[]) => {
+    let filtrada = lista;
+
+    // 1. Filtro de Data
+    if (filtroData) {
+      filtrada = filtrada.filter(item => {
+        const dataItem = new Date(item.criado_em).toISOString().split('T')[0];
+        return dataItem === filtroData;
+      });
+    }
+
+    // 2. Filtro de Status
+    if (filtroStatus !== 'todos') {
+      filtrada = filtrada.filter(item => item.status.toLowerCase() === filtroStatus.toLowerCase());
+    }
+
+    // 3. Filtro de Valor Mínimo (converter centavos para reais no input)
+    if (filtroValorMin) {
+      const minCentavos = parseFloat(filtroValorMin) * 100;
+      filtrada = filtrada.filter(item => item.valor_estimado >= minCentavos);
+    }
+
+    // 4. Filtro de Valor Máximo
+    if (filtroValorMax) {
+      const maxCentavos = parseFloat(filtroValorMax) * 100;
+      filtrada = filtrada.filter(item => item.valor_estimado <= maxCentavos);
+    }
+
+    agruparPorData(filtrada);
+  };
+
   const agruparPorData = (lista: Solicitacao[]) => {
     const gruposTemp: Record<string, Solicitacao[]> = {};
-    
-    // Preserva o estado de expansão atual se já existir
-    // Se for a primeira carga, abre tudo.
     const novaExpansao: Record<string, boolean> = { ...diasExpandidos };
     const isPrimeiraCarga = Object.keys(diasExpandidos).length === 0;
 
@@ -94,9 +133,7 @@ export function Historico() {
       
       if (!gruposTemp[dataFormatada]) {
         gruposTemp[dataFormatada] = [];
-        if (isPrimeiraCarga) {
-           novaExpansao[dataFormatada] = true;
-        }
+        if (isPrimeiraCarga) novaExpansao[dataFormatada] = true;
       }
       gruposTemp[dataFormatada].push(item);
     });
@@ -125,12 +162,116 @@ export function Historico() {
     }
   };
 
+  // Lógica para mensagem do Entregador no Modal
+  const renderStatusEntregador = (entrega: Solicitacao) => {
+    if (entrega.entregador) {
+      return (
+        <div className="modal-section entregador-box">
+          <h4 className="modal-label"><FaMotorcycle /> Entregador</h4>
+          <p className="modal-texto-bold">{entrega.entregador.nome}</p>
+          <p className="modal-subtexto">Veículo: {entrega.entregador.placa_veiculo}</p>
+        </div>
+      );
+    }
+
+    // Se não tem entregador, verifica o status
+    let mensagem = "Aguardando entregador...";
+    let classeExtra = "";
+
+    switch(entrega.status?.toLowerCase()) {
+      case 'cancelada':
+        mensagem = "Esta entrega foi cancelada.";
+        classeExtra = "aviso-cancelado";
+        break;
+      case 'concluida':
+      case 'finalizada':
+        mensagem = "Entrega finalizada (Entregador não registrado).";
+        classeExtra = "aviso-sucesso";
+        break;
+      case 'pendente':
+        mensagem = "Procurando entregadores na região...";
+        break;
+      default:
+        mensagem = "Aguardando alocação de entregador.";
+    }
+
+    return (
+      <div className="modal-section">
+        <p className={`modal-aviso ${classeExtra}`}>{mensagem}</p>
+      </div>
+    );
+  };
+
   return (
     <div className="historico-container">
       <div className="historico-header">
-        <h1 className="historico-titulo">Histórico de Entregas</h1>
+        <div className="header-top">
+          <h1 className="historico-titulo">Histórico de Entregas</h1>
+          <button 
+            className={`btn-filtro ${mostrarFiltros ? 'ativo' : ''}`} 
+            onClick={() => setMostrarFiltros(!mostrarFiltros)}
+          >
+            <FaFilter /> Filtros
+          </button>
+        </div>
+
+        {/* --- BARRA DE FILTROS --- */}
+        {mostrarFiltros && (
+          <div className="filtros-container anime-fade-in">
+            <div className="filtro-item">
+              <label>Data</label>
+              <input 
+                type="date" 
+                value={filtroData} 
+                onChange={(e) => setFiltroData(e.target.value)} 
+              />
+            </div>
+            
+            <div className="filtro-item">
+              <label>Status</label>
+              <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
+                <option value="todos">Todos</option>
+                <option value="pendente">Pendente</option>
+                <option value="atribuida">Em Andamento / Atribuída</option>
+                <option value="finalizada">Finalizada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+
+            <div className="filtro-grupo-valor">
+              <div className="filtro-item">
+                <label>Valor Mín (R$)</label>
+                <input 
+                  type="number" 
+                  placeholder="0,00" 
+                  value={filtroValorMin} 
+                  onChange={(e) => setFiltroValorMin(e.target.value)} 
+                />
+              </div>
+              <div className="filtro-item">
+                <label>Valor Máx (R$)</label>
+                <input 
+                  type="number" 
+                  placeholder="100,00" 
+                  value={filtroValorMax} 
+                  onChange={(e) => setFiltroValorMax(e.target.value)} 
+                />
+              </div>
+            </div>
+
+            <div className="filtro-acoes">
+              <button className="btn-limpar" onClick={() => {
+                setFiltroData('');
+                setFiltroStatus('todos');
+                setFiltroValorMin('');
+                setFiltroValorMax('');
+              }}>Limpar Filtros</button>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* ... (LOADING, ERRO E LISTA MANTÊM-SE IGUAIS) ... */}
       {loading && grupos.length === 0 ? (
         <div className="historico-loading"><p>Carregando suas entregas...</p></div>
       ) : erro ? (
@@ -139,6 +280,7 @@ export function Historico() {
         <div className="historico-vazio">
           <div className="vazio-icon">📦</div>
           <h3>Nenhuma entrega encontrada</h3>
+          <p>Tente ajustar os filtros ou crie uma nova solicitação.</p>
         </div>
       ) : (
         <div className="timeline">
@@ -186,7 +328,7 @@ export function Historico() {
         </div>
       )}
 
-      {/* MODAL MANTIDO IGUAL AO ANTERIOR */}
+      {/* --- MODAL --- */}
       {entregaSelecionada && (
         <div className="modal-overlay" onClick={() => setEntregaSelecionada(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -201,21 +343,17 @@ export function Historico() {
                 </div>
                 <div className="modal-valor">{normalizarDinheiro(entregaSelecionada.valor_estimado)}</div>
               </div>
+              
               <div className="modal-section">
                 <h4 className="modal-label">Endereço de Entrega</h4>
                 <p className="modal-texto">{entregaSelecionada.logradouro}, {entregaSelecionada.numero}</p>
                 <p className="modal-subtexto">{entregaSelecionada.bairro} - {entregaSelecionada.cidade}</p>
                 <p className="modal-subtexto">Distância: {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km</p>
               </div>
-              {entregaSelecionada.entregador ? (
-                <div className="modal-section entregador-box">
-                  <h4 className="modal-label"><FaMotorcycle /> Entregador</h4>
-                  <p className="modal-texto-bold">{entregaSelecionada.entregador.nome}</p>
-                  <p className="modal-subtexto">Veículo: {entregaSelecionada.entregador.placa_veiculo}</p>
-                </div>
-              ) : (
-                <div className="modal-section"><p className="modal-aviso">Aguardando entregador...</p></div>
-              )}
+
+              {/* AQUI ESTÁ A MUDANÇA: Lógica inteligente do Entregador */}
+              {renderStatusEntregador(entregaSelecionada)}
+
               <div className="modal-section">
                 <h4 className="modal-label">Observações</h4>
                 <p className="modal-texto">{entregaSelecionada.observacao || "Nenhuma observação."}</p>

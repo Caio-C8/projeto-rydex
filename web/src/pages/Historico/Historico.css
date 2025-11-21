@@ -1,23 +1,29 @@
 /* web/src/pages/Historico/Historico.css */
 
-/* --- MUDANÇA PRINCIPAL AQUI --- */
+/* --- ESTRUTURA PRINCIPAL --- */
 .historico-container {
   padding: 20px;
-  width: 100%;            /* Ocupa toda a largura disponível */
-  max-width: 100%;        /* Remove o limite de 800px */
-  box-sizing: border-box; /* Garante que o padding não estoure a tela */
-  margin: 0;              /* Remove margens laterais automáticas */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
   padding-bottom: 100px;
   font-family: 'Inter', sans-serif;
 }
 
 /* --- CABEÇALHO --- */
 .historico-header {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  /* Opcional: Se quiser limitar a largura só do título para não ficar muito solto */
-  /* max-width: 1200px; margin: 0 auto 40px auto; */
+  padding-bottom: 20px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .historico-titulo {
@@ -25,9 +31,106 @@
   color: #1A1A1A;
   font-weight: 700;
   letter-spacing: -0.5px;
+  margin: 0;
 }
 
-/* --- STATUS DE CARREGAMENTO --- */
+/* --- BOTÃO DE FILTRO --- */
+.btn-filtro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff;
+  border: 1px solid #E0E0E0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.btn-filtro:hover {
+  background-color: #F5F5F5;
+  transform: translateY(-1px);
+}
+
+.btn-filtro.ativo {
+  background-color: #FFF3E0;
+  color: #FF5722;
+  border-color: #FF5722;
+}
+
+/* --- ÁREA DE FILTROS (EXPANDÍVEL) --- */
+.filtros-container {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border: 1px solid #eee;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filtro-item label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filtro-item input, .filtro-item select {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  background-color: #FAFAFA;
+  transition: border 0.2s;
+}
+
+.filtro-item input:focus, .filtro-item select:focus {
+  border-color: #FF5722;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+}
+
+.filtro-grupo-valor {
+  display: flex;
+  gap: 10px;
+}
+
+.filtro-acoes {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-limpar {
+  background: none;
+  border: none;
+  color: #757575;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 10px;
+  transition: color 0.2s;
+}
+
+.btn-limpar:hover {
+  color: #FF5722;
+}
+
+/* --- LOADING E MENSAGENS --- */
 .historico-loading, .historico-erro {
   text-align: center;
   padding: 60px 20px;
@@ -58,7 +161,7 @@
   display: block;
 }
 
-/* --- DATA E GRUPOS --- */
+/* --- TIMELINE E DATA --- */
 .grupo-dia {
   margin-bottom: 30px;
 }
@@ -104,19 +207,17 @@
 
 .calendar-icon {
   color: #FF5722;
-  font-size: 1.1rem;
 }
 
-/* --- CARD --- */
+/* --- CARD DE ENTREGA --- */
 .lista-cards {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding: 5px;
-  width: 100%; /* Garante que a lista ocupe tudo */
+  width: 100%;
 }
 
-/* Garante que o card interno estique */
 .lista-cards > div { 
   width: 100%;
 }
@@ -127,6 +228,7 @@
   gap: 16px;
 }
 
+/* Topo do Card */
 .entrega-header {
   display: flex;
   justify-content: space-between;
@@ -153,6 +255,7 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Miolo do Card */
 .entrega-info {
   display: flex;
   flex-direction: column;
@@ -182,14 +285,7 @@
   font-weight: 500;
 }
 
-.bairro-cidade {
-  display: block;
-  font-size: 0.85rem;
-  color: #777;
-  font-weight: 400;
-  margin-top: 2px;
-}
-
+/* Rodapé do Card */
 .entrega-footer {
   display: flex;
   justify-content: space-between;
@@ -237,15 +333,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- MODAL (Mantendo o estilo que gostaste, centralizado) --- */
-/* O modal não deve esticar 100%, senão fica feio. Mantemos ele contido. */
+/* --- MODAL (ESTILO CLÁSSICO) --- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6); 
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -257,7 +352,7 @@
 .modal-content {
   background: white;
   width: 100%;
-  max-width: 500px; /* Mantém o modal elegante e não esticado */
+  max-width: 500px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   overflow: hidden;
@@ -381,10 +476,42 @@
   color: #777;
 }
 
-/* Ajuste para telas pequenas */
+/* --- MENSAGENS DE AVISO INTELIGENTES --- */
+.modal-aviso {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.modal-aviso.aviso-cancelado {
+  color: #D32F2F;
+  background-color: #FFEBEE;
+  border: 1px solid #FFCDD2;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.modal-aviso.aviso-sucesso {
+  color: #388E3C;
+  background-color: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Responsividade */
 @media (max-width: 600px) {
   .historico-container {
     padding: 15px;
+  }
+  
+  .filtros-container {
+    grid-template-columns: 1fr;
   }
   
   .entrega-valor {
