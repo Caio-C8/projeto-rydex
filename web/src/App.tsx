@@ -1,19 +1,24 @@
 import React, { useState } from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom"; 
-import Header from "./components/layout/Header/Header";
-import SideBar from "./components/layout/SideBar/SideBar";
-import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
-import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
-import { Login } from "./pages/Login/Login";
-import { Historico } from "./pages/Historico.tsx/Historico";
-import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
-import Inicio from "./pages/Inicio/Inicio";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
-import { Historico } from "./pages/Historico/Historico";
-import { Inicio } from "./pages/Inicio/Inicio"
 
+// Hooks e Serviços
+import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
+
+// Componentes de Layout
+import Header from "./components/layout/Header/Header";
+import SideBar from "./components/layout/SideBar/SideBar";
+
+// Páginas
+import { Login } from "./pages/Login/Login";
+import EsqueceuSenha from "./pages/EsqueceuSenha/EsqueceuSenha";
+import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
+import { Inicio } from "./pages/Inicio/Inicio";
+import { Historico } from "./pages/Historico/Historico";
+import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
+
+// --- COMPONENTE DE PROTEÇÃO ---
 const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
 
@@ -24,6 +29,7 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// --- AUXILIAR DE TÍTULO ---
 const getTitulo = (path: string): string => {
   if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
   if (path.startsWith("/historico")) return "Histórico";
@@ -34,12 +40,14 @@ const getTitulo = (path: string): string => {
   return "Rydex"; 
 };
 
+// --- LAYOUT PRINCIPAL ---
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSideBarExpandida, setIsSideBarExpandida] = useState(false);
   const location = useLocation();
   const tituloDinamico = getTitulo(location.pathname);
   const isPerfil = location.pathname === "/perfil";
 
+  // Hook de notificações (mantido da outra versão)
   useNotificacoesEmpresa();
 
   return (
@@ -51,13 +59,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
-
-        <div className="conteudo">{children}</div>
         
         <div className="conteudo">
           {children}
         </div>
       </main>
+
+      {/* ToastContainer dentro do Layout para aparecer nas telas internas */}
+      <ToastContainer theme="colored" />
 
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
@@ -66,47 +75,35 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+// --- APP E ROTAS ---
 const App: React.FC = () => {
   return (
     <Routes>
+      {/* --- ROTAS PÚBLICAS --- */}
       <Route path="/login" element={<Login />} />
       <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
       <Route path="/cadastro" element={<CadastroEmpresa />} />
 
+      {/* --- ROTAS PROTEGIDAS (DASHBOARD) --- */}
       <Route
         path="/*"
         element={
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Inicio />} />
-              <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
-              <Route path="/historico" element={<Historico />} />
-              <Route
-                path="/solicitar-entrega"
-                element={
-                  <div style={{ padding: 20 }}>
-                    Solicitar Entrega (Em breve)
-                  </div>
-                }
-              />
-              <Route
-                path="/perfil"
-                element={<div style={{ padding: 20 }}>Perfil (Em breve)</div>}
-              />
-            </Routes>
-
-            <ToastContainer theme="colored" />
-          </Layout>
           <RotaProtegida>
             <Layout>
               <Routes>
-                {/* 👈 Rota Raiz agora aponta para o Inicio */}
                 <Route path="/" element={<Inicio />} />
-                
-                <Route path="/adicionar-saldo" element={<AdicionarSaldo />}/>
+                <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
                 <Route path="/historico" element={<Historico />} />
-                <Route path="/solicitar-entrega" element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} />
-                <Route path="/perfil" element={<div style={{padding: 20}}>Perfil (Em breve)</div>} />
+                
+                {/* Placeholders */}
+                <Route 
+                  path="/solicitar-entrega" 
+                  element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} 
+                />
+                <Route 
+                  path="/perfil" 
+                  element={<div style={{padding: 20}}>Perfil (Em breve)</div>} 
+                />
               </Routes>
             </Layout>
           </RotaProtegida>
