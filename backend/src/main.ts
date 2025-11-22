@@ -1,13 +1,13 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory } from "@nestjs/core";
 import {
   ValidationPipe,
   BadRequestException,
   ValidationError,
-} from '@nestjs/common';
-import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { RespostaInterceptor } from './interceptors/resposta.interceptor';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+} from "@nestjs/common";
+import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
+import { RespostaInterceptor } from "./interceptors/resposta.interceptor";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -49,7 +49,7 @@ async function bootstrap() {
 
         return new BadRequestException(formattedErrors);
       },
-    }),
+    })
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -58,15 +58,15 @@ async function bootstrap() {
   app.enableCors(); // Habilita o CORS
 
   const config = new DocumentBuilder()
-    .setTitle('Rydex API')
-    .setDescription('Documentação da API do projeto Rydex')
-    .setVersion('1.0')
+    .setTitle("Rydex API")
+    .setDescription("Documentação da API do projeto Rydex")
+    .setVersion("1.0")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('api', app, document); // Sua rota do Swagger
+  SwaggerModule.setup("api", app, document); // Sua rota do Swagger
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, "0.0.0.0");
 }
 bootstrap();
