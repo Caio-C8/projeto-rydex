@@ -3,7 +3,7 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
-      "react-native-reanimated/plugin", // Este é para o Expo Router (animações)
+      "react-native-reanimated/plugin",
     ],
   };
 };
