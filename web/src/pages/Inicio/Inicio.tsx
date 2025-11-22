@@ -23,7 +23,7 @@ interface Solicitacao {
   numero: string;
   bairro: string;
   distancia_m: number;
-  observacao?: string; // 👈 1. Adicionei este campo opcional
+  observacao?: string;
 }
 
 export function Inicio() {
@@ -42,15 +42,17 @@ export function Inicio() {
   const fetchEntregas = async () => {
     try {
       const token = authService.getToken();
-      if (!token) return;
+      if (!token) return; // Poderia redirecionar para login aqui se quisesse forçar
 
-      const response = await axios.get(`${API_URL}/solicitacoes`, {
+      // 👇 MUDANÇA PRINCIPAL: Endpoint /solicitacoes/me
+      const response = await axios.get(`${API_URL}/solicitacoes/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       const lista = response.data.dados || response.data || [];
       const arrayLista = Array.isArray(lista) ? lista : [];
 
+      // Filtra apenas as que estão ativas (não finalizadas/canceladas)
       const ativas = arrayLista.filter((item: Solicitacao) => {
         const s = item.status.toLowerCase();
         return s === 'pendente' || s === 'atribuida' || s === 'em_andamento' || s === 'aceita';
@@ -58,6 +60,11 @@ export function Inicio() {
 
       setEntregasAtivas(ativas);
     } catch (error) {
+      // 👇 Proteção de Token Expirado
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        authService.logout();
+        return;
+      }
       console.error("Erro ao buscar entregas:", error);
     } finally {
       setLoading(false);
@@ -67,7 +74,8 @@ export function Inicio() {
   const getStatusColor = (status: string) => {
     switch(status?.toLowerCase()) {
       case 'pendente': return '#FFC107';
-      case 'atribuida': return '#2196F3';
+      case 'atribuida': case 'aceita': return '#2196F3';
+      case 'em_andamento': return '#FF9800';
       default: return '#9E9E9E';
     }
   };
@@ -86,7 +94,6 @@ export function Inicio() {
                 <div className="card-inicio-content">
                   <div className="card-inicio-header">
                     
-                    {/* 👈 2. MUDANÇA AQUI: Mostra Observação ou ID */}
                     <span className="badge-id" title={entrega.observacao || `Pedido #${entrega.id}`}>
                       {entrega.observacao 
                         ? entrega.observacao 
@@ -95,7 +102,7 @@ export function Inicio() {
                     </span>
 
                     <span className="badge-status" style={{backgroundColor: getStatusColor(entrega.status)}}>
-                      {entrega.status.toUpperCase()}
+                      {entrega.status.toUpperCase().replace('_', ' ')}
                     </span>
                   </div>
                   

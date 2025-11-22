@@ -9,5 +9,6 @@ import { PrismaModule } from "src/prisma.module";
   imports: [AuthModule, PrismaModule],
   controllers: [EntregasController],
   providers: [EntregasGateway, EntregasService],
+  exports: [EntregasService]
 })
 export class EntregasModule {}

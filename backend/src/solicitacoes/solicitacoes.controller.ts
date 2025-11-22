@@ -70,6 +70,19 @@ export class SolicitacoesController {
     return this.solicitacoesService.criarSolicitacaoEntrega(dto, empresa.sub);
   }
 
+  @UseGuards(JwtAuthGuard, EmpresaGuard)
+  @ApiOperation({
+    summary: "Simula uma solicitação (Validação e Orçamento)",
+    description: "Valida o endereço, calcula a rota, estima o valor e busca entregadores próximos sem criar a transação.",
+  })
+  @Post('simular') 
+  async simular(
+    @Body() dto: CriarSolicitacaoDto,
+    @Usuario() empresa: UsuarioPayload
+  ) {
+    return this.solicitacoesService.simularSolicitacao(dto, empresa.sub);
+  }
+
   @ApiOperation({
     summary: "Listar TODAS as solicitações (Público/Feed)",
     description:

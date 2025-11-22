@@ -319,10 +319,7 @@ export class EntregasService {
     return entrega;
   }
 
-  private async buscarEntregadoresProximos(
-    lon: number,
-    lat: number
-  ): Promise<Entregador[]> {
+  async buscarEntregadoresProximos(lon: number, lat: number): Promise<Entregador[]>{
     this.logger.log(
       `Buscando entregadores. Centro: [${lon}, ${lat}]. Raio: ${RAIO_BUSCA_METROS}m`
     );

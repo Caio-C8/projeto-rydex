@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // 👈 1. O CSS TEM QUE ESTAR AQUI
+import "react-toastify/dist/ReactToastify.css";
 
 // Hooks e Serviços
 import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
@@ -17,6 +17,8 @@ import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
 import { Inicio } from "./pages/Inicio/Inicio";
 import { Historico } from "./pages/Historico/Historico";
 import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
+// 👇 Importação da nova página
+import { SolicitarEntrega } from "./pages/SolicitarEntrega/SolicitarEntrega";
 
 // --- COMPONENTE DE PROTEÇÃO ---
 const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
@@ -33,14 +35,17 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSideBarExpandida, setIsSideBarExpandida] = useState(false);
   const location = useLocation();
+  
   const getTitulo = (path: string): string => {
     if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
     if (path.startsWith("/historico")) return "Histórico";
     if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
     if (path.startsWith("/perfil")) return "Perfil";
     if (path === "/") return "Início";
+    
     return "Rydex"; 
   };
+
   const tituloDinamico = getTitulo(location.pathname);
   const isPerfil = location.pathname === "/perfil";
 
@@ -70,7 +75,7 @@ const App: React.FC = () => {
         <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
         <Route path="/cadastro" element={<CadastroEmpresa />} />
 
-        {/* --- ROTAS PROTEGIDAS --- */}
+        {/* --- ROTAS PROTEGIDAS (DASHBOARD) --- */}
         <Route
           path="/*"
           element={
@@ -80,7 +85,10 @@ const App: React.FC = () => {
                   <Route path="/" element={<Inicio />} />
                   <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
                   <Route path="/historico" element={<Historico />} />
-                  <Route path="/solicitar-entrega" element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} />
+                  
+                  {/* 👇 Rota Atualizada para usar o componente real */}
+                  <Route path="/solicitar-entrega" element={<SolicitarEntrega />} />
+                  
                   <Route path="/perfil" element={<div style={{padding: 20}}>Perfil (Em breve)</div>} />
                 </Routes>
               </Layout>
@@ -89,7 +97,7 @@ const App: React.FC = () => {
         />
       </Routes>
 
-      {/* 👇 2. O CONTAINER GLOBAL (Fora das rotas, mas dentro do fragmento <>) */}
+      {/* TOAST GLOBAL */}
       <ToastContainer 
         position="top-right"
         autoClose={4000}
