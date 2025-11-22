@@ -151,7 +151,7 @@ export default function RegisterScreen() {
 
   const handleSubmit = async () => {
     // 1. Validações Básicas
-    if (!nome || !cpf || !email || !password || !dataNasc) {
+    if (!nome || !cpf || !email || !password) {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
