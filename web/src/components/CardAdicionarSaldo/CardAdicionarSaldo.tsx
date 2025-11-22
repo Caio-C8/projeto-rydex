@@ -5,6 +5,7 @@ import BotaoTexto from "../ui/Botao/BotaoTexto";
 import { normalizarDinheiro } from "../../utils/normalizar-dinheiro";
 import { ModalPix } from "../ModalPix/ModalPix"; 
 import { empresasService } from "../../services/empresasService"; 
+// 👇 IMPORTAÇÃO OBRIGATÓRIA PARA O ALERTA FUNCIONAR
 import { toast } from "react-toastify"; 
 
 interface CardAdicionarSaldoProps {
@@ -16,21 +17,36 @@ interface CardAdicionarSaldoProps {
 const CardAdicionarSaldo: React.FC<CardAdicionarSaldoProps> = ({ valor, saldoAtual, onSucesso }) => {
   const [modalAberto, setModalAberto] = useState(false);
 
-  // Cálculos matemáticos seguros
+  // Cálculos seguros (evita NaN)
   const saldoSeguro = Number(saldoAtual) || 0;
   const valorSeguro = Number(valor) || 0;
   const saldoFuturo = saldoSeguro + valorSeguro;
 
   const handleConfirmarPagamento = async () => {
+    console.log("💸 Iniciando processamento do pagamento...");
+
     try {
+      // 1. Chama o backend
       await empresasService.adicionarSaldo(valorSeguro);
-      
-      toast.success(`Pagamento confirmado! ${normalizarDinheiro(valorSeguro)} creditados.`);
+      console.log("✅ Backend respondeu com sucesso!");
+
+      // 2. Fecha o modal primeiro (para o toast não ficar "preso" atrás dele visualmente)
       setModalAberto(false);
+
+      // 3. Dispara o alerta verde
+      toast.success(`Pagamento confirmado! ${normalizarDinheiro(valorSeguro)} creditados.`);
+
+      // 4. Atualiza o saldo na tela
       onSucesso(); 
+
     } catch (error) {
-      console.error(error);
-      toast.error("Erro ao processar pagamento.");
+      console.error("❌ Erro no pagamento:", error);
+      
+      // Alerta de erro
+      toast.error("Erro ao processar pagamento. Tente novamente.");
+      
+      // Fecha o modal mesmo com erro, para o usuário tentar de novo
+      setModalAberto(false); 
     }
   };
 
@@ -53,7 +69,6 @@ const CardAdicionarSaldo: React.FC<CardAdicionarSaldoProps> = ({ valor, saldoAtu
 
         <div className="saldo-depois">
           <p className="adicionar-saldo-card-texto">Saldo após adicionar:</p>
-          {/* Mostra a soma do saldo atual + valor do card */}
           <p className="adicionar-saldo-card-texto" style={{ color: '#4CAF50', fontWeight: 'bold' }}>
             {normalizarDinheiro(saldoFuturo)}
           </p>
