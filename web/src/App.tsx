@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.css"; // 👈 1. O CSS TEM QUE ESTAR AQUI
 
 // Hooks e Serviços
 import { useNotificacoesEmpresa } from "./hooks/useNotificacoesEmpresa";
@@ -29,20 +29,18 @@ const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const getTitulo = (path: string): string => {
-  if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
-  if (path.startsWith("/historico")) return "Histórico";
-  if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
-  if (path.startsWith("/perfil")) return "Perfil";
-  if (path === "/") return "Início";
-  
-  return "Rydex"; 
-};
-
 // --- LAYOUT PRINCIPAL ---
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSideBarExpandida, setIsSideBarExpandida] = useState(false);
   const location = useLocation();
+  const getTitulo = (path: string): string => {
+    if (path.startsWith("/adicionar-saldo")) return "Adicionar Saldo";
+    if (path.startsWith("/historico")) return "Histórico";
+    if (path.startsWith("/solicitar-entrega")) return "Solicitar Entrega";
+    if (path.startsWith("/perfil")) return "Perfil";
+    if (path === "/") return "Início";
+    return "Rydex"; 
+  };
   const tituloDinamico = getTitulo(location.pathname);
   const isPerfil = location.pathname === "/perfil";
 
@@ -50,19 +48,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <>
-      <SideBar
-        isExpandido={isSideBarExpandida}
-        setIsExpandido={setIsSideBarExpandida}
-      />
-
+      <SideBar isExpandido={isSideBarExpandida} setIsExpandido={setIsSideBarExpandida} />
       <main>
         <Header titulo={tituloDinamico} isPerfil={isPerfil} />
-        
-        <div className="conteudo">
-          {children}
-        </div>
+        <div className="conteudo">{children}</div>
       </main>
-
       {isSideBarExpandida && (
         <div className="overlay" onClick={() => setIsSideBarExpandida(false)} />
       )}
@@ -80,7 +70,7 @@ const App: React.FC = () => {
         <Route path="/esqueceu-senha" element={<EsqueceuSenha />} />
         <Route path="/cadastro" element={<CadastroEmpresa />} />
 
-        {/* --- ROTAS PROTEGIDAS (DASHBOARD) --- */}
+        {/* --- ROTAS PROTEGIDAS --- */}
         <Route
           path="/*"
           element={
@@ -90,15 +80,8 @@ const App: React.FC = () => {
                   <Route path="/" element={<Inicio />} />
                   <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
                   <Route path="/historico" element={<Historico />} />
-                  
-                  <Route 
-                    path="/solicitar-entrega" 
-                    element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} 
-                  />
-                  <Route 
-                    path="/perfil" 
-                    element={<div style={{padding: 20}}>Perfil (Em breve)</div>} 
-                  />
+                  <Route path="/solicitar-entrega" element={<div style={{padding: 20}}>Solicitar Entrega (Em breve)</div>} />
+                  <Route path="/perfil" element={<div style={{padding: 20}}>Perfil (Em breve)</div>} />
                 </Routes>
               </Layout>
             </RotaProtegida>
@@ -106,7 +89,7 @@ const App: React.FC = () => {
         />
       </Routes>
 
-      {/* 👇 A CORREÇÃO ESTÁ AQUI: Z-INDEX ALTO PARA APARECER SOBRE O MODAL */}
+      {/* 👇 2. O CONTAINER GLOBAL (Fora das rotas, mas dentro do fragmento <>) */}
       <ToastContainer 
         position="top-right"
         autoClose={4000}
@@ -118,7 +101,7 @@ const App: React.FC = () => {
         draggable
         pauseOnHover
         theme="colored"
-        style={{ zIndex: 99999 }} 
+        style={{ zIndex: 999999 }} 
       />
     </>
   );
