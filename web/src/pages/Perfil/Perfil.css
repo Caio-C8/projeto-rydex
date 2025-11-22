@@ -1,0 +1,174 @@
+.perfil-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+.perfil-header {
+  margin-bottom: 30px;
+}
+
+.perfil-titulo {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.perfil-subtitulo {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* Inputs e Ícones */
+.input-editavel-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.label-perfil {
+  display: block;
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tag-alterado {
+  color: #FF5722;
+  font-size: 0.7rem;
+  margin-left: 5px;
+  text-transform: none;
+}
+
+.input-container-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-perfil {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.input-perfil.editando {
+  background-color: #fff;
+  border: 2px solid #FF5722;
+  box-shadow: 0 4px 15px rgba(255, 87, 34, 0.15);
+  padding-right: 45px; 
+}
+
+.input-perfil:disabled {
+  background-color: transparent;
+  border-color: transparent;
+  color: #555;
+  padding-left: 0;
+  cursor: default;
+}
+
+.btn-editar-campo {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 8px;
+  font-size: 1rem;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.btn-editar-campo:hover {
+  color: #FF5722;
+}
+
+.btn-editar-campo.ativo {
+  color: #4CAF50;
+}
+
+.perfil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .perfil-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 👇 NOVOS ESTILOS PARA O MAPA E HEADER */
+
+.secao-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn-buscar-mapa-perfil {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #E3F2FD; /* Azul bem claro */
+  color: #2196F3;
+  border: 1px solid #BBDEFB;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-buscar-mapa-perfil:hover {
+  background-color: #2196F3;
+  color: white;
+  border-color: #2196F3;
+}
+
+/* Ações */
+.perfil-acoes {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-cancelar-alteracoes {
+  background: none;
+  border: none;
+  color: #F44336;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.btn-cancelar-alteracoes:hover {
+  background-color: #ffebee;
+}
+
+.btn-cancelar-alteracoes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

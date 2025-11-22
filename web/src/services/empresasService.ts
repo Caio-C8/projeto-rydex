@@ -3,6 +3,7 @@ import { authService } from "./authService";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+// --- INTERFACES ---
 
 interface DadosSolicitacao {
   cep: string;
@@ -37,7 +38,21 @@ interface DadosCadastro {
   logradouro: string;
 }
 
+// 👇 ATUALIZADO: Adicionado senha e confirmar_senha
+export interface DadosAlteracaoEmpresa {
+  nome_empresa?: string;
+  cep?: string;
+  cidade?: string;
+  bairro?: string;
+  logradouro?: string;
+  numero?: string | number;
+  telefone?: string;
+  senha?: string;           // <--- Novo
+  confirmar_senha?: string; // <--- Novo
+}
+
 export const empresasService = {
+  // --- MÉTODOS DE DADOS DA EMPRESA ---
 
   async buscarDadosEmpresa(id: number) {
     const token = authService.getToken();
@@ -45,6 +60,16 @@ export const empresasService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data.dados || response.data;
+  },
+
+  async alterarDados(dados: DadosAlteracaoEmpresa) {
+    const token = authService.getToken();
+    const response = await axios.patch(
+      `${API_URL}/empresas`, 
+      dados, 
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
   },
 
   async adicionarSaldo(valor: number) {
@@ -67,6 +92,7 @@ export const empresasService = {
     return response.data;
   },
 
+  // --- MÉTODOS DE CONTA (PÚBLICOS) ---
 
   async redefinirSenha(dados: DadosRedefinirSenha) {
     const response = await axios.patch(
@@ -84,6 +110,7 @@ export const empresasService = {
     return response.data;
   },
 
+  // --- MÉTODOS DE SOLICITAÇÃO DE ENTREGA ---
 
   async simularSolicitacao(dadosSolicitacao: DadosSolicitacao) {
     const token = authService.getToken();

@@ -17,8 +17,9 @@ import CadastroEmpresa from "./pages/Cadastro/CadastroEmpresa";
 import { Inicio } from "./pages/Inicio/Inicio";
 import { Historico } from "./pages/Historico/Historico";
 import AdicionarSaldo from "./pages/AdicionarSaldo/AdicionarSaldo";
-// 👇 Importação da nova página
 import { SolicitarEntrega } from "./pages/SolicitarEntrega/SolicitarEntrega";
+// 👇 Importação da página Perfil
+import { Perfil } from "./pages/Perfil/Perfil";
 
 // --- COMPONENTE DE PROTEÇÃO ---
 const RotaProtegida = ({ children }: { children: React.ReactNode }) => {
@@ -85,11 +86,10 @@ const App: React.FC = () => {
                   <Route path="/" element={<Inicio />} />
                   <Route path="/adicionar-saldo" element={<AdicionarSaldo />} />
                   <Route path="/historico" element={<Historico />} />
-                  
-                  {/* 👇 Rota Atualizada para usar o componente real */}
                   <Route path="/solicitar-entrega" element={<SolicitarEntrega />} />
                   
-                  <Route path="/perfil" element={<div style={{padding: 20}}>Perfil (Em breve)</div>} />
+                  {/* 👇 Rota Atualizada para usar o componente Perfil */}
+                  <Route path="/perfil" element={<Perfil />} />
                 </Routes>
               </Layout>
             </RotaProtegida>
