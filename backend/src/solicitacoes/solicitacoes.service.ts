@@ -322,4 +322,85 @@ export class SolicitacoesService {
       valor_entregador: Math.round(valor_entregador),
     };
   }
+
+ // ... (dentro da classe SolicitacoesService)
+
+  // 👇 COLA ISTO DENTRO DA CLASSE SolicitacoesService 👇
+
+  async simularEntrega(dto: CriarSolicitacaoDto, empresaId: number) {
+    // 1. Buscar dados da empresa (Para ter a Origem e Saldo)
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { saldo: true, latitude: true, longitude: true },
+    });
+
+    if (!empresa || !empresa.latitude || !empresa.longitude) {
+      throw new BadRequestException(
+        "Cadastro da empresa incompleto (sem localização). Atualize seu perfil."
+      );
+    }
+
+    // 2. Tentar Calcular Rota (Validação de Endereço)
+    const origem = {
+      latitude: empresa.latitude,
+      longitude: empresa.longitude,
+    };
+
+    let destino;
+    let distancia_m;
+    let tempo_seg;
+
+    try {
+      // Tenta achar o endereço de destino
+      destino = await this.getCoordenadas(dto);
+      // Tenta traçar o caminho
+      const dadosRota = await this.getDadosRota(origem, destino);
+      
+      distancia_m = dadosRota.distancia_m;
+      tempo_seg = dadosRota.tempo_seg;
+    } catch (error) {
+      // SE DER ERRO AQUI, É O PRIMEIRO TOAST (Endereço inválido)
+      throw new BadRequestException(
+        "Não foi possível calcular a rota. Verifique se o endereço está correto e acessível."
+      );
+    }
+
+    // 3. VALIDAÇÃO DE DISTÂNCIA (Se for muito longe, para aqui)
+    if (distancia_m > 50000) { // Limite de 50km
+      throw new BadRequestException(
+        `Endereço muito distante (${(distancia_m / 1000).toFixed(1)}km). O limite de entrega é 50km.`
+      );
+    }
+
+    // 4. VALIDAÇÃO DE ENTREGADORES (Se não tiver motoboy, para aqui)
+    const entregadoresOnline = await this.prisma.entregador.count({
+      where: { status: 'online' },
+    });
+
+    if (entregadoresOnline === 0) {
+      throw new BadRequestException(
+        "No momento não há entregadores online na sua região. Tente novamente em alguns instantes."
+      );
+    }
+
+    // 5. Calcular Preço
+    const { valor_estimado } = this.calcularValorEstimado(distancia_m, tempo_seg);
+
+    // 6. VALIDAÇÃO DE SALDO (Se não tiver dinheiro, para aqui)
+    if (empresa.saldo < valor_estimado) {
+      throw new BadRequestException(
+        `Saldo insuficiente. A corrida custa ${normalizarDinheiro(valor_estimado)}, mas seu saldo é de ${normalizarDinheiro(empresa.saldo)}.`
+      );
+    }
+
+    // Se passou por todas as barreiras, retorna sucesso e os dados
+    return {
+      sucesso: true,
+      distancia_m,
+      tempo_seg,
+      valor_estimado,
+      entregadores_online: entregadoresOnline,
+      mensagem: "Simulação realizada com sucesso.",
+    };
+  }
 }

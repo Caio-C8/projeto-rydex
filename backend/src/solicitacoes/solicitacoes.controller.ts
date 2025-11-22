@@ -122,4 +122,18 @@ export class SolicitacoesController {
   ): Promise<SolicitacoesEntregas> {
     return this.solicitacoesService.buscarUm(id);
   }
+
+
+  @Post('simular') 
+  @UseGuards(JwtAuthGuard, EmpresaGuard) 
+  @ApiOperation({ 
+    summary: "Simula uma entrega",
+    description: "Verifica saldo, distância e entregadores online antes de criar o pedido."
+  })
+  async simular(
+    @Body() dto: CriarSolicitacaoDto,
+    @Usuario() empresa: UsuarioPayload 
+  ) {
+    return this.solicitacoesService.simularEntrega(dto, empresa.sub);
+  }
 }
