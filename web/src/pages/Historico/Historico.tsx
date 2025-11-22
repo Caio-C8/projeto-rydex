@@ -57,7 +57,8 @@ export function Historico() {
         return;
       }
 
-      const response = await axios.get(`${API_URL}/solicitacoes`, {
+      // 👇 AQUI ESTÁ A CORREÇÃO: Mudamos de /solicitacoes para /solicitacoes/me
+      const response = await axios.get(`${API_URL}/solicitacoes/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -351,7 +352,7 @@ export function Historico() {
                 <p className="modal-subtexto">Distância: {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km</p>
               </div>
 
-              {/* AQUI ESTÁ A MUDANÇA: Lógica inteligente do Entregador */}
+              {/* Lógica inteligente do Entregador */}
               {renderStatusEntregador(entregaSelecionada)}
 
               <div className="modal-section">

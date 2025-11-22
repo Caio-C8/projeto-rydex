@@ -12,13 +12,14 @@ import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { normalizarDinheiro } from "src/utils/normalizar-dinheiro";
-
-interface Coordenadas {
+import { Inject, forwardRef } from "@nestjs/common"; 
+import { EntregasService } from "../entregas/entregas.service"; 
+export interface Coordenadas {
   latitude: number;
   longitude: number;
 }
 
-interface DadosRota {
+export interface DadosRota {
   distancia_m: number;
   tempo_seg: number;
 }
@@ -36,7 +37,8 @@ export class SolicitacoesService {
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
     private httpService: HttpService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    @Inject(forwardRef(() => EntregasService)) private entregasService: EntregasService
   ) {}
 
   async criarSolicitacaoEntrega(
@@ -207,6 +209,51 @@ export class SolicitacoesService {
         },
       },
     });
+  }
+
+  async simularSolicitacao(dto: CriarSolicitacaoDto, empresaId: number) {
+    // 1. Busca Empresa
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { latitude: true, longitude: true },
+    });
+
+    if (!empresa || !empresa.latitude || !empresa.longitude) {
+      throw new BadRequestException("Endereço da empresa inválido.");
+    }
+
+    const origem = { latitude: empresa.latitude, longitude: empresa.longitude };
+
+    // 2. Busca Destino (Google)
+    const destino = await this.getCoordenadas(dto);
+
+    // 3. Calcula Rota (Google)
+    const { distancia_m, tempo_seg } = await this.getDadosRota(origem, destino);
+
+    // 4. Calcula Preço
+    const { valor_estimado, valor_entregador } = this.calcularValorEstimado(
+      distancia_m,
+      tempo_seg
+    );
+
+    // 5. Busca Entregadores
+    const entregadores = await this.entregasService.buscarEntregadoresProximos(
+      origem.longitude,
+      origem.latitude
+    );
+
+    this.logger.log(`[SIMULAÇÃO] Dist: ${distancia_m}m | Valor: ${valor_estimado}`);
+
+    // 👇 RETORNO SIMPLIFICADO (FLAT) - Isso resolve o erro do modal!
+    return {
+      valor_estimado,        // Número direto
+      valor_entregador,      // Número direto
+      distancia_m,           // Número direto (metros)
+      tempo_seg,             // Número direto (segundos)
+      entregadores_online: entregadores.length,
+      origem,
+      destino
+    };
   }
 
   private async getCoordenadas(enderecoInfo: any): Promise<Coordenadas> {

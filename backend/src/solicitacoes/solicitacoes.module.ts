@@ -6,6 +6,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { AuthModule } from "src/auth/auth.module";
 import { HttpModule } from "@nestjs/axios";
 import { ConfigModule } from "@nestjs/config";
+import { EntregasModule } from '../entregas/entregas.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { ConfigModule } from "@nestjs/config";
     EventEmitterModule, 
     AuthModule,
     HttpModule, 
-    ConfigModule 
+    ConfigModule,
+    EntregasModule,
   ],
   controllers: [SolicitacoesController],
   providers: [SolicitacoesService],

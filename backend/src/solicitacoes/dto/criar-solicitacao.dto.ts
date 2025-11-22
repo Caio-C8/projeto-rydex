@@ -12,9 +12,6 @@ import { Type } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CriarSolicitacaoDto {
-  // CAMPOS REMOVIDOS: valor_estimado, distancia_m, latitude, longitude
-  // Esses serão calculados no Service.
-
   @ApiProperty({
     description: "CEP de destino da entrega.",
     example: "38700000",
