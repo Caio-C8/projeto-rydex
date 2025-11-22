@@ -135,8 +135,8 @@ const ProfileScreen: React.FC = () => {
 
   // --- useEffect para CARREGAR dados da API ---
   useEffect(() => {
-    if (!API_URL) {
-      Alert.alert("Erro de Configuração", "URL da API não encontrada. Verifique seu arquivo .env");
+    if (!process.env.EXPO_PUBLIC_API_URL) {
+      Alert.alert("Erro de Configuração");
       setIsLoading(false);
       setNome("Erro"); setCpf("Erro"); setDataNasc("Erro");
       return;
@@ -144,7 +144,7 @@ const ProfileScreen: React.FC = () => {
     async function carregarDadosDoPerfil() {
       try {
         const usuarioId = "123"; // (Substituir pelo ID real)
-        const response = await fetch(`${API_URL}/usuario/${usuarioId}`); // API_URL já é process.env...
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URLL}/usuario/${usuarioId}`); // API_URL já é process.env...
         if (!response.ok) {
           throw new Error("Falha ao buscar dados do servidor");
         }
@@ -163,7 +163,7 @@ const ProfileScreen: React.FC = () => {
         });
       } catch (error) {
         console.error("Erro ao carregar perfil:", error);
-        Alert.alert("Erro de Rede", `Não foi possível carregar seus dados. Verifique seu IP e se a API está rodando.\nErro: ${error.message}`);
+        Alert.alert("Erro de Rede", `\nErro: ${error.message}`);
         setNome("Erro de Rede"); setCpf("..."); setDataNasc("...");
       } finally {
         setIsLoading(false);
@@ -212,7 +212,7 @@ const ProfileScreen: React.FC = () => {
       return;
     }
     if (!API_URL) {
-      Alert.alert("Erro de Configuração", "A URL da API não foi definida.");
+      Alert.alert("Erro de Configuração");
       return;
     }
     const formData = new FormData();

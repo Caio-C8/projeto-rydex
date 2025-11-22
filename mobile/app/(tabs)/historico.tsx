@@ -22,7 +22,7 @@ const historyData = [
     date: '09/09/25', totalAmount: 20.00,
     deliveries: [
       { id: '#354', type: 'Entrega', value: 20.00, departure: 'Rua alguma coisa, 12', destination: 'Rua alguma coisa, 12', returnAddress: 'Rua outra coisa, 512', notes: '1x Máquina de cartão de crédito', status: 'Finalizada', isFinished: true },
-      { id: '#355', type: 'Entrega', value: 15.50, departure: 'Av. Brasil, 1000', destination: 'Rua Teste, 45', returnAddress: 'Av. Brasil, 1000', notes: '2x Lanches\n1x Refrigerante', status: 'Pendente', isFinished: false },
+      { id: '#355', type: 'Entrega', value: 15.50, departure: 'Av. Brasil, 1000', destination: 'Rua Teste, 45', returnAddress: 'Av. Brasil, 1000', notes: '2x Lanches\n1x Refrigerante', status: 'Finalizada', isFinished: true },
     ],
   },
   {

@@ -16,20 +16,60 @@ import { EyeIcon, EyeOffIcon } from "../components/Icons";
 // 2. Importado do seu novo theme.ts
 import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
 
+import api from "../services/api";
+
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  const [loading, setLoading] = useState(false); 
   // 3. Pega o tema (light/dark) e as cores corretas
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
 
-  const handleSubmit = () => {
-    console.log("Login simulado:", { email, password });
-    // 1. Mostra um alerta rápido (opcional)
-    Alert.alert("Login", "Bem-vindo de volta!"); 
-    router.replace('/(tabs)/'); 
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      return Alert.alert("Atenção", "Por favor, preencha e-mail e senha.");
+    }
+
+    setLoading(true); // Bloqueia novos cliques
+
+    try {
+      // 5. Chamada ao Backend
+      // ATENÇÃO: Verifique se a rota no seu backend é '/sessions', '/login' ou '/auth'
+      const response = await api.post('/login', { 
+        email: email, 
+        password: password 
+      });
+
+      // 6. Salvar o Token (Essencial para manter logado)
+      // Supondo que o backend retorna { token: "...", user: { ... } }
+      const { token, user } = response.data;
+      
+      if (token) {
+        await AsyncStorage.setItem('@token', token);
+      }
+
+      // Opcional: Salvar dados do usuário se precisar exibir nome/foto depois
+      // await AsyncStorage.setItem('@user', JSON.stringify(user));
+
+      Alert.alert("Sucesso", `Bem-vindo, ${user?.name || 'Entregador'}!`);
+      
+      // 7. Navega para a área logada
+      router.replace('/(tabs)/'); 
+
+    } catch (error: any) {
+      console.log("Erro no login:", error);
+      
+      // Tratamento básico de erro
+      if (error.response) {
+         Alert.alert("Erro", error.response.data.message || "E-mail ou senha inválidos.");
+      } else {
+         Alert.alert("Erro de Conexão", "Verifique se o backend está rodando e o IP está correto.");
+      }
+    } finally {
+      setLoading(false); // Libera o botão
+    }
   };
 
   return (

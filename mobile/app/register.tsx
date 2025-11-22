@@ -8,15 +8,17 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
-  useColorScheme, // 1. Importado
+  useColorScheme,
+  ActivityIndicator, // Adicionado para feedback visual
 } from "react-native";
 import { Link, router } from "expo-router";
 import { LogoHeader } from "../components/LogoHeader";
 import { EyeIcon, EyeOffIcon, CloudUploadIcon } from "../components/Icons";
 import * as ImagePicker from "expo-image-picker";
 
-// 2. Importado do seu novo theme.ts
 import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
+// 1. Import da API
+import api from "../services/api";
 
 export default function RegisterScreen() {
   // Estados para os campos de texto
@@ -30,56 +32,111 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Estados para os arquivos
+  // Estados para os arquivos (URI completa)
   const [cnhFile, setCnhFile] = useState<string | null>(null);
   const [docFile, setDocFile] = useState<string | null>(null);
 
-  // Estados de visibilidade da senha
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  
+  // 2. Estado de Loading
+  const [loading, setLoading] = useState(false);
 
-  // 3. Pega o tema (light/dark) e as cores corretas
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
 
-  // Função para pegar imagem (reutilizável)
   const handlePickImage = async (
     setter: React.Dispatch<React.SetStateAction<string | null>>
   ) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Permissão necessária",
-        "Precisamos da permissão da galeria para o upload."
-      );
+      Alert.alert("Permissão necessária", "Precisamos da permissão da galeria.");
       return;
     }
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+      quality: 0.7, // Diminui um pouco a qualidade para o upload ser mais rápido
     });
 
     if (!result.canceled) {
-      setter(result.assets[0].uri.split("/").pop() || "imagem.jpg");
+      // 3. Salvamos a URI completa para poder fazer o upload
+      setter(result.assets[0].uri);
     }
   };
 
-  const handleSubmit = () => {
-    if (password !== confirmPassword) {
-      Alert.alert("Erro", "As senhas não conferem. Tente novamente.");
-      return;
+  // 4. Função de Envio para o Backend
+  const handleSubmit = async () => {
+    // Validações básicas
+    if (!nome || !email || !password || !cpf) {
+      return Alert.alert("Atenção", "Preencha os campos obrigatórios.");
     }
-    console.log("Cadastrando usuário...");
-    Alert.alert(
-      "Cadastro Realizado!",
-      "Seu cadastro foi enviado para análise.",
-      [{ text: "OK", onPress: () => router.push("/login") }]
-    );
+    if (password !== confirmPassword) {
+      return Alert.alert("Erro", "As senhas não conferem.");
+    }
+    if (!cnhFile || !docFile) {
+      return Alert.alert("Atenção", "É necessário enviar as fotos da CNH e do Veículo.");
+    }
+
+    setLoading(true);
+
+    try {
+      // 5. Criando o FormData (Pacote para envio de arquivos)
+      const formData = new FormData();
+
+      // Adicionando campos de texto
+      // ATENÇÃO: Os nomes aqui (ex: 'nome', 'cpf') devem ser IGUAIS aos do seu DTO no Backend
+      formData.append("nome", nome);
+      formData.append("cpf", cpf);
+      formData.append("dataNascimento", dataNasc); // Verifique se no back é dataNasc ou dataNascimento
+      formData.append("celular", celular);
+      formData.append("placaVeiculo", placa);      // Verifique se no back é placa ou placaVeiculo
+      formData.append("chavePix", pix);            // Verifique se no back é pix ou chavePix
+      formData.append("email", email);
+      formData.append("senha", password);
+
+      // Adicionando Arquivos
+      // O React Native precisa desse objeto específico { uri, name, type }
+      formData.append("imagemCnh", {
+        uri: cnhFile,
+        name: "cnh.jpg",
+        type: "image/jpeg",
+      } as any);
+
+      formData.append("imagemDocVeiculo", {
+        uri: docFile,
+        name: "doc.jpg",
+        type: "image/jpeg",
+      } as any);
+
+      // 6. Enviando para a API
+      // O Header 'multipart/form-data' é crucial para upload
+      await api.post("/entregadores", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      Alert.alert(
+        "Sucesso!",
+        "Cadastro realizado. Agora faça login para entrar.",
+        [{ text: "Ir para Login", onPress: () => router.push("/login") }]
+      );
+
+    } catch (error: any) {
+      console.log("Erro no cadastro:", error);
+      if (error.response) {
+        // Mostra o erro que o Backend mandou (ex: CPF já existe)
+        Alert.alert("Erro", error.response.data.message || "Falha ao cadastrar.");
+      } else {
+        Alert.alert("Erro de Conexão", "Verifique sua internet ou se o servidor está rodando.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    // 4. Cor de fundo dinâmica aplicada
     <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
       <ScrollView
         contentContainerStyle={styles.cardContainer}
@@ -90,29 +147,29 @@ export default function RegisterScreen() {
           subHeading="Realize seu cadastro e comece a fazer entregas"
         />
 
-        {/* 5. Cor de fundo do card dinâmica */}
         <View style={[styles.formContainer, { backgroundColor: themeColors.background }]}>
           
-          {/* Linha 1: Nome Completo */}
+          {/* Campos de texto... */}
           <View style={styles.mb4}>
             <Text style={[styles.label, { color: themeColors.text }]}>Nome completo:</Text>
             <TextInput
               placeholder="Seu nome"
               style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
               placeholderTextColor={themeColors.textGray}
+              value={nome}
               onChangeText={setNome}
             />
           </View>
 
-          {/* Linha 2: CPF e Data de Nasc. (Grid) */}
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
               <Text style={[styles.label, { color: themeColors.text }]}>CPF:</Text>
               <TextInput
-                placeholder="xxx.xxx.xxx-xx"
+                placeholder="Apenas números"
                 style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 keyboardType="numeric"
+                value={cpf}
                 onChangeText={setCpf}
               />
             </View>
@@ -123,47 +180,48 @@ export default function RegisterScreen() {
                 style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 keyboardType="numeric"
+                value={dataNasc}
                 onChangeText={setDataNasc}
               />
             </View>
           </View>
 
-          {/* Linha 3: Celular e Placa (Grid) */}
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
               <Text style={[styles.label, { color: themeColors.text }]}>Celular:</Text>
               <TextInput
-                placeholder="[xx] x xxxx-xxxx"
+                placeholder="(xx) 9xxxx-xxxx"
                 style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 keyboardType="phone-pad"
+                value={celular}
                 onChangeText={setCelular}
               />
             </View>
             <View style={styles.gridCol}>
               <Text style={[styles.label, { color: themeColors.text }]}>Placa veículo:</Text>
               <TextInput
-                placeholder="XXX0X00"
+                placeholder="XXX-0000"
                 style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 autoCapitalize="characters"
+                value={placa}
                 onChangeText={setPlaca}
               />
             </View>
           </View>
 
-          {/* Linha 4: Chave Pix */}
           <View style={styles.mb4}>
             <Text style={[styles.label, { color: themeColors.text }]}>Chave pix:</Text>
             <TextInput
-              placeholder="E-mail, CPF, celular, chave aleatória"
+              placeholder="E-mail, CPF, celular..."
               style={[styles.textInput, { borderColor: themeColors.lightGray, color: themeColors.text }]}
               placeholderTextColor={themeColors.textGray}
+              value={pix}
               onChangeText={setPix}
             />
           </View>
 
-          {/* Linha 5: E-mail */}
           <View style={styles.mb4}>
             <Text style={[styles.label, { color: themeColors.text }]}>E-mail:</Text>
             <TextInput
@@ -172,11 +230,11 @@ export default function RegisterScreen() {
               placeholderTextColor={themeColors.textGray}
               keyboardType="email-address"
               autoCapitalize="none"
+              value={email}
               onChangeText={setEmail}
             />
           </View>
 
-          {/* Linha 6: Senha (com ícone) */}
           <View style={styles.mb4}>
             <Text style={[styles.label, { color: themeColors.text }]}>Senha:</Text>
             <View style={[styles.inputWrapper, { borderColor: themeColors.lightGray }]}>
@@ -185,6 +243,7 @@ export default function RegisterScreen() {
                 style={[styles.textInputInsideWrapper, { color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 secureTextEntry={!showPass}
+                value={password}
                 onChangeText={setPassword}
               />
               <TouchableOpacity
@@ -196,7 +255,6 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Linha 7: Confirmar Senha (com ícone) */}
           <View style={styles.mb4}>
             <Text style={[styles.label, { color: themeColors.text }]}>Confirmar senha:</Text>
             <View style={[styles.inputWrapper, { borderColor: themeColors.lightGray }]}>
@@ -205,6 +263,7 @@ export default function RegisterScreen() {
                 style={[styles.textInputInsideWrapper, { color: themeColors.text }]}
                 placeholderTextColor={themeColors.textGray}
                 secureTextEntry={!showConfirmPass}
+                value={confirmPassword}
                 onChangeText={setConfirmPassword}
               />
               <TouchableOpacity
@@ -216,7 +275,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Linha 8: CNH e Doc. Veículo (Grid) */}
+          {/* Uploads */}
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
               <Text style={[styles.label, { color: themeColors.text }]}>CNH:</Text>
@@ -230,7 +289,8 @@ export default function RegisterScreen() {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {cnhFile || "Envie uma foto"}
+                  {/* Mostra só o nome do arquivo para não quebrar o layout */}
+                  {cnhFile ? cnhFile.split('/').pop() : "Envie uma foto"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -246,17 +306,22 @@ export default function RegisterScreen() {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {docFile || "Envie uma foto"}
+                  {docFile ? docFile.split('/').pop() : "Envie uma foto"}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
           
           <TouchableOpacity 
-            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+            style={[styles.button, { backgroundColor: loading ? '#ccc' : themeColors.rydexOrange }]} 
             onPress={handleSubmit}
+            disabled={loading}
           >
-            <Text style={[styles.buttonText, { color: themeColors.textMuted }]}>CADASTRAR</Text>
+            {loading ? (
+               <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.buttonText, { color: themeColors.textMuted }]}>CADASTRAR</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.linksContainer}>
@@ -272,13 +337,10 @@ export default function RegisterScreen() {
   );
 }
 
-// ===============================================
-// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
-// ===============================================
+// SEUS ESTILOS CONTINUAM IGUAIS
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    // cor de fundo aplicada dinamicamente no JSX
   },
   cardContainer: {
     width: "100%",
@@ -291,7 +353,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    // cor de fundo aplicada dinamicamente no JSX
     padding: horizontalScale(24),
     borderRadius: 30,
     shadowColor: "#000",
@@ -301,13 +362,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   mb4: { 
-    marginBottom: verticalScale(16), // Espaçamento padrão
+    marginBottom: verticalScale(16),
   },
   label: { 
-    fontSize: FontSizes.caption, // Usa FontSizes
+    fontSize: FontSizes.caption,
     fontWeight: "500", 
-    marginBottom: verticalScale(8), // Usa escala
-    fontFamily: Fonts.sans, // Usa Fonts
+    marginBottom: verticalScale(8),
+    fontFamily: Fonts.sans,
   },
   textInput: {
     padding: verticalScale(12),
@@ -316,7 +377,6 @@ const styles = StyleSheet.create({
     width: "100%",
     fontSize: FontSizes.body,
     fontFamily: Fonts.sans,
-    // cores aplicadas dinamicamente no JSX
   },
   inputWrapper: {
     flexDirection: "row",
@@ -342,10 +402,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: verticalScale(16),
-    gap: horizontalScale(16), // Espaço entre as colunas
+    gap: horizontalScale(16),
   },
   gridCol: {
-    flex: 1, // Faz com que as colunas dividam o espaço
+    flex: 1,
   },
   uploadArea: {
     borderWidth: 2,
@@ -357,7 +417,7 @@ const styles = StyleSheet.create({
     padding: horizontalScale(8), 
   },
   uploadText: {
-    fontSize: FontSizes.small, // Usa FontSizes
+    fontSize: FontSizes.small,
     marginTop: verticalScale(8),
     textAlign: "center",
     fontFamily: Fonts.sans,
@@ -366,7 +426,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: verticalScale(12),
     borderRadius: 12,
-    marginTop: verticalScale(8), // Adiciona um espaço antes do botão
+    marginTop: verticalScale(8),
   },
   buttonText: {
     fontWeight: "bold",
