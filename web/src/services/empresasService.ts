@@ -28,5 +28,12 @@ export const empresasService = {
   async cadastrar(dadosCadastro: any) {
     const response = await axios.post(`${API_URL}/empresas`, dadosCadastro);
     return response.data;
+  },
+
+
+
+  async redefinirSenha(dados: { email: string; nova_senha: string; confirmar_senha: string }) {
+    const response = await axios.patch(`${API_URL}/empresas/recuperacao-senha`, dados);
+    return response.data;
   }
 };
