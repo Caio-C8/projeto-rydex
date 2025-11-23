@@ -11,6 +11,7 @@ import { tratarErroApi } from "@/utils/api-error-handler";
 
 // --- Import do Novo Contexto Global ---
 import { useTracking } from "../context/TrackingContext";
+import { ResumoDia } from "../types/api.types";
 
 // Habilita animação no Android
 if (
@@ -56,6 +57,27 @@ export const useHomeLogic = () => {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
+
+  const [dailySummary, setDailySummary] = useState<ResumoDia>({
+    ganhos: 0,
+    aceitas: 0,
+    finalizadas: 0,
+    canceladas: 0,
+    recusadas: 0,
+  });
+
+  const fetchDailySummary = async () => {
+    try {
+      const dados = await entregadoresService.obterResumoDia();
+      setDailySummary(dados);
+    } catch (error) {
+      console.log("Erro ao buscar resumo:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDailySummary();
+  }, []);
 
   // ============================================================
   // --- 1. SINCRONIZAÇÃO: CONTEXTO GLOBAL <-> UI LOCAL ---
@@ -302,6 +324,8 @@ export const useHomeLogic = () => {
       // Chama o Backend para finalizar e creditar o saldo
       await entregasService.finalizarEntrega(currentDeliveryId);
 
+      fetchDailySummary();
+
       // Feedback Visual
       setNavInstruction("Entrega Finalizada com Sucesso!");
       setAppMode("DELIVERY_FINISHED");
@@ -368,6 +392,7 @@ export const useHomeLogic = () => {
     location, // Vem do Contexto
     errorMsg,
     mapRef,
+    dailySummary,
 
     // Ações
     setRegion,

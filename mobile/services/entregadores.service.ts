@@ -8,6 +8,7 @@ import {
   TransacaoSaldoDto,
   ImageFile,
 } from "../types/dtos";
+import { ResumoDia } from "../types/api.types";
 
 export const entregadoresService = {
   buscarMeusDados: async (): Promise<EntregadorPerfil> => {
@@ -171,6 +172,13 @@ export const entregadoresService = {
       }
     );
 
+    return data.dados;
+  },
+
+  obterResumoDia: async (): Promise<ResumoDia> => {
+    const { data } = await api.get<RespostaSucesso<ResumoDia>>(
+      "/entregadores/me/resumo-dia"
+    );
     return data.dados;
   },
 };

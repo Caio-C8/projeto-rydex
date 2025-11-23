@@ -165,3 +165,11 @@ export interface NotificacaoSolicitacao {
     longitude: number;
   };
 }
+
+export interface ResumoDia {
+  ganhos: number; // Em centavos
+  aceitas: number;
+  finalizadas: number;
+  canceladas: number;
+  recusadas: number;
+}

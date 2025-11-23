@@ -1,4 +1,4 @@
-import { router } from "expo-router"; 
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   View,
@@ -13,7 +13,13 @@ import {
 } from "react-native";
 
 // 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
-import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../../constants/theme';
+import {
+  Colors,
+  FontSizes,
+  Fonts,
+  verticalScale,
+  horizontalScale,
+} from "../../constants/theme";
 
 // Valor inicial do saldo, pode vir de outro lugar no futuro
 const SALDO_INICIAL = 120.0;
@@ -25,7 +31,7 @@ export default function CarteiraScreen() {
 
   // 3. Pega o tema (light/dark) e as cores corretas
   const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme ?? 'light'];
+  const themeColors = Colors[colorScheme ?? "light"];
 
   // Função para formatar o saldo como moeda
   const formatCurrency = (value: number) => {
@@ -83,28 +89,38 @@ export default function CarteiraScreen() {
   // ===================================
   return (
     // 4. Cor de fundo dinâmica aplicada
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}
+    >
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
         {/* 5. Cor de fundo do card dinâmica */}
-        <View style={[styles.card, { backgroundColor: themeColors.background }]}>
+        <View
+          style={[styles.card, { backgroundColor: themeColors.background }]}
+        >
           {/* 6. Cores e fontes dinâmicas */}
-          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>Sacar Saldo</Text>
-          <Text style={[styles.saldoLabel, { color: themeColors.rydexOrange }]}>Saldo Acumulado</Text>
+          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>
+            Sacar Saldo
+          </Text>
+          <Text style={[styles.saldoLabel, { color: themeColors.rydexOrange }]}>
+            Saldo Acumulado
+          </Text>
           <Text style={[styles.saldoValor, { color: themeColors.rydexOrange }]}>
             {formatCurrency(saldoAtual)}
           </Text>
 
-          <Text style={[styles.inputLabel, { color: themeColors.textGray }]}>Valor para saque</Text>
+          <Text style={[styles.inputLabel, { color: themeColors.textGray }]}>
+            Valor para saque
+          </Text>
           <TextInput
             style={[
               styles.textInput,
-              { 
-                borderColor: themeColors.lightGray, 
-                color: themeColors.text 
-              }
+              {
+                borderColor: themeColors.lightGray,
+                color: themeColors.text,
+              },
             ]}
             placeholder="Preencha o valor"
             placeholderTextColor={themeColors.textGray} // Cor dinâmica
@@ -113,11 +129,16 @@ export default function CarteiraScreen() {
             onChangeText={setValorSaque}
           />
 
-          <TouchableOpacity 
-            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { backgroundColor: themeColors.rydexOrange },
+            ]}
             onPress={handleSaque}
           >
-            <Text style={[styles.buttonText, { color: themeColors.white }]}>Sacar</Text>
+            <Text style={[styles.buttonText, { color: themeColors.white }]}>
+              Sacar
+            </Text>
           </TouchableOpacity>
 
           <Text style={[styles.infoText, { color: themeColors.textGray }]}>

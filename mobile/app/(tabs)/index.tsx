@@ -140,6 +140,7 @@ const HomeScreen: React.FC = () => {
           <SummaryCard
             isExpanded={logic.isSummaryExpanded}
             toggleExpansion={logic.toggleSummaryExpansion}
+            data={logic.dailySummary} // <--- Passa os dados reais aqui
           />
         )}
 
