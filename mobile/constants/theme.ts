@@ -12,12 +12,12 @@ export const moderateScale = (size: number, factor = 0.5) => size + (horizontalS
 // --- Fim da Escala ---
 
 // --- Definição das Cores ---
-const tintColorLight = '#0a7ea4';
+const tintColorLight = '#FF5722';
 const tintColorDark = '#fff';
 
 // Cores específicas do Rydex
 const rydexOrange = "#FF5722";
-const rydexBlue = "#004D61";
+const rydexBlue = "#FF5722";
 const rydexGray = "#2C2C2C";
 const appBackground = "#F0F0F0"; // O fundo cinza claro que usamos
 

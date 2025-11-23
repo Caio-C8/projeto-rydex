@@ -8,14 +8,23 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
-  useColorScheme, // 1. Importado
+  useColorScheme,
+  ActivityIndicator, // Importado para loading
 } from "react-native";
 import { Link, router } from "expo-router";
 import { LogoHeader } from "../components/LogoHeader";
 import { EyeIcon, EyeOffIcon } from "../components/Icons";
 
-// 2. Importado do seu novo theme.ts
-import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
+// Imports de Serviço e Utils
+import {
+  Colors,
+  FontSizes,
+  Fonts,
+  verticalScale,
+  horizontalScale,
+} from "../constants/theme";
+import { entregadoresService } from "../services/entregadores.service";
+import { tratarErroApi } from "../utils/api-error-handler";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -24,28 +33,54 @@ export default function ForgotPasswordScreen() {
 
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Estado de loading
 
-  // 3. Pega o tema (light/dark) e as cores corretas
   const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme ?? 'light'];
+  const themeColors = Colors[colorScheme ?? "light"];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // 1. Validações Locais
+    if (!email || !password || !confirmPassword) {
+      Alert.alert("Atenção", "Preencha todos os campos.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert("Erro", "As senhas não conferem. Tente novamente.");
       return;
     }
 
-    console.log("Trocando senha para:", { email, password });
-    Alert.alert(
-      "Sucesso!",
-      "Sua senha foi trocada. Você será redirecionado para o login.",
-      [{ text: "OK", onPress: () => router.push("/login") }]
-    );
+    // 2. Inicia Loading
+    setIsLoading(true);
+
+    try {
+      // 3. Chama o Serviço
+      // O backend espera: { email, nova_senha, confirmar_senha }
+      await entregadoresService.redefinirSenha({
+        email: email,
+        nova_senha: password,
+        confirmar_senha: confirmPassword,
+      });
+
+      // 4. Sucesso
+      Alert.alert(
+        "Sucesso!",
+        "Sua senha foi trocada com sucesso. Faça login com a nova senha.",
+        [{ text: "Ir para Login", onPress: () => router.push("/login") }]
+      );
+    } catch (error) {
+      // 5. Erro (Email não encontrado, senhas fracas, etc)
+      const msg = tratarErroApi(error);
+      Alert.alert("Não foi possível trocar a senha", msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    // 4. Cor de fundo dinâmica aplicada
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}
+    >
       <ScrollView
         contentContainerStyle={styles.cardContainer}
         keyboardShouldPersistTaps="handled"
@@ -55,43 +90,57 @@ export default function ForgotPasswordScreen() {
           subHeading="E faça o login novamente"
         />
 
-        {/* 5. Cor de fundo do card dinâmica */}
-        <View style={[styles.formContainer, { backgroundColor: themeColors.background }]}>
-          
+        <View
+          style={[
+            styles.formContainer,
+            { backgroundColor: themeColors.background },
+          ]}
+        >
           {/* Campo de E-mail */}
           <View style={styles.mb4}>
-            <Text style={[styles.label, { color: themeColors.text }]}>E-mail:</Text>
+            <Text style={[styles.label, { color: themeColors.text }]}>
+              E-mail:
+            </Text>
             <TextInput
               placeholder="exemplo@email.com"
               style={[
                 styles.textInput,
-                { 
-                  borderColor: themeColors.lightGray, 
-                  color: themeColors.text 
-                }
+                {
+                  borderColor: themeColors.lightGray,
+                  color: themeColors.text,
+                },
               ]}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholderTextColor={themeColors.textGray}
               value={email}
               onChangeText={setEmail}
+              editable={!isLoading} // Bloqueia edição no loading
             />
           </View>
 
           {/* Campo Senha */}
           <View style={styles.mb4}>
-            <Text style={[styles.label, { color: themeColors.text }]}>Senha:</Text>
-            <View style={[
-              styles.inputWrapper, 
-              { borderColor: themeColors.lightGray }
-            ]}>
+            <Text style={[styles.label, { color: themeColors.text }]}>
+              Nova Senha:
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                { borderColor: themeColors.lightGray },
+              ]}
+            >
               <TextInput
-                placeholder="Sua senha"
-                style={[styles.textInputInsideWrapper, { color: themeColors.text }]}
+                placeholder="Nova senha"
+                style={[
+                  styles.textInputInsideWrapper,
+                  { color: themeColors.text },
+                ]}
                 placeholderTextColor={themeColors.textGray}
                 secureTextEntry={!showPass}
                 value={password}
                 onChangeText={setPassword}
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -104,18 +153,26 @@ export default function ForgotPasswordScreen() {
 
           {/* Campo Confirmar Senha */}
           <View style={styles.mb4}>
-            <Text style={[styles.label, { color: themeColors.text }]}>Confirmar Senha:</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: themeColors.lightGray }
-            ]}>
+            <Text style={[styles.label, { color: themeColors.text }]}>
+              Confirmar Senha:
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                { borderColor: themeColors.lightGray },
+              ]}
+            >
               <TextInput
-                placeholder="Confirmar senha"
-                style={[styles.textInputInsideWrapper, { color: themeColors.text }]}
+                placeholder="Confirmar nova senha"
+                style={[
+                  styles.textInputInsideWrapper,
+                  { color: themeColors.text },
+                ]}
                 placeholderTextColor={themeColors.textGray}
                 secureTextEntry={!showConfirmPass}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -126,18 +183,39 @@ export default function ForgotPasswordScreen() {
             </View>
           </View>
 
-          <TouchableOpacity 
-            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: themeColors.rydexOrange,
+                opacity: isLoading ? 0.7 : 1,
+              },
+            ]}
             onPress={handleSubmit}
+            disabled={isLoading}
           >
-            {/* O Figma usa texto preto, que definimos como 'textMuted' no tema */}
-            <Text style={[styles.buttonText, { color: themeColors.textMuted }]}>TROCAR SENHA</Text>
+            {isLoading ? (
+              <ActivityIndicator color={themeColors.textMuted} />
+            ) : (
+              <Text
+                style={[styles.buttonText, { color: themeColors.textMuted }]}
+              >
+                TROCAR SENHA
+              </Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.linksContainer}>
             <Link href="/login" asChild>
-              <TouchableOpacity>
-                <Text style={[styles.linkOrange, { color: themeColors.rydexOrange }]}>Voltar para o login</Text>
+              <TouchableOpacity disabled={isLoading}>
+                <Text
+                  style={[
+                    styles.linkOrange,
+                    { color: themeColors.rydexOrange },
+                  ]}
+                >
+                  Voltar para o login
+                </Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -148,12 +226,11 @@ export default function ForgotPasswordScreen() {
 }
 
 // ===============================================
-// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
+// ESTILOS (Mantidos iguais aos anteriores)
 // ===============================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // cor de fundo aplicada dinamicamente no JSX
   },
   cardContainer: {
     width: "100%",
@@ -166,7 +243,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    // cor de fundo aplicada dinamicamente no JSX
     padding: horizontalScale(24),
     borderRadius: 30,
     shadowColor: "#000",
@@ -176,25 +252,22 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   mb4: {
-    marginBottom: verticalScale(24), // Usa escala (padronizado com login)
+    marginBottom: verticalScale(24),
   },
   label: {
-    fontSize: FontSizes.caption, // Usa FontSizes
+    fontSize: FontSizes.caption,
     fontWeight: "500",
-    marginBottom: verticalScale(8), // Usa escala
-    fontFamily: Fonts.sans, // Usa Fonts
+    marginBottom: verticalScale(8),
+    fontFamily: Fonts.sans,
   },
-  // Estilo para o campo de E-mail (sem ícone)
   textInput: {
     padding: verticalScale(12),
     borderWidth: 1,
     borderRadius: 12,
     width: "100%",
-    fontSize: FontSizes.body, // Usa FontSizes
+    fontSize: FontSizes.body,
     fontFamily: Fonts.sans,
-    // cores aplicadas dinamicamente no JSX
   },
-  // "Caixa" para campos com ícone
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -203,7 +276,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
   },
-  // Campo de texto dentro da "caixa"
   textInputInsideWrapper: {
     flex: 1,
     padding: verticalScale(12),
@@ -220,6 +292,8 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: verticalScale(12),
     borderRadius: 12,
+    height: verticalScale(50),
+    justifyContent: "center",
   },
   buttonText: {
     fontWeight: "bold",

@@ -1,69 +1,86 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, useColorScheme } from 'react-native'; // 1. Importado 'useColorScheme'
+import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { StyleSheet, Platform, View } from 'react-native';
 
-// 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
-// Removemos as definições locais de cores e escalas
-import { Colors, Fonts, verticalScale, horizontalScale, moderateScale } from '../../constants/theme';
+// Podemos manter os imports de fonte, mas vamos fixar as cores aqui para garantir
+import { Fonts } from '../../constants/theme';
 
 export default function TabLayout() {
-  // 3. Pega o tema (light/dark) e as cores corretas
-  const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme ?? 'light'];
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // 4. Cores dinâmicas aplicadas
-        tabBarActiveTintColor: themeColors.primary,
-        tabBarInactiveTintColor: themeColors.textMuted,
-        // 5. Estilos de fundo e borda dinâmicos aplicados
-        tabBarStyle: [
-          styles.tabBar,
-          { 
-            backgroundColor: themeColors.white, // O fundo da tab é sempre branco (no seu tema)
-            borderTopColor: themeColors.border 
-          }
-        ],
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarItemStyle: styles.tabBarItem,
+        // 1. COR LARANJA FIXA (Garante que não fique azul)
+        tabBarActiveTintColor: '#FF5722', 
+        tabBarInactiveTintColor: '#999999', // Cinza para inativo
+        
+        // 2. ESTILO DA BARRA (Fundo Branco e Alinhamento)
+        tabBarStyle: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#EFEFEF',
+            // Altura fixa para cobrir o "buraco" do Android
+            height: Platform.OS === 'ios' ? 90 : 80, 
+            // Espaçamento interno para centralizar
+            paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+            paddingTop: 8,
+            // Sombra suave para ficar bonito
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: -2 },
+        },
+        
+        // 3. ESTILO DO TEXTO
+        tabBarLabelStyle: {
+            fontSize: 10,
+            fontFamily: Fonts.sans,
+            marginTop: 2,
+            fontWeight: '600',
+        },
+        
+        // 4. ESTILO DO ITEM (Centraliza o conjunto Ícone + Texto)
+        tabBarItemStyle: {
+            justifyContent: 'center',
+            alignItems: 'center',
+        }
       }}
     >
       <Tabs.Screen
-        name="index" // Corresponde a index.tsx
+        name="index" 
         options={{
           title: 'Início',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={moderateScale(24)} color={color} />
+            <TabIcon focused={focused} color={color} iconFamily="Ionicons" iconName={focused ? 'home' : 'home-outline'} />
           ),
         }}
       />
       <Tabs.Screen
-        name="historico" // Corresponde a historico.tsx
+        name="historico" 
         options={{
           title: 'Histórico',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'time' : 'time-outline'} size={moderateScale(24)} color={color} />
+            <TabIcon focused={focused} color={color} iconFamily="MaterialIcons" iconName="history" />
           ),
         }}
       />
       <Tabs.Screen
-        name="carteira" // Corresponde a carteira.tsx
+        name="carteira" 
         options={{
           title: 'Carteira',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={moderateScale(24)} color={color} />
+            <TabIcon focused={focused} color={color} iconFamily="Ionicons" iconName={focused ? 'wallet' : 'wallet-outline'} />
           ),
         }}
       />
       <Tabs.Screen
-        name="perfil" // Corresponde a perfil.tsx
+        name="perfil" 
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={moderateScale(26)} color={color} />
+            <TabIcon focused={focused} color={color} iconFamily="Ionicons" iconName={focused ? 'person-circle' : 'person-circle-outline'} size={28} />
           ),
         }}
       />
@@ -71,24 +88,41 @@ export default function TabLayout() {
   );
 }
 
-// ===============================================
-// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
-// (Removemos as cores fixas daqui)
-// ===============================================
+// --- Componente para o Ícone + Linha Laranja ---
+interface TabIconProps {
+    focused: boolean;
+    color: string;
+    iconName: any;
+    iconFamily: 'Ionicons' | 'MaterialIcons' | 'FontAwesome';
+    size?: number;
+}
+
+const TabIcon = ({ focused, color, iconName, iconFamily, size = 24 }: TabIconProps) => {
+    return (
+        <View style={styles.iconContainer}>
+            {/* Linha laranja no topo do ícone */}
+            {focused && <View style={styles.activeLine} />}
+            
+            {iconFamily === 'Ionicons' && <Ionicons name={iconName} size={size} color={color} />}
+            {iconFamily === 'MaterialIcons' && <MaterialIcons name={iconName} size={size} color={color} />}
+            {iconFamily === 'FontAwesome' && <FontAwesome name={iconName} size={size} color={color} />}
+        </View>
+    );
+};
+
 const styles = StyleSheet.create({
-    tabBar: {
-        height: verticalScale(80), // Altura responsiva (do seu código)
-        borderTopWidth: 1,
-        paddingBottom: verticalScale(10), // Espaço inferior (do seu código)
-        paddingTop: verticalScale(5),
-        // Cores de fundo e borda são aplicadas dinamicamente no JSX
+    iconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 50, 
     },
-    tabBarLabel: {
-        fontSize: moderateScale(11),
-        marginBottom: verticalScale(-5), // Aproxima o texto (do seu código)
-        fontFamily: Fonts.sans, // Adiciona a fonte padrão
-    },
-    tabBarItem: {
-        // Estilos para cada item individual, se necessário
+    activeLine: {
+        position: 'absolute',
+        top: -14, // Ajuste fino da linha
+        width: 40,
+        height: 3,
+        backgroundColor: '#FF5722', // Laranja Rydex
+        borderBottomLeftRadius: 2,
+        borderBottomRightRadius: 2,
     }
-});                                           
+});
