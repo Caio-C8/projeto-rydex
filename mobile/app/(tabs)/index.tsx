@@ -161,11 +161,11 @@ const HomeScreen: React.FC = () => {
           <DeliveryActions
             appMode={logic.appMode}
             navInstruction={logic.navInstruction}
+            // Ação 1: Cheguei na Empresa
             onArrivedPickup={logic.handleArrivedPickup}
-            // Nota: Se quiseres implementar o botão "Cheguei no Cliente" separado, adiciona a função no hook
-            onArrivedDelivery={() =>
-              logic.setNavInstruction("Entregar o pedido")
-            }
+            // Ação 2: Cheguei no Cliente (Atualizado)
+            onArrivedDelivery={logic.handleArrivedDelivery}
+            // Ação 3: Finalizar (API)
             onFinish={logic.handleFinishDelivery}
             onCancel={logic.handleCancelDelivery}
           />

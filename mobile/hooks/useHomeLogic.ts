@@ -7,6 +7,7 @@ import { socketService } from "../services/socket.service";
 import { entregasService } from "../services/entregas.service";
 import { NotificacaoSolicitacao } from "../types/api.types";
 import { entregadoresService } from "../services/entregadores.service";
+import { tratarErroApi } from "@/utils/api-error-handler";
 
 // --- Import do Novo Contexto Global ---
 import { useTracking } from "../context/TrackingContext";
@@ -263,40 +264,65 @@ export const useHomeLogic = () => {
   // --- Fluxo da Corrida (Exemplos de Handlers) ---
 
   const handleArrivedPickup = () => {
-    setNavInstruction("Aguardando coleta...");
-    // Simulação de espera
-    setTimeout(() => {
-      setNavInstruction("Levar pedido ao cliente");
+    // Aqui você poderia adicionar uma validação de geolocalização se quisesse
 
-      // Define rota da Loja -> Cliente
-      if (solicitation) {
-        const rotaEntrega = [
-          {
-            latitude: solicitation.routeToPickup[1].latitude,
-            longitude: solicitation.routeToPickup[1].longitude,
-          }, // Origem: Loja
-          { latitude: -18.585, longitude: -46.52 }, // Destino: Cliente (Mockado)
-        ];
-        setRouteCoords(rotaEntrega);
-        mapRef.current?.fitToCoordinates(rotaEntrega, {
-          edgePadding: { top: 50, right: 50, bottom: 150, left: 50 },
-        });
-      }
-      setAppMode("EN_ROUTE_DELIVERY");
-    }, 2000);
+    setNavInstruction("Dirija-se ao cliente");
+
+    // Muda o estado para "Em Rota de Entrega"
+    // Isso fará o DeliveryActions mostrar o botão "CHEGUEI NO CLIENTE"
+    setAppMode("EN_ROUTE_DELIVERY");
+
+    // Opcional: Atualizar o mapa para focar no destino (Cliente)
+    if (solicitation && mapRef.current) {
+      // Exemplo: Focar na coordenada do cliente (mockada ou real do objeto solicitation)
+      const destLat = solicitation.routeToPickup[1].latitude; // Assumindo que guardamos isso
+      const destLon = solicitation.routeToPickup[1].longitude;
+
+      // Se tiveres coordenadas reais do cliente no objeto, usa-as aqui
+      // mapRef.current.animateCamera({ center: { latitude: destLat, longitude: destLon }, zoom: 17 });
+    }
+  };
+
+  const handleArrivedDelivery = () => {
+    // Esta string específica "Entregar o pedido" é o gatilho visual no seu DeliveryActions.tsx
+    // para mostrar o botão "FINALIZAR ENTREGA"
+    setNavInstruction("Entregar o pedido");
   };
 
   const handleFinishDelivery = async () => {
-    if (!currentDeliveryId) return;
+    if (!currentDeliveryId) {
+      Alert.alert("Erro", "ID da entrega não encontrado.");
+      return;
+    }
+
+    if (isLoadingAction) return;
+    setIsLoadingAction(true);
+
     try {
+      // Chama o Backend para finalizar e creditar o saldo
       await entregasService.finalizarEntrega(currentDeliveryId);
-      setNavInstruction("");
+
+      // Feedback Visual
+      setNavInstruction("Entrega Finalizada com Sucesso!");
+      setAppMode("DELIVERY_FINISHED");
       setSolicitation(null);
       setRouteCoords([]);
-      setAppMode("DELIVERY_FINISHED");
-      setTimeout(() => setAppMode("IDLE_ONLINE"), 3000);
-    } catch (e) {
-      Alert.alert("Erro", "Erro ao finalizar");
+      setCurrentDeliveryId(null);
+
+      // Aguarda 3 segundos mostrando a mensagem de sucesso e volta para o mapa limpo
+      setTimeout(() => {
+        setAppMode("IDLE_ONLINE");
+        setNavInstruction("");
+        // Recentra o mapa no entregador
+        if (location) {
+          mapRef.current?.animateCamera({ center: location.coords, zoom: 15 });
+        }
+      }, 3000);
+    } catch (error) {
+      const msg = tratarErroApi(error);
+      Alert.alert("Erro ao finalizar", msg);
+    } finally {
+      setIsLoadingAction(false);
     }
   };
 
@@ -350,6 +376,7 @@ export const useHomeLogic = () => {
     handleAcceptSolicitation,
     handleRejectSolicitation,
     handleArrivedPickup,
+    handleArrivedDelivery,
     handleFinishDelivery,
     handleCancelDelivery,
     toggleSummaryExpansion,
