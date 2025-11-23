@@ -10,7 +10,6 @@
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      // --- ADICIONADO para permissão de localização no iOS ---
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Precisamos da sua localização para mostrar entregas próximas e rastrear suas rotas."
       }
@@ -24,14 +23,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-
-      // --- ADICIONADO para permissão de localização no Android ---
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-
-      // --- ADICIONADO para a chave da API do Google Maps no Android ---
       "config": {
         "googleMaps": {
           "apiKey": "Insira sua chave da api aqui DE PREFERENCIA QUE ELA ESTEJA NO .ENV"
@@ -41,9 +36,7 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png",
-
-      // --- ADICIONADO para a chave da API do Google Maps na Web ---
-      "config": { 
+      "config": {
         "googleMapsApiKey": "Insira sua chave da api aqui DE PREFERENCIA QUE ELA ESTEJA NO .ENV"
       }
     },
@@ -61,13 +54,13 @@
           }
         }
       ],
-      // --- ADICIONADO plugin para expo-location ---
       [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Permitir que $(PRODUCT_NAME) use sua localização para mostrar entregas próximas e rastrear rotas."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
