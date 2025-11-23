@@ -40,6 +40,7 @@ import { Usuario } from "src/auth/usuario.decorator";
 import { type UsuarioPayload } from "src/auth/jwt.strategy";
 import { AtualizarLocalizacaoDto } from "./dto/atualizar-localizacao.dto";
 import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
+import { ResumoDiaDto } from "./dto/resumo-dia.dto";
 
 @ApiTags("Entregadores")
 @Controller("entregadores")
@@ -250,6 +251,28 @@ export class EntregadoresController {
       usuario.sub,
       atualizarLocalizacaoDto
     );
+  }
+
+  @UseGuards(JwtAuthGuard, EntregadorGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Obter resumo financeiro e estatístico do dia",
+    description:
+      "Retorna os ganhos e contagem de entregas do dia atual (00:00 às 23:59).",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Resumo do dia obtido com sucesso.",
+    type: ResumoDiaDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Não autorizado.",
+    type: RespostaErroGeralDto,
+  })
+  @Get("me/resumo-dia")
+  obterResumoDia(@Usuario() usuario: UsuarioPayload): Promise<ResumoDiaDto> {
+    return this.entregadoresService.obterResumoDia(usuario.sub);
   }
 
   @ApiOperation({ summary: "Listar todos os entregadores" })

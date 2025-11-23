@@ -20,6 +20,8 @@ import { RespostaArquivosDto } from "./dto/resposta-arquivos.dto";
 import { RespostaEntregadorDto } from "./dto/resposta-entregador.dto";
 import { AtualizarLocalizacaoDto } from "./dto/atualizar-localizacao.dto";
 import { RedefinirSenhaDto } from "./dto/redefinir-senha.dto";
+import { ResumoDiaDto } from "./dto/resumo-dia.dto";
+import { StatusEntregas } from "@prisma/client";
 
 @Injectable()
 export class EntregadoresService {
@@ -440,6 +442,53 @@ export class EntregadoresService {
     });
 
     return "Senha alterada.";
+  }
+
+  async obterResumoDia(entregadorId: number): Promise<ResumoDiaDto> {
+    const hojeInicio = new Date();
+    hojeInicio.setHours(0, 0, 0, 0);
+
+    const hojeFim = new Date();
+    hojeFim.setHours(23, 59, 59, 999);
+
+    // Busca todas as entregas do dia para este entregador
+    const entregasDoDia = await this.prisma.entregas.findMany({
+      where: {
+        entregador_id: entregadorId,
+        criado_em: {
+          gte: hojeInicio,
+          lte: hojeFim,
+        },
+      },
+      select: {
+        status: true,
+        valor_entrega: true,
+      },
+    });
+
+    // Calcula os totais em memória (rápido para volume diário)
+    const resumo = entregasDoDia.reduce(
+      (acc, entrega) => {
+        // Contagem por status
+        if (entrega.status === StatusEntregas.finalizada) {
+          acc.finalizadas++;
+          acc.ganhos += entrega.valor_entrega; // Soma valor em centavos
+        } else if (entrega.status === StatusEntregas.cancelada) {
+          acc.canceladas++;
+        } else if (entrega.status === StatusEntregas.em_andamento) {
+          // Se está em andamento, conta como aceita (mas não finalizada)
+        }
+
+        acc.aceitas++; // Todas que estão na tabela 'Entregas' foram aceitas
+        return acc;
+      },
+      { ganhos: 0, aceitas: 0, finalizadas: 0, canceladas: 0, recusadas: 0 }
+    );
+
+    // Nota: 'Recusadas' geralmente não gera registro na tabela 'Entregas'
+    // (pois o entregador não aceitou), então mantemos 0 ou implementamos lógica específica de log.
+
+    return resumo;
   }
 
   private async salvarArquivo(
