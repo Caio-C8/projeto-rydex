@@ -130,3 +130,38 @@ export interface SolicitacaoEntrega {
     // ... outros campos da empresa se necessário
   };
 }
+
+export interface NotificacaoSolicitacao {
+  id: number;
+  valor_entregador: number; // Valor em centavos
+  valor_estimado?: number;
+  distancia_m: number;
+  item_retorno: boolean;
+  descricao_item_retorno?: string;
+  observacao?: string;
+  status: string;
+
+  // Endereço do Cliente (Entrega)
+  cep: string;
+  cidade: string;
+  bairro: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  ponto_referencia?: string;
+  latitude?: number;
+  longitude?: number;
+
+  // Dados da Empresa (Coleta)
+  empresa: {
+    id: number;
+    nome_empresa: string;
+    cep: string;
+    cidade: string;
+    bairro: string;
+    logradouro: string;
+    numero: string;
+    latitude: number;
+    longitude: number;
+  };
+}
