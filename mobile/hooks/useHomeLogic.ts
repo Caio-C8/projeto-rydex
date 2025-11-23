@@ -93,6 +93,7 @@ export const useHomeLogic = () => {
   // ============================================================
 
   const handleNovaSolicitacao = (data: NotificacaoSolicitacao) => {
+    console.log("🚀 [MOBILE] EVENTO RECEBIDO DO SOCKET!", data);
     console.log("🔔 Nova Solicitação via Socket:", data);
 
     const distanciaKm = (data.distancia_m / 1000).toFixed(1);
@@ -139,9 +140,11 @@ export const useHomeLogic = () => {
   // Gerencia conexão do Socket baseado no isOnline Global
   useEffect(() => {
     if (isOnline) {
+      console.log("🔌 [MOBILE] Tentando conectar socket..."); // <--- ADICIONE ISTO
       socketService.connect();
       socketService.on("nova.solicitacao", handleNovaSolicitacao);
     } else {
+      console.log("zzz [MOBILE] Desconectando socket...");
       socketService.off("nova.solicitacao");
       socketService.disconnect();
     }
