@@ -139,15 +139,20 @@ export const useHomeLogic = () => {
 
   // Gerencia conexão do Socket baseado no isOnline Global
   useEffect(() => {
-    if (isOnline) {
-      console.log("🔌 [MOBILE] Tentando conectar socket..."); // <--- ADICIONE ISTO
-      socketService.connect();
-      socketService.on("nova.solicitacao", handleNovaSolicitacao);
-    } else {
-      console.log("zzz [MOBILE] Desconectando socket...");
-      socketService.off("nova.solicitacao");
-      socketService.disconnect();
-    }
+    const setupSocket = async () => {
+      if (isOnline) {
+        console.log("🔌 [MOBILE] Iniciando conexão socket...");
+        await socketService.connect(); // Adicione await aqui se transformar o connect em Promise
+
+        // Pequeno delay de segurança ou verificação
+        console.log("👂 [MOBILE] Ouvindo eventos...");
+        socketService.on("nova.solicitacao", handleNovaSolicitacao);
+      } else {
+        socketService.off("nova.solicitacao");
+        socketService.disconnect();
+      }
+    };
+    setupSocket();
 
     return () => {
       socketService.off("nova.solicitacao");
