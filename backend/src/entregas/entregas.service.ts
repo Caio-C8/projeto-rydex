@@ -103,7 +103,7 @@ export class EntregasService {
         entregadorNome: resultado.entregador.nome || "Entregador a caminho",
       });
 
-      return resultado.entrega;
+      return resultado;
     } catch (error) {
       this.logger.error(
         `Falha na transação 'aceitarEntrega': ${error.message}`
@@ -319,7 +319,10 @@ export class EntregasService {
     return entrega;
   }
 
-  async buscarEntregadoresProximos(lon: number, lat: number): Promise<Entregador[]>{
+  async buscarEntregadoresProximos(
+    lon: number,
+    lat: number
+  ): Promise<Entregador[]> {
     this.logger.log(
       `Buscando entregadores. Centro: [${lon}, ${lat}]. Raio: ${RAIO_BUSCA_METROS}m`
     );
