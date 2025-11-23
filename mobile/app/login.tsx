@@ -14,11 +14,19 @@ import {
 import { Link, router } from "expo-router";
 import { LogoHeader } from "../components/LogoHeader";
 import { EyeIcon, EyeOffIcon } from "../components/Icons";
-import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../constants/theme';
+import {
+  Colors,
+  FontSizes,
+  Fonts,
+  verticalScale,
+  horizontalScale,
+} from "../constants/theme";
 
 // Importações do Serviço e Utils
 import { authService } from "../services/auth.service";
 import { tratarErroApi } from "../utils/api-error-handler";
+
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -28,8 +36,9 @@ export default function LoginScreen() {
   // Estado para controlar o loading do botão
   const [isLoading, setIsLoading] = useState(false);
 
+
   const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme ?? 'light'];
+  const themeColors = Colors[colorScheme ?? "light"];
 
   const handleLogin = async () => {
     // 1. Validação simples antes de chamar a API
@@ -46,8 +55,7 @@ export default function LoginScreen() {
       await authService.login(email, password);
 
       // 4. Se não deu erro, navega para a área logada
-      router.replace('/(tabs)/'); 
-      
+      router.replace("/(tabs)/");
     } catch (error) {
       // 5. Usa nosso utilitário para formatar a mensagem de erro do NestJS
       const mensagemErro = tratarErroApi(error);
@@ -59,7 +67,9 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}
+    >
       <ScrollView
         contentContainerStyle={styles.cardContainer}
         keyboardShouldPersistTaps="handled"
@@ -69,18 +79,24 @@ export default function LoginScreen() {
           subHeading="Entre para começar a fazer entregas"
         />
 
-        <View style={[styles.formContainer, { backgroundColor: themeColors.background }]}>
-          
+        <View
+          style={[
+            styles.formContainer,
+            { backgroundColor: themeColors.background },
+          ]}
+        >
           <View style={styles.mb4}>
-            <Text style={[styles.label, { color: themeColors.text }]}>E-mail:</Text>
+            <Text style={[styles.label, { color: themeColors.text }]}>
+              E-mail:
+            </Text>
             <TextInput
               placeholder="exemplo@email.com"
               style={[
                 styles.textInput,
-                { 
+                {
                   borderColor: themeColors.lightGray,
-                  color: themeColors.text 
-                }
+                  color: themeColors.text,
+                },
               ]}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -88,19 +104,26 @@ export default function LoginScreen() {
               value={email}
               onChangeText={setEmail}
               // Desabilita edição durante loading
-              editable={!isLoading} 
+              editable={!isLoading}
             />
           </View>
 
           <View style={styles.mb4}>
-            <Text style={[styles.label, { color: themeColors.text }]}>Senha:</Text>
-            <View style={[
-              styles.inputWrapper,
-              { borderColor: themeColors.lightGray }
-            ]}>
+            <Text style={[styles.label, { color: themeColors.text }]}>
+              Senha:
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                { borderColor: themeColors.lightGray },
+              ]}
+            >
               <TextInput
                 placeholder="Sua senha"
-                style={[styles.textInputInsideWrapper, { color: themeColors.text }]}
+                style={[
+                  styles.textInputInsideWrapper,
+                  { color: themeColors.text },
+                ]}
                 placeholderTextColor={themeColors.textGray}
                 secureTextEntry={!showPassword}
                 value={password}
@@ -117,31 +140,49 @@ export default function LoginScreen() {
           </View>
 
           {/* Botão com Loading */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.button, 
-              { backgroundColor: themeColors.rydexOrange, opacity: isLoading ? 0.7 : 1 }
-            ]} 
+              styles.button,
+              {
+                backgroundColor: themeColors.rydexOrange,
+                opacity: isLoading ? 0.7 : 1,
+              },
+            ]}
             onPress={handleLogin}
             disabled={isLoading} // Impede duplo clique
           >
             {isLoading ? (
               <ActivityIndicator size="small" color={themeColors.rydexGray} />
             ) : (
-              <Text style={[styles.buttonText, { color: themeColors.rydexGray }]}>ENTRAR</Text>
+              <Text
+                style={[styles.buttonText, { color: themeColors.rydexGray }]}
+              >
+                ENTRAR
+              </Text>
             )}
           </TouchableOpacity>
 
           <View style={styles.linksContainer}>
             <Link href="/forgot-password" asChild>
               <TouchableOpacity style={styles.mb2} disabled={isLoading}>
-                <Text style={[styles.linkOrange, { color: themeColors.rydexOrange }]}>Esqueci a senha</Text>
+                <Text
+                  style={[
+                    styles.linkOrange,
+                    { color: themeColors.rydexOrange },
+                  ]}
+                >
+                  Esqueci a senha
+                </Text>
               </TouchableOpacity>
             </Link>
 
             <Link href="/register" asChild>
               <TouchableOpacity disabled={isLoading}>
-                <Text style={[styles.linkGray, { color: themeColors.rydexGray }]}>Não estou cadastrado</Text>
+                <Text
+                  style={[styles.linkGray, { color: themeColors.rydexGray }]}
+                >
+                  Não estou cadastrado
+                </Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -218,8 +259,8 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: verticalScale(12),
     borderRadius: 12,
-    alignItems: 'center', // Garante que o indicador fique no centro
-    justifyContent: 'center',
+    alignItems: "center", // Garante que o indicador fique no centro
+    justifyContent: "center",
     height: verticalScale(48), // Altura fixa ajuda a não pular quando muda texto/loading
   },
   buttonText: {
