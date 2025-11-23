@@ -106,14 +106,9 @@ const EditableInput: React.FC<EditableInputProps> = ({
     <View style={[styles.inputRow, { borderColor: themeColors.lightGray }]}>
       <TextInput
         style={[styles.input, { color: themeColors.text }]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        keyboardType={keyboardType}
-        secureTextEntry={secureTextEntry}
-        placeholderTextColor={themeColors.textGray}
-        editable={editable}
-        maxLength={maxLength}
+        value={value} onChangeText={onChangeText} placeholder={placeholder}
+        keyboardType={keyboardType} secureTextEntry={secureTextEntry}
+        placeholderTextColor={themeColors.textGray} editable={editable} maxLength={maxLength}
       />
       {editable && onIconPress && (
         <TouchableOpacity onPress={onIconPress}>
