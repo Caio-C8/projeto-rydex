@@ -11,17 +11,31 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { AuthProvider } from "@/context/AuthContext";
-// IMPORTANTE: Importar o novo Provider
 import { TrackingProvider } from "@/context/TrackingContext";
 
-// Previne que o splash screen desapareça antes do carregamento das fontes
+// Mantém a tela de splash visível enquanto carregamos recursos
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // 1. Carregamento de fontes (Se não tiver fontes customizadas, pode deixar vazio, mas a lógica precisa existir)
+  const [loaded] = useFonts({
+    // 'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'), // Exemplo
+  });
+
+  // 2. Efeito para esconder o Splash Screen quando tudo estiver pronto
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  // 3. Enquanto não carrega, não renderiza nada (o Splash ainda está na tela)
+  if (!loaded) {
+    return null;
+  }
+
   return (
-    // 1. AuthProvider geralmente fica no topo para gerir sessão/tokens
     <AuthProvider>
-      {/* 2. TrackingProvider fica aqui para ter acesso ao contexto global, mas monitorizar GPS em qualquer rota */}
       <TrackingProvider>
         <ThemeProvider value={DefaultTheme}>
           <Stack>
@@ -32,7 +46,8 @@ export default function RootLayout() {
               name="forgot-password"
               options={{ headerShown: false }}
             />
-            <Stack.Screen name="+not-found" />
+            {/* Adicionei essa rota para sumir com o Warning do +not-found se você não tiver o arquivo */}
+            <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
