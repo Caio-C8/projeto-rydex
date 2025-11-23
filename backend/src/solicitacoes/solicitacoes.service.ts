@@ -12,8 +12,8 @@ import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { normalizarDinheiro } from "src/utils/normalizar-dinheiro";
-import { Inject, forwardRef } from "@nestjs/common"; 
-import { EntregasService } from "../entregas/entregas.service"; 
+import { Inject, forwardRef } from "@nestjs/common";
+import { EntregasService } from "../entregas/entregas.service";
 export interface Coordenadas {
   latitude: number;
   longitude: number;
@@ -38,7 +38,8 @@ export class SolicitacoesService {
     private eventEmitter: EventEmitter2,
     private httpService: HttpService,
     private configService: ConfigService,
-    @Inject(forwardRef(() => EntregasService)) private entregasService: EntregasService
+    @Inject(forwardRef(() => EntregasService))
+    private entregasService: EntregasService
   ) {}
 
   async criarSolicitacaoEntrega(
@@ -76,7 +77,7 @@ export class SolicitacoesService {
       );
     }
 
-    return this.prisma.$transaction(async (prisma) => {
+    const novaSolicitacao = await this.prisma.$transaction(async (prisma) => {
       await prisma.empresa.update({
         where: { id: empresaId },
         data: {
@@ -84,7 +85,7 @@ export class SolicitacoesService {
         },
       });
 
-      const novaSolicitacao = await prisma.solicitacoesEntregas.create({
+      const solicitacao = await prisma.solicitacoesEntregas.create({
         data: {
           valor_estimado: valor_estimado,
           valor_entregador: valor_entregador,
@@ -109,13 +110,15 @@ export class SolicitacoesService {
       await prisma.$queryRawUnsafe(
         `UPDATE "solicitacoes_entregas"
          SET "localizacao" = ST_SetSRID(ST_MakePoint(${destino.longitude}, ${destino.latitude}), 4326)
-         WHERE "id" = ${novaSolicitacao.id}`
+         WHERE "id" = ${solicitacao.id}`
       );
 
-      this.eventEmitter.emit("solicitacao.criada", novaSolicitacao);
-
-      return novaSolicitacao;
+      return solicitacao;
     });
+
+    this.eventEmitter.emit("solicitacao.criada", novaSolicitacao);
+
+    return novaSolicitacao;
   }
 
   async buscarTodosPorEmpresa(
@@ -242,17 +245,19 @@ export class SolicitacoesService {
       origem.latitude
     );
 
-    this.logger.log(`[SIMULAÇÃO] Dist: ${distancia_m}m | Valor: ${valor_estimado}`);
+    this.logger.log(
+      `[SIMULAÇÃO] Dist: ${distancia_m}m | Valor: ${valor_estimado}`
+    );
 
     // 👇 RETORNO SIMPLIFICADO (FLAT) - Isso resolve o erro do modal!
     return {
-      valor_estimado,        // Número direto
-      valor_entregador,      // Número direto
-      distancia_m,           // Número direto (metros)
-      tempo_seg,             // Número direto (segundos)
+      valor_estimado, // Número direto
+      valor_entregador, // Número direto
+      distancia_m, // Número direto (metros)
+      tempo_seg, // Número direto (segundos)
       entregadores_online: entregadores.length,
       origem,
-      destino
+      destino,
     };
   }
 

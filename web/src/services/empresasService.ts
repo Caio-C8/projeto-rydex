@@ -10,7 +10,7 @@ interface DadosSolicitacao {
   cidade: string;
   bairro: string;
   logradouro: string;
-  numero: number; 
+  numero: number;
   complemento?: string;
   ponto_referencia?: string;
   item_retorno: boolean;
@@ -47,7 +47,7 @@ export interface DadosAlteracaoEmpresa {
   logradouro?: string;
   numero?: string | number;
   telefone?: string;
-  senha?: string;           // <--- Novo
+  senha?: string; // <--- Novo
   confirmar_senha?: string; // <--- Novo
 }
 
@@ -57,26 +57,24 @@ export const empresasService = {
   async buscarDadosEmpresa(id: number) {
     const token = authService.getToken();
     const response = await axios.get(`${API_URL}/empresas/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.dados || response.data;
   },
 
   async alterarDados(dados: DadosAlteracaoEmpresa) {
     const token = authService.getToken();
-    const response = await axios.patch(
-      `${API_URL}/empresas`, 
-      dados, 
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await axios.patch(`${API_URL}/empresas`, dados, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return response.data;
   },
 
   async adicionarSaldo(valor: number) {
     const token = authService.getToken();
     const response = await axios.post(
-      `${API_URL}/empresas/adicionar-saldo`, 
-      { valor }, 
+      `${API_URL}/empresas/adicionar-saldo`,
+      { valor },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -85,8 +83,8 @@ export const empresasService = {
   async removerSaldo(valor: number) {
     const token = authService.getToken();
     const response = await axios.post(
-      `${API_URL}/empresas/remover-saldo`, 
-      { valor }, 
+      `${API_URL}/empresas/remover-saldo`,
+      { valor },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -96,17 +94,14 @@ export const empresasService = {
 
   async redefinirSenha(dados: DadosRedefinirSenha) {
     const response = await axios.patch(
-      `${API_URL}/empresas/recuperacao-senha`, 
+      `${API_URL}/empresas/recuperacao-senha`,
       dados
     );
     return response.data;
   },
 
   async cadastrar(dados: DadosCadastro) {
-    const response = await axios.post(
-      `${API_URL}/empresas`, 
-      dados
-    );
+    const response = await axios.post(`${API_URL}/empresas`, dados);
     return response.data;
   },
 
@@ -114,25 +109,25 @@ export const empresasService = {
 
   async simularSolicitacao(dadosSolicitacao: DadosSolicitacao) {
     const token = authService.getToken();
-    
+
     const response = await axios.post(
-      `${API_URL}/solicitacoes/simular`, 
-      dadosSolicitacao, 
+      `${API_URL}/solicitacoes/simular`,
+      dadosSolicitacao,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    
-    return response.data; 
+
+    return response.data;
   },
 
   async criarSolicitacao(dadosSolicitacao: DadosSolicitacao) {
     const token = authService.getToken();
-    
+
     const response = await axios.post(
-      `${API_URL}/solicitacoes`, 
-      dadosSolicitacao, 
+      `${API_URL}/solicitacoes`,
+      dadosSolicitacao,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    
+
     return response.data;
-  }
+  },
 };
