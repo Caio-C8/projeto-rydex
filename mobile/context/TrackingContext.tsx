@@ -54,8 +54,15 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({
       // Atualiza as referências de controle
       lastSentLocation.current = { lat, lon };
       lastSentTimestamp.current = Date.now();
-    } catch (error) {
-      console.error("❌ Erro ao enviar localização silenciosa:", error);
+    } catch (error: any) {
+      if (error.response) {
+        console.error(
+          "❌ Erro Backend 400:",
+          JSON.stringify(error.response.data, null, 2)
+        );
+      } else {
+        console.error("❌ Erro de Conexão:", error.message);
+      }
     }
   };
 
