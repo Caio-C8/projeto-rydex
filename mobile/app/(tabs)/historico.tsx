@@ -181,9 +181,11 @@ const HistoryScreen: React.FC = () => {
         };
       }
 
-      // Valor em Reais (Backend manda centavos)
       const valueReais = entrega.valor_entrega / 100;
-      groups[dateKey].totalAmount += valueReais;
+
+      if (entrega.status === "finalizada") {
+        groups[dateKey].totalAmount += valueReais;
+      }
 
       // Mapear para o formato de exibição
       groups[dateKey].deliveries.push({
