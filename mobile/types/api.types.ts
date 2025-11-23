@@ -130,3 +130,29 @@ export interface SolicitacaoEntrega {
     // ... outros campos da empresa se necessário
   };
 }
+
+export interface NotificacaoSolicitacaoDto {
+  id: number;
+  valor_entregador: number; // em centavos
+  distancia_m: number;
+  item_retorno: boolean;
+  observacao?: string;
+
+  // Endereço do Cliente (Destino)
+  logradouro: string;
+  numero: number;
+  bairro: string;
+  latitude?: number;
+  longitude?: number;
+
+  // Dados da Empresa (Origem)
+  empresa: {
+    id: number;
+    nome_empresa: string;
+    logradouro: string;
+    numero: number;
+    bairro: string;
+    latitude: number;
+    longitude: number;
+  };
+}

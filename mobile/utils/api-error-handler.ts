@@ -6,6 +6,15 @@ export const tratarErroApi = (error: unknown): string => {
   if (!error) return "Ocorreu um erro desconhecido.";
 
   const axiosError = error as AxiosError<RespostaErro>;
+  if (axiosError.response) {
+    console.log('--- ERRO DETECTADO ---');
+    console.log('Status:', axiosError.response.status);
+    // O segredo é usar JSON.stringify com null, 2 para ficar indentado e legível
+    console.log('Body:', JSON.stringify(axiosError.response.data, null, 2));
+    console.log('----------------------');
+  } else {
+    console.log('Erro sem resposta (Network/Timeout):', axiosError.message);
+  }
 
   // Cenario 1: O Backend respondeu com o nosso formato padrão de erro
   if (axiosError.response && axiosError.response.data) {

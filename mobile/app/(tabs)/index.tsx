@@ -16,6 +16,12 @@ import {
 import { Feather, Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { socketService } from '../../services/socket.service';
+import { NotificacaoSolicitacaoDto } from '../../types/api.types';
+import { entregadoresService } from '../../services/entregadores.service';
+import { entregasService } from '../../services/entregas.service';
+import { tratarErroApi } from '../../utils/api-error-handler';
+
 
 
 // Habilita LayoutAnimation no Android
@@ -91,7 +97,90 @@ const HomeScreen: React.FC = () => {
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const locationSubscription = useRef<Location.LocationSubscription | null>(null);
+    const [currentDeliveryId, setCurrentDeliveryId] = useState<number | null>(null);
+    const [isLoadingAction, setIsLoadingAction] = useState(false);
     // --- FIM DOS ESTADOS ---
+
+const handleNovaSolicitacao = (data: NotificacaoSolicitacaoDto) => {
+        console.log("🔔 Nova Solicitação Recebida:", data);
+
+        // Formata a distância (ex: 1500m -> 1.5 km)
+        const distanciaKm = (data.distancia_m / 1000).toFixed(1);
+
+        // Mapeia os dados REAIS do socket para o visual do App
+        const newSolicitation = {
+            // Dados de Identificação
+            id: `#${data.id}`,
+            realSolicitacaoId: data.id,
+            
+            // Dados Financeiros
+            value: data.valor_entregador / 100, // Centavos -> Reais
+            
+            // Dados da Empresa (Coleta)
+            storeName: data.empresa.nome_empresa,
+            pickupAddress: `${data.empresa.logradouro}, ${data.empresa.numero} - ${data.empresa.bairro}`,
+            
+            // Dados do Cliente (Entrega)
+            deliveryAddress: `${data.logradouro}, ${data.numero} - ${data.bairro}`,
+            
+            // Detalhes Extras
+            distanceLabel: `${distanciaKm} km`,
+            notes: data.observacao,
+            hasReturn: data.item_retorno,
+            
+            timer: 30, // Contagem regressiva local
+            
+            // Rota para o Mapa (Da localização atual do entregador até a Empresa)
+            routeToPickup: [
+                { 
+                    latitude: location?.coords.latitude || 0, 
+                    longitude: location?.coords.longitude || 0 
+                },
+                { 
+                    latitude: data.empresa.latitude, 
+                    longitude: data.empresa.longitude 
+                }
+            ],
+        };
+
+        setSolicitation(newSolicitation);
+        setRouteCoords(newSolicitation.routeToPickup);
+        
+        // Muda o modo do App para mostrar o Card de Solicitação
+        setAppMode('SOLICITATION');
+
+        // Anima o mapa para focar na rota de coleta
+        if (mapRef.current && newSolicitation.routeToPickup.length > 0) {
+             mapRef.current.fitToCoordinates(newSolicitation.routeToPickup, {
+                 edgePadding: { top: 100, right: 50, bottom: 350, left: 50 }, // Bottom maior por causa do card
+                 animated: true 
+             });
+        }
+    };
+
+      // --- EFEITO PARA GERENCIAR SOCKET ---
+    useEffect(() => {
+        // Se estiver online, conecta e escuta
+        if (isOnline) {
+            socketService.connect();
+            
+            // Ouve o evento que definiste no Gateway: .emit("nova.solicitacao", ...)
+            socketService.on("nova.solicitacao", handleNovaSolicitacao);
+        } else {
+            // Se ficar offline, desconecta
+            socketService.off("nova.solicitacao");
+            socketService.disconnect();
+        }
+
+        // Cleanup ao desmontar
+        return () => {
+            socketService.off("nova.solicitacao");
+            // Não desconectamos aqui forçadamente para manter conexão entre tabs se necessário,
+            // mas se quiser desconectar ao sair da tela, descomente:
+            // socketService.disconnect(); 
+        };
+    }, [isOnline, location]); // Dependência 'isOnline' é crucial aqui
+
 
     // --- useEffect para Localização ---
     useEffect(() => {
@@ -147,15 +236,93 @@ const HomeScreen: React.FC = () => {
     }, [appMode, solicitation]);
 
     // --- Funções de Ação ---
-    const handleToggleOnline = () => { setIsOnline(!isOnline); setAppMode(!isOnline ? 'IDLE_ONLINE' : 'OFFLINE'); };
+const handleToggleOnline = async () => {
+        if (isLoadingAction) return; // Evita clique duplo
+        setIsLoadingAction(true);
+
+        const novoStatus = !isOnline;
+
+        try {
+            if (novoStatus) {
+                // 1. Tenta ficar Online na API
+                await entregadoresService.statusOnline();
+                
+                // 2. Se deu certo, atualiza localmente
+                setIsOnline(true);
+                setAppMode('IDLE_ONLINE');
+                
+                // O socketService.connect() será chamado automaticamente pelo seu useEffect 
+                // que depende de [isOnline]
+                
+            } else {
+                // 1. Tenta ficar Offline na API
+                await entregadoresService.statusOffline();
+                
+                // 2. Atualiza localmente
+                setIsOnline(false);
+                setAppMode('OFFLINE');
+                setSolicitation(null); // Limpa qualquer solicitação pendente
+            }
+        } catch (error) {
+            const msg = tratarErroApi(error);
+            Alert.alert("Erro ao alterar status", msg);
+            
+            // Se der erro, garante que o switch visual volta ao estado anterior correto
+            // (opcional, dependendo de como queres tratar a UI)
+        } finally {
+            setIsLoadingAction(false);
+        }
+    };
     const simulateReceiveSolicitation = () => {
         if (isOnline) {
             setSolicitation(mockSolicitation); setRouteCoords(mockSolicitation.routeToPickup); setAppMode('SOLICITATION');
             if (mapRef.current && mockSolicitation.routeToPickup.length > 0) { mapRef.current.fitToCoordinates(mockSolicitation.routeToPickup, { edgePadding: { top: 50, right: 50, bottom: 250, left: 50 }, animated: true }); }
         } else { Alert.alert("Offline", "Você precisa estar online para receber solicitações."); }
     };
-    const handleAcceptSolicitation = () => { setNavInstruction('Vire à esquerda em 150m'); setAppMode('EN_ROUTE_PICKUP'); };
-    const handleRejectSolicitation = () => { setSolicitation(null); setRouteCoords([]); setTimer(30); setAppMode('IDLE_ONLINE'); };
+// --- FUNÇÃO ATUALIZADA: Aceitar Solicitação ---
+    const handleAcceptSolicitation = async () => {
+        // Verifica se temos a solicitação e o ID real dela (vindo do socket)
+        if (!solicitation || !solicitation.realSolicitacaoId) {
+            Alert.alert("Erro", "Dados da solicitação inválidos.");
+            return;
+        }
+
+        if (isLoadingAction) return;
+        setIsLoadingAction(true);
+
+        try {
+            // 1. Chama a API para aceitar
+            // O serviço retorna: { entrega: Entrega, empresaId: number }
+            const resposta = await entregasService.aceitarEntrega(solicitation.realSolicitacaoId);
+
+            // 2. Guarda o ID da nova entrega criada (importante para finalizar/cancelar depois)
+            setCurrentDeliveryId(resposta.entrega.id);
+
+            // 3. Atualiza a UI para o modo de navegação
+            setNavInstruction('Dirija-se ao estabelecimento para coleta');
+            setAppMode('EN_ROUTE_PICKUP');
+            
+            // Opcional: Fazer o mapa focar na rota novamente se necessário
+            
+        } catch (error) {
+            const msg = tratarErroApi(error);
+            Alert.alert("Não foi possível aceitar", msg);
+            
+            // Se falhar (ex: outro entregador pegou), volta para o estado de busca
+            setSolicitation(null);
+            setRouteCoords([]);
+            setAppMode('IDLE_ONLINE');
+        } finally {
+            setIsLoadingAction(false);
+        }
+    };
+    const handleRejectSolicitation = () => {
+        setSolicitation(null);
+        setRouteCoords([]);
+        setTimer(30);
+        setAppMode('IDLE_ONLINE');
+        // O socket continuará escutando novas solicitações
+    };
     const handleArrivedPickup = () => { setNavInstruction('Aguardando coleta...'); setTimeout(() => handleStartDelivery(), 3000); };
     const handleStartDelivery = () => {
          setNavInstruction('Vire à direita na próxima rua'); setRouteCoords(mockDeliveryRoute); setAppMode('EN_ROUTE_DELIVERY');
@@ -201,18 +368,51 @@ const HomeScreen: React.FC = () => {
         if (appMode === 'SOLICITATION' && solicitation) {
             return ( 
                 <View style={[styles.bottomCardBase, styles.solicitationCard]}>
+                    {/* Timer Flutuante */}
                     <View style={styles.timerContainer}>
                         <Text style={styles.timerText}>{timer}</Text>
-                        <Text style={styles.timerLabel}>segundos</Text>
+                        <Text style={styles.timerLabel}>s</Text>
                     </View>
+
                     <View style={styles.solicitationDetails}>
-                        <Text style={styles.solicitationTitle}>{solicitation.storeName}</Text>
-                        <Text style={styles.solicitationValue}>R$ {solicitation.value.toFixed(2).replace('.', ',')}</Text>
-                        <Text style={styles.detailLabel}>COLETA</Text>
-                        <Text style={styles.detailValue} numberOfLines={1}>{solicitation.pickupAddress}</Text>
-                        <Text style={styles.detailLabel}>ENTREGA</Text>
-                        <Text style={styles.detailValue} numberOfLines={1}>{solicitation.deliveryAddress}</Text>
+                        {/* Cabeçalho: Nome da Loja e Valor */}
+                        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                            <View style={{flex: 1}}>
+                                <Text style={styles.solicitationTitle}>{solicitation.storeName}</Text>
+                                <Text style={styles.distanceText}>Distância estimada: {solicitation.distanceLabel}</Text>
+                            </View>
+                            <Text style={styles.solicitationValue}>
+                                R$ {solicitation.value.toFixed(2).replace('.', ',')}
+                            </Text>
+                        </View>
+
+                        {/* Alerta de Retorno (Se houver) */}
+                        {solicitation.hasReturn && (
+                            <View style={styles.returnBadge}>
+                                <Feather name="refresh-cw" size={12} color="#d35400" />
+                                <Text style={styles.returnText}>Itens para retorno</Text>
+                            </View>
+                        )}
+
+                        <View style={styles.divider} />
+
+                        {/* Endereços */}
+                        <Text style={styles.detailLabel}>📍 RETIRADA</Text>
+                        <Text style={styles.detailValue} numberOfLines={2}>{solicitation.pickupAddress}</Text>
+                        
+                        <Text style={[styles.detailLabel, { marginTop: 8 }]}>🏁 ENTREGA</Text>
+                        <Text style={styles.detailValue} numberOfLines={2}>{solicitation.deliveryAddress}</Text>
+
+                        {/* Observações (Se houver) */}
+                        {solicitation.notes && (
+                            <View style={styles.noteContainer}>
+                                <Text style={styles.noteLabel}>Obs:</Text>
+                                <Text style={styles.noteValue} numberOfLines={1}>{solicitation.notes}</Text>
+                            </View>
+                        )}
                     </View>
+
+                    {/* Botões de Ação */}
                     <View style={styles.solicitationActions}>
                         <TouchableOpacity style={[styles.actionButton, styles.rejectButton]} onPress={handleRejectSolicitation}>
                             <Text style={styles.actionButtonText}>REJEITAR</Text>
@@ -288,14 +488,14 @@ const HomeScreen: React.FC = () => {
                         <Ionicons name="paper-plane" size={moderateScale(24)} color={COLORS.white} />
                     </TouchableOpacity>
                 )}
-                 {(appMode === 'IDLE_ONLINE' || appMode === 'OFFLINE') && (
-                     <TouchableOpacity
+                {(appMode === 'IDLE_ONLINE' || appMode === 'OFFLINE') && (
+                    <TouchableOpacity
                         style={styles.recenterGpsButton}
                         onPress={() => { if (location && mapRef.current) { mapRef.current.animateCamera({ center: location.coords }, { duration: 1000 }); } }}
-                     >
+                    >
                         <Ionicons name="navigate" size={moderateScale(24)} color={COLORS.primary} />
                     </TouchableOpacity>
-                 )}
+                )}
             </View>
             {renderBottomCard()}
         </SafeAreaView>
@@ -385,4 +585,48 @@ const styles = StyleSheet.create({
     cancelButtonText: { color: COLORS.textSecondary, fontWeight: 'bold', fontSize: FONT_SIZES.medium },
     finishButton: { backgroundColor: COLORS.primary },
     finishedText: { fontSize: FONT_SIZES.large, fontWeight: 'bold', color: COLORS.textPrimary, textAlign: 'center'},
+    distanceText: {
+        fontSize: FONT_SIZES.small,
+        color: COLORS.textSecondary,
+        marginTop: 2,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: COLORS.border,
+        marginVertical: SPACING.medium,
+    },
+    returnBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fdebd0',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        alignSelf: 'flex-start',
+        marginTop: 4,
+    },
+    returnText: {
+        fontSize: FONT_SIZES.xsmall,
+        color: '#d35400',
+        fontWeight: 'bold',
+        marginLeft: 4,
+    },
+    noteContainer: {
+        flexDirection: 'row',
+        marginTop: 8,
+        backgroundColor: '#f8f9fa',
+        padding: 6,
+        borderRadius: 4,
+    },
+    noteLabel: {
+        fontSize: FONT_SIZES.small,
+        fontWeight: 'bold',
+        color: COLORS.textSecondary,
+        marginRight: 4,
+    },
+    noteValue: {
+        fontSize: FONT_SIZES.small,
+        color: COLORS.textPrimary,
+        flex: 1,
+    },
 });
