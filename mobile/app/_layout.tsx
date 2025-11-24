@@ -18,30 +18,17 @@ import { TrackingProvider } from "@/context/TrackingContext";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-<<<<<<< HEAD
-  // 1. Carregamento de fontes (Se não tiver fontes customizadas, pode deixar vazio, mas a lógica precisa existir)
-  const [loaded] = useFonts({
-    // 'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'), // Exemplo
-  });
-
-  // 2. Efeito para esconder o Splash Screen quando tudo estiver pronto
-=======
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
->>>>>>> cf9c9b1377df0a639fe9f62509da33af01b00787
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
-<<<<<<< HEAD
-  // 3. Enquanto não carrega, não renderiza nada (o Splash ainda está na tela)
-=======
->>>>>>> cf9c9b1377df0a639fe9f62509da33af01b00787
   if (!loaded) {
     return null;
   }
