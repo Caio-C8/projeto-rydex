@@ -78,6 +78,7 @@ export class SolicitacoesService {
       );
     }
 
+    // Cria a solicitação e desconta o saldo
     const novaSolicitacao = await this.prisma.$transaction(async (prisma) => {
       await prisma.empresa.update({
         where: { id: empresaId },
@@ -106,10 +107,9 @@ export class SolicitacoesService {
           empresa_id: empresaId,
           status: "pendente",
         },
-        // --- CORREÇÃO AQUI: ADICIONADO O INCLUDE DA EMPRESA ---
         include: {
-            empresa: true, // <--- AGORA OS DADOS DA EMPRESA VÊM JUNTO!
-        }
+          empresa: true,
+        },
       });
 
       // Atualiza a localização PostGIS (Geometry)
@@ -122,13 +122,57 @@ export class SolicitacoesService {
       return solicitacao;
     });
 
-    // Agora 'novaSolicitacao' já tem a empresa, e o evento vai mandar isso para o Gateway!
+    // Avisa os motoboys via Gateway
     this.eventEmitter.emit("solicitacao.criada", novaSolicitacao);
+
+    // =========================================================================
+    // ⏰ INÍCIO DA CORREÇÃO: TIMEOUT DE 30 SEGUNDOS
+    // =========================================================================
+    setTimeout(async () => {
+      try {
+        // 1. Verifica como a solicitação está AGORA (30s depois)
+        const check = await this.prisma.solicitacoesEntregas.findUnique({
+          where: { id: novaSolicitacao.id },
+        });
+
+        // 2. Se ainda estiver pendente, cancela e estorna o valor
+        if (check && check.status === "pendente") {
+          
+          await this.prisma.$transaction(async (tx) => {
+            // A. Muda status para cancelada
+            const solicitacaoCancelada = await tx.solicitacoesEntregas.update({
+              where: { id: novaSolicitacao.id },
+              data: { status: "cancelada" },
+            });
+
+            // B. DEVOLVE O DINHEIRO PARA A EMPRESA (Reembolso)
+            await tx.empresa.update({
+              where: { id: empresaId },
+              data: {
+                saldo: { increment: valor_estimado },
+              },
+            });
+
+            // C. Avisa o Front-end (Web) que cancelou
+            this.eventEmitter.emit("solicitacao.cancelada", solicitacaoCancelada);
+            
+            this.logger.warn(
+              `⏳ Solicitação #${novaSolicitacao.id} expirou. Cancelada e valor estornado.`
+            );
+          });
+        }
+      } catch (err) {
+        this.logger.error(`Erro no timeout da solicitação ${novaSolicitacao.id}`, err);
+      }
+    }, 30000); 
+    // =========================================================================
+    // 🏁 FIM DA CORREÇÃO
+    // =========================================================================
 
     return novaSolicitacao;
   }
 
-  // ... (O RESTO DO ARQUIVO PERMANECE IGUAL) ...
+  // ... O RESTO DAS FUNÇÕES PERMANECE IGUAL ...
 
   async buscarTodosPorEmpresa(
     empresaId: number
@@ -259,10 +303,10 @@ export class SolicitacoesService {
     );
 
     return {
-      valor_estimado, 
-      valor_entregador, 
-      distancia_m, 
-      tempo_seg, 
+      valor_estimado,
+      valor_entregador,
+      distancia_m,
+      tempo_seg,
       entregadores_online: entregadores.length,
       origem,
       destino,

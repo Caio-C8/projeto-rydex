@@ -10,6 +10,7 @@ import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { TipoUsuario } from "src/auth/dto/login.dto";
 import { NotificacaoSolicitacao } from "./dto/notificacao-solicitacao.dto";
+import { OnEvent } from "@nestjs/event-emitter"; // <--- O Import correto para o Backend
 
 @WebSocketGateway({
   cors: {
@@ -90,5 +91,17 @@ export class EntregasGateway
   ) {
     this.server.to(`empresa-${empresaId}`).emit("status.entrega", dados);
     this.logger.log(`Notificação de status enviada para empresa ${empresaId}`);
+  }
+
+  // 👇 OUVINTE DE EVENTOS INTERNOS (DO SERVICE)
+  @OnEvent("solicitacao.cancelada")
+  handleSolicitacaoCancelada(payload: any) {
+    this.logger.log(
+      `Notificando cancelamento da solicitação #${payload.id} para empresa ${payload.empresa_id}`
+    );
+    // Envia o aviso para a sala "empresa-ID"
+    this.server
+      .to(`empresa-${payload.empresa_id}`)
+      .emit("solicitacao.cancelada", payload);
   }
 }
