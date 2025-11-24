@@ -75,7 +75,7 @@ export default function CadastroEmpresa() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 1. Validações
     if (!form.nome_empresa || !form.cnpj || !form.email || !form.senha || !form.numero) {
       toast.warning("⚠️ Preencha os campos obrigatórios (*)");
@@ -85,8 +85,11 @@ export default function CadastroEmpresa() {
       toast.error("❌ As senhas não coincidem!");
       return;
     }
-    if (form.senha.length < 6) {
-      toast.warning("⚠️ A senha deve ter no mínimo 6 caracteres.");
+
+    const regexSenha = /^(?=.*[^A-Za-z0-9]).{8,}$/;
+
+    if (!regexSenha.test(form.senha)) {
+      toast.error("❌ A senha deve conter no mínimo 8 caracteres e pelo menos 1 caractere especial.");
       return;
     }
 
@@ -194,7 +197,7 @@ export default function CadastroEmpresa() {
                 <div className="secao-form">
                   <h3 className="secao-titulo"><FaLock className="icon-secao"/> Acesso</h3>
                   <div className="linha-dupla">
-                    <Input label="Senha *" type={mostrarSenha ? "text" : "password"} placeholder="Mínimo 6 caracteres" name="senha" value={form.senha} onChange={handleChange} Icon={mostrarSenha ? FaEye : FaEyeSlash} iconPosition="right" mostrarIcone={true} onIconClick={() => setMostrarSenha(!mostrarSenha)} />
+                    <Input label="Senha *" type={mostrarSenha ? "text" : "password"} placeholder="Mínimo 8 caracteres" name="senha" value={form.senha} onChange={handleChange} Icon={mostrarSenha ? FaEye : FaEyeSlash} iconPosition="right" mostrarIcone={true} onIconClick={() => setMostrarSenha(!mostrarSenha)} />
                     <Input label="Confirmar Senha *" type={mostrarConfirmarSenha ? "text" : "password"} placeholder="Repita a senha" name="confirmarSenha" value={form.confirmarSenha} onChange={handleChange} Icon={mostrarConfirmarSenha ? FaEye : FaEyeSlash} iconPosition="right" mostrarIcone={true} onIconClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)} />
                   </div>
                 </div>
@@ -205,7 +208,7 @@ export default function CadastroEmpresa() {
                     <h3 className="secao-titulo" style={{marginBottom: 0}}>
                       <FaMapMarkerAlt className="icon-secao"/> Localização
                     </h3>
-                    
+
                     <button 
                       type="button" 
                       className="btn-mapa-ajuda"
