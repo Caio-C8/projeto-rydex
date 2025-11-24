@@ -17,7 +17,7 @@ class SocketService {
       console.warn("⚠️ Tentativa de conexão socket sem token.");
       return;
     }
-
+    
     // Evita recriar conexão se já existir e estiver conectado
     if (this.socket && this.socket.connected) {
       return;
@@ -33,7 +33,12 @@ class SocketService {
       auth: {
         token: `Bearer ${token}`,
       },
-      transports: ["websocket"], // Força websocket para melhor performance no React Native
+      // --- CONFIGURAÇÃO PARA FORÇAR WEBSOCKET ---
+      transports: ["websocket"], // Já estava aí, mantém
+      upgrade: false,            // <--- ADICIONE ISSO: Desativa a tentativa de "melhorar" a conexão. Força WS direto.
+      forceNew: true,            // <--- ADICIONE ISSO: Garante uma nova conexão limpa
+      jsonp: false,              // <--- ADICIONE ISSO: Desativa JSONP (antigo)
+      // ------------------------------------------
       reconnection: true,
       reconnectionAttempts: 5,
     });

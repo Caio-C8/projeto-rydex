@@ -1,17 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Alert, LayoutAnimation, Platform, UIManager } from "react-native";
 import MapView, { Region } from "react-native-maps";
 
 // --- Imports de Serviços e Tipos ---
 import { socketService } from "../services/socket.service";
 import { entregasService } from "../services/entregas.service";
-import { NotificacaoSolicitacao } from "../types/api.types";
+import { NotificacaoSolicitacao, ResumoDia } from "../types/api.types";
 import { entregadoresService } from "../services/entregadores.service";
-import { tratarErroApi } from "@/utils/api-error-handler";
 
-// --- Import do Novo Contexto Global ---
+// --- Import do Contexto Global ---
 import { useTracking } from "../context/TrackingContext";
-import { ResumoDia } from "../types/api.types";
 
 // Habilita animação no Android
 if (
@@ -30,28 +28,34 @@ export type AppMode =
   | "DELIVERY_FINISHED";
 
 export const useHomeLogic = () => {
-  // 1. Consumimos o Contexto Global (A inteligência de GPS e Status vem daqui)
+  // 1. Consumimos o Contexto Global
   const { isOnline, toggleOnline, location } = useTracking();
+
+  // Refs para evitar "Stale Closure"
+  const locationRef = useRef(location);
+  const regionRef = useRef<Region | null>(null);
+
+  // Mantém os refs atualizados
+  useEffect(() => { locationRef.current = location; }, [location]);
 
   // --- Refs e Estados Visuais ---
   const mapRef = useRef<MapView>(null);
   const [appMode, setAppMode] = useState<AppMode>("OFFLINE");
-  // Estado inicial do mapa (pode ser ajustado para a tua cidade padrão)
   const [region, setRegion] = useState<Region>({
     latitude: -18.5792,
     longitude: -46.5176,
     latitudeDelta: 0.02,
     longitudeDelta: 0.01,
   });
+  
+  useEffect(() => { regionRef.current = region; }, [region]);
 
   // --- Estados da Corrida ---
   const [solicitation, setSolicitation] = useState<any | null>(null);
   const [routeCoords, setRouteCoords] = useState<any[]>([]);
   const [timer, setTimer] = useState(30);
   const [navInstruction, setNavInstruction] = useState("");
-  const [currentDeliveryId, setCurrentDeliveryId] = useState<number | null>(
-    null
-  );
+  const [currentDeliveryId, setCurrentDeliveryId] = useState<number | null>(null);
 
   // --- Estados de UI ---
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
@@ -59,11 +63,7 @@ export const useHomeLogic = () => {
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const [dailySummary, setDailySummary] = useState<ResumoDia>({
-    ganhos: 0,
-    aceitas: 0,
-    finalizadas: 0,
-    canceladas: 0,
-    recusadas: 0,
+    ganhos: 0, aceitas: 0, finalizadas: 0, canceladas: 0, recusadas: 0,
   });
 
   const fetchDailySummary = async () => {
@@ -71,25 +71,20 @@ export const useHomeLogic = () => {
       const dados = await entregadoresService.obterResumoDia();
       setDailySummary(dados);
     } catch (error) {
-      console.log("Erro ao buscar resumo:", error);
+      // Silencioso
     }
   };
 
-  useEffect(() => {
-    fetchDailySummary();
-  }, []);
+  useEffect(() => { fetchDailySummary(); }, []);
 
   // ============================================================
-  // --- 1. SINCRONIZAÇÃO: CONTEXTO GLOBAL <-> UI LOCAL ---
+  // --- 1. SINCRONIZAÇÃO ---
   // ============================================================
-
-  // Sincroniza o modo visual do App com o status real do Contexto
   useEffect(() => {
     if (isOnline) {
-      // Se virou Online e estava Offline, vai para IDLE
       if (appMode === "OFFLINE") setAppMode("IDLE_ONLINE");
+      fetchDailySummary();
     } else {
-      // Se virou Offline, reseta tudo para garantir consistência
       if (appMode !== "OFFLINE") {
         setAppMode("OFFLINE");
         setSolicitation(null);
@@ -98,8 +93,6 @@ export const useHomeLogic = () => {
     }
   }, [isOnline]);
 
-  // Atualiza a região do mapa quando obtemos a localização e estamos "seguindo" o utilizador
-  // (Geralmente na inicialização ou quando ele clica para recentrar)
   useEffect(() => {
     if (location && appMode === "OFFLINE" && !region.latitude) {
       setRegion({
@@ -112,78 +105,127 @@ export const useHomeLogic = () => {
   }, [location]);
 
   // ============================================================
-  // --- 2. SOCKET E EVENTOS (RECEBIMENTO DE PEDIDOS) ---
+  // --- 2. SOCKET E EVENTOS (CORRIGIDO COM CALLBACK) ---
   // ============================================================
 
-  const handleNovaSolicitacao = (data: NotificacaoSolicitacao) => {
-    console.log("🚀 [MOBILE] EVENTO RECEBIDO DO SOCKET!", data);
-    console.log("🔔 Nova Solicitação via Socket:", data);
-
-    const distanciaKm = (data.distancia_m / 1000).toFixed(1);
-
-    // Mapeia DTO do Backend -> Formato usado na UI (SolicitationCard)
-    const newSolicitation = {
-      id: `#${data.id}`,
-      realSolicitacaoId: data.id,
-
-      value: data.valor_entregador / 100, // Converte centavos para Reais
-      storeName: data.empresa.nome_empresa,
-
-      pickupAddress: `${data.empresa.logradouro}, ${data.empresa.numero} - ${data.empresa.bairro}`,
-      deliveryAddress: `${data.logradouro}, ${data.numero} - ${data.bairro}`,
-
-      distanceLabel: `${distanciaKm} km`,
-      notes: data.observacao,
-      hasReturn: data.item_retorno,
-      timer: 30,
-
-      // Cria uma linha reta da posição atual até a loja (para visualização inicial)
-      routeToPickup: [
-        {
-          latitude: location?.coords.latitude || 0,
-          longitude: location?.coords.longitude || 0,
-        },
-        { latitude: data.empresa.latitude, longitude: data.empresa.longitude },
-      ],
-    };
-
-    setSolicitation(newSolicitation);
-    setRouteCoords(newSolicitation.routeToPickup);
-    setAppMode("SOLICITATION");
-
-    // Animação de Câmera para focar na rota proposta
-    if (mapRef.current && newSolicitation.routeToPickup.length > 0) {
-      mapRef.current.fitToCoordinates(newSolicitation.routeToPickup, {
-        edgePadding: { top: 100, right: 50, bottom: 350, left: 50 },
-        animated: true,
-      });
+  // Usamos useCallback para que a função não mude a cada render e não desconecte o socket
+  
+  const handleNovaSolicitacao = useCallback((incomingData: any) => {
+    console.log("🚨 [DEBUG] handleNovaSolicitacao DISPARADO!");
+    
+    let data;
+    if (Array.isArray(incomingData)) {
+        console.log("📦 [DEBUG] Dados vieram como Array.");
+        data = incomingData[0];
+    } else {
+        data = incomingData;
     }
-  };
+    console.log("📦 DADOS BRUTOS CHEGANDO:", JSON.stringify(data, null, 2));
+    console.log("🏢 DADOS DA EMPRESA:", data.empresa);
+    if (!data) {
+        console.error("❌ [ERRO] Dados vazios.");
+        return;
+    }
 
-  // Gerencia conexão do Socket baseado no isOnline Global
+    try {
+        const empresa = data.empresa || {};
+        const storeLat = parseFloat(String(empresa.latitude || 0));
+        const storeLong = parseFloat(String(empresa.longitude || 0));
+        
+        const myLat = locationRef.current?.coords.latitude || regionRef.current?.latitude || -18.5792;
+        const myLong = locationRef.current?.coords.longitude || regionRef.current?.longitude || -46.5176;
+
+        const valorReais = data.valor_entregador ? Number(data.valor_entregador) / 100 : 0;
+        const distanciaKm = data.distancia_m ? (data.distancia_m / 1000).toFixed(1) : "0.0";
+
+        const newSolicitation = {
+            id: `#${data.id}`,
+            realSolicitacaoId: data.id,
+            value: valorReais,
+            storeName: empresa.nome_empresa || "Nova Entrega",
+            pickupAddress: `${empresa.logradouro || ''}, ${empresa.numero || ''}`,
+            deliveryAddress: `${data.logradouro || ''}, ${data.numero || ''}`,
+            distanceLabel: `${distanciaKm} km`,
+            notes: data.observacao || "",
+            hasReturn: !!data.item_retorno,
+            timer: 30,
+            /*
+            routeToPickup: [
+                { latitude: myLat, longitude: myLong },
+                { latitude: storeLat || myLat + 0.002, longitude: storeLong || myLong + 0.002 },
+            ],*/
+            routeToPickup: [
+    // Ponto 1: A Loja (Onde vai ser a Coleta/Pino Laranja)
+    { 
+        latitude: storeLat, 
+        longitude: storeLong 
+    },
+    { 
+        latitude: parseFloat(data.latitude), 
+        longitude: parseFloat(data.longitude) 
+    },
+],
+        };
+
+        console.log("✅ [SUCESSO] Card de solicitação ativado!");
+        setSolicitation(newSolicitation);
+        setRouteCoords(newSolicitation.routeToPickup);
+        setAppMode("SOLICITATION");
+
+        if (mapRef.current && newSolicitation.routeToPickup.length > 0) {
+    console.log("📍 Ajustando câmera para cobrir a rota:", newSolicitation.routeToPickup);
+
+    setTimeout(() => {
+        mapRef.current?.fitToCoordinates(newSolicitation.routeToPickup, {
+            edgePadding: { 
+                top: 150,    // Espaço para o Header verde
+                right: 50, 
+                bottom: 350, // MUITO IMPORTANTE: Espaço grande para o Card Branco não tampar o ponto
+                left: 50 
+            },
+            animated: true,
+        });
+    }, 1000); // Um delay um pouco maior para garantir que o modal abriu
+}
+
+    } catch (error) {
+        console.error("🔥 [FATAL] Erro ao processar:", error);
+    }
+  }, []); // Dependências vazias para ser estável
+
+  // --- O useEffect do Socket CORRIGIDO ---
   useEffect(() => {
-    const setupSocket = async () => {
-      if (isOnline) {
-        console.log("🔌 [MOBILE] Iniciando conexão socket...");
-        await socketService.connect(); // Adicione await aqui se transformar o connect em Promise
+    let isMounted = true;
 
-        // Pequeno delay de segurança ou verificação
-        console.log("👂 [MOBILE] Ouvindo eventos...");
-        socketService.on("nova.solicitacao", handleNovaSolicitacao);
-      } else {
-        socketService.off("nova.solicitacao");
-        socketService.disconnect();
-      }
+    const setupSocket = async () => {
+        if (isOnline) {
+            console.log("🔌 [HOOK] Iniciando conexão...");
+            
+            // 1. AWAIT É CRUCIAL AQUI! Espera conectar antes de registrar
+            await socketService.connect(); 
+            
+            if (!isMounted) return;
+
+            console.log("👂 [HOOK] Registrando listener...");
+            socketService.off("nova.solicitacao");
+            socketService.on("nova.solicitacao", handleNovaSolicitacao);
+        } else {
+            console.log("zzz [HOOK] Desligando socket...");
+            socketService.off("nova.solicitacao");
+            socketService.disconnect();
+        }
     };
+
     setupSocket();
 
     return () => {
-      socketService.off("nova.solicitacao");
+        isMounted = false;
+        socketService.off("nova.solicitacao");
     };
-  }, [isOnline]);
+  }, [isOnline, handleNovaSolicitacao]);
 
   // ============================================================
-  // --- 3. TIMER (CONTAGEM REGRESSIVA) ---
+  // --- 3. TIMER ---
   // ============================================================
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -193,7 +235,7 @@ export const useHomeLogic = () => {
         setTimer((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
-            handleRejectSolicitation(); // Rejeita automaticamente se acabar o tempo
+            handleRejectSolicitation();
             return 0;
           }
           return prev - 1;
@@ -206,206 +248,88 @@ export const useHomeLogic = () => {
   // ============================================================
   // --- 4. AÇÕES E HANDLERS ---
   // ============================================================
-
-  // Botão Switch Online/Offline (Chama o Contexto)
   const handleToggleOnline = async () => {
     if (isLoadingAction) return;
     setIsLoadingAction(true);
-    try {
-      await toggleOnline();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoadingAction(false);
-    }
+    try { await toggleOnline(); } catch (error) { console.error(error); } finally { setIsLoadingAction(false); }
   };
 
-  // Aceitar Corrida
   const handleAcceptSolicitation = async () => {
     if (!solicitation?.realSolicitacaoId) return;
     if (isLoadingAction) return;
-
     setIsLoadingAction(true);
     try {
-      const resposta = await entregasService.aceitarEntrega(
-        solicitation.realSolicitacaoId
-      );
-
+      const resposta = await entregasService.aceitarEntrega(solicitation.realSolicitacaoId);
       setCurrentDeliveryId(resposta.entrega.id);
       setNavInstruction("Dirija-se ao estabelecimento para coleta");
       setAppMode("EN_ROUTE_PICKUP");
-
-      // Aqui poderias chamar uma API de rotas para atualizar o routeCoords com o trajeto real das ruas
+      fetchDailySummary();
     } catch (error) {
       Alert.alert("Atenção", "Esta corrida já não está disponível.");
       handleRejectSolicitation();
-    } finally {
-      setIsLoadingAction(false);
-    }
+    } finally { setIsLoadingAction(false); }
   };
 
-  // Rejeitar Corrida
   const handleRejectSolicitation = () => {
-    setSolicitation(null);
-    setRouteCoords([]);
-    setTimer(30);
-    setAppMode("IDLE_ONLINE");
+    setSolicitation(null); setRouteCoords([]); setTimer(30); setAppMode("IDLE_ONLINE"); fetchDailySummary();
   };
 
-  // --- Simulação (Para Testes sem Backend) ---
   const simulateReceiveSolicitation = () => {
-    const mockData: NotificacaoSolicitacao = {
-      id: Math.floor(Math.random() * 1000),
-      valor_entregador: 1850, // R$ 18,50
-      distancia_m: 3200,
-      item_retorno: false,
-      status: "pendente",
-      cep: "00000-000",
-      cidade: "Simulação",
-      bairro: "Bairro Teste",
-      logradouro: "Av. Teste",
-      numero: "100",
-      // Usa localização atual simulada se não houver real
-      latitude: -18.585,
-      longitude: -46.52,
-      empresa: {
-        id: 1,
-        nome_empresa: "Burger King Simulado",
-        cep: "00000-000",
-        cidade: "Cidade",
-        bairro: "Centro",
-        logradouro: "Rua Principal",
-        numero: "50",
-        latitude: -18.579,
-        longitude: -46.51,
-      },
+    // Mock data mantido igual...
+    const myLat = locationRef.current?.coords.latitude || -18.5792;
+    const myLong = locationRef.current?.coords.longitude || -46.5176;
+    const mockData: any = {
+      id: 999, valor_entregador: 1850, distancia_m: 3200, item_retorno: false, status: "pendente",
+      logradouro: "Av. Teste", numero: "100", latitude: -18.585, longitude: -46.52,
+      empresa: { id: 1, nome_empresa: "Burger King Mock", logradouro: "Rua Principal", numero: "50", latitude: myLat + 0.005, longitude: myLong + 0.005 },
     };
     handleNovaSolicitacao(mockData);
   };
 
-  // --- Fluxo da Corrida (Exemplos de Handlers) ---
-
   const handleArrivedPickup = () => {
-    // Aqui você poderia adicionar uma validação de geolocalização se quisesse
-
-    setNavInstruction("Dirija-se ao cliente");
-
-    // Muda o estado para "Em Rota de Entrega"
-    // Isso fará o DeliveryActions mostrar o botão "CHEGUEI NO CLIENTE"
-    setAppMode("EN_ROUTE_DELIVERY");
-
-    // Opcional: Atualizar o mapa para focar no destino (Cliente)
-    if (solicitation && mapRef.current) {
-      // Exemplo: Focar na coordenada do cliente (mockada ou real do objeto solicitation)
-      const destLat = solicitation.routeToPickup[1].latitude; // Assumindo que guardamos isso
-      const destLon = solicitation.routeToPickup[1].longitude;
-
-      // Se tiveres coordenadas reais do cliente no objeto, usa-as aqui
-      // mapRef.current.animateCamera({ center: { latitude: destLat, longitude: destLon }, zoom: 17 });
-    }
+    setNavInstruction("Aguardando coleta...");
+    setTimeout(() => { setNavInstruction("Levar pedido ao cliente"); setAppMode("EN_ROUTE_DELIVERY"); }, 2000);
   };
-
-  const handleArrivedDelivery = () => {
-    // Esta string específica "Entregar o pedido" é o gatilho visual no seu DeliveryActions.tsx
-    // para mostrar o botão "FINALIZAR ENTREGA"
-    setNavInstruction("Entregar o pedido");
-  };
+  
+  const handleArrivedDelivery = () => { setNavInstruction("Entregar o pedido"); };
 
   const handleFinishDelivery = async () => {
-    if (!currentDeliveryId) {
-      Alert.alert("Erro", "ID da entrega não encontrado.");
-      return;
-    }
-
+    if (!currentDeliveryId) return;
     if (isLoadingAction) return;
     setIsLoadingAction(true);
-
     try {
-      // Chama o Backend para finalizar e creditar o saldo
       await entregasService.finalizarEntrega(currentDeliveryId);
-
       fetchDailySummary();
-
-      // Feedback Visual
-      setNavInstruction("Entrega Finalizada com Sucesso!");
-      setAppMode("DELIVERY_FINISHED");
-      setSolicitation(null);
-      setRouteCoords([]);
-      setCurrentDeliveryId(null);
-
-      // Aguarda 3 segundos mostrando a mensagem de sucesso e volta para o mapa limpo
-      setTimeout(() => {
-        setAppMode("IDLE_ONLINE");
-        setNavInstruction("");
-        // Recentra o mapa no entregador
-        if (location) {
-          mapRef.current?.animateCamera({ center: location.coords, zoom: 15 });
-        }
-      }, 3000);
-    } catch (error) {
-      const msg = tratarErroApi(error);
-      Alert.alert("Erro ao finalizar", msg);
-    } finally {
-      setIsLoadingAction(false);
-    }
+      setNavInstruction("Entrega Finalizada!");
+      setSolicitation(null); setRouteCoords([]); setAppMode("DELIVERY_FINISHED"); setCurrentDeliveryId(null);
+      setTimeout(() => { setAppMode("IDLE_ONLINE"); setNavInstruction(""); recenterMap(); }, 3000);
+    } catch (e) { Alert.alert("Erro", "Erro ao finalizar"); } finally { setIsLoadingAction(false); }
   };
 
   const handleCancelDelivery = async () => {
     if (!currentDeliveryId) return;
     try {
       await entregasService.cancelarEntrega(currentDeliveryId);
-      setNavInstruction("");
-      setSolicitation(null);
-      setRouteCoords([]);
-      setAppMode("IDLE_ONLINE");
+      fetchDailySummary();
+      setNavInstruction(""); setSolicitation(null); setRouteCoords([]); setAppMode("IDLE_ONLINE"); setCurrentDeliveryId(null);
       Alert.alert("Corrida Cancelada");
-    } catch (e) {
-      Alert.alert("Erro", "Erro ao cancelar");
-    }
+    } catch (e) { Alert.alert("Erro", "Erro ao cancelar"); }
   };
 
-  // UI Helpers
-  const toggleSummaryExpansion = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsSummaryExpanded(!isSummaryExpanded);
-  };
+  const toggleSummaryExpansion = () => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setIsSummaryExpanded(!isSummaryExpanded); };
 
   const recenterMap = () => {
     if (location && mapRef.current) {
-      mapRef.current.animateCamera(
-        { center: location.coords, zoom: 15 },
-        { duration: 1000 }
-      );
+      mapRef.current.animateCamera({ center: location.coords, zoom: 15 }, { duration: 1000 });
     }
   };
 
   return {
-    // Estado
-    appMode,
-    isOnline, // Vem do Contexto
-    solicitation,
-    timer,
-    region,
-    routeCoords,
-    navInstruction,
-    isSummaryExpanded,
-    location, // Vem do Contexto
-    errorMsg,
-    mapRef,
-    dailySummary,
-
-    // Ações
-    setRegion,
-    handleToggleOnline,
-    simulateReceiveSolicitation,
-    handleAcceptSolicitation,
-    handleRejectSolicitation,
-    handleArrivedPickup,
-    handleArrivedDelivery,
-    handleFinishDelivery,
-    handleCancelDelivery,
-    toggleSummaryExpansion,
-    recenterMap,
-    setNavInstruction,
+    appMode, isOnline, solicitation, timer, region, routeCoords,
+    navInstruction, isSummaryExpanded, location, errorMsg, mapRef,
+    dailySummary, setRegion, handleToggleOnline, simulateReceiveSolicitation,
+    handleAcceptSolicitation, handleRejectSolicitation, handleArrivedPickup,
+    handleArrivedDelivery, handleFinishDelivery, handleCancelDelivery,
+    toggleSummaryExpansion, recenterMap, setNavInstruction,
   };
 };

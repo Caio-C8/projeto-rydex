@@ -14,6 +14,7 @@ import { HttpService } from "@nestjs/axios";
 import { normalizarDinheiro } from "src/utils/normalizar-dinheiro";
 import { Inject, forwardRef } from "@nestjs/common";
 import { EntregasService } from "../entregas/entregas.service";
+
 export interface Coordenadas {
   latitude: number;
   longitude: number;
@@ -105,8 +106,13 @@ export class SolicitacoesService {
           empresa_id: empresaId,
           status: "pendente",
         },
+        // --- CORREÇÃO AQUI: ADICIONADO O INCLUDE DA EMPRESA ---
+        include: {
+            empresa: true, // <--- AGORA OS DADOS DA EMPRESA VÊM JUNTO!
+        }
       });
 
+      // Atualiza a localização PostGIS (Geometry)
       await prisma.$queryRawUnsafe(
         `UPDATE "solicitacoes_entregas"
          SET "localizacao" = ST_SetSRID(ST_MakePoint(${destino.longitude}, ${destino.latitude}), 4326)
@@ -116,10 +122,13 @@ export class SolicitacoesService {
       return solicitacao;
     });
 
+    // Agora 'novaSolicitacao' já tem a empresa, e o evento vai mandar isso para o Gateway!
     this.eventEmitter.emit("solicitacao.criada", novaSolicitacao);
 
     return novaSolicitacao;
   }
+
+  // ... (O RESTO DO ARQUIVO PERMANECE IGUAL) ...
 
   async buscarTodosPorEmpresa(
     empresaId: number
@@ -249,12 +258,11 @@ export class SolicitacoesService {
       `[SIMULAÇÃO] Dist: ${distancia_m}m | Valor: ${valor_estimado}`
     );
 
-    // 👇 RETORNO SIMPLIFICADO (FLAT) - Isso resolve o erro do modal!
     return {
-      valor_estimado, // Número direto
-      valor_entregador, // Número direto
-      distancia_m, // Número direto (metros)
-      tempo_seg, // Número direto (segundos)
+      valor_estimado, 
+      valor_entregador, 
+      distancia_m, 
+      tempo_seg, 
       entregadores_online: entregadores.length,
       origem,
       destino,
