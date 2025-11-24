@@ -33,6 +33,8 @@ const HomeScreen: React.FC = () => {
   // Toda a lógica de GPS, Socket, Status Online e Regras de Negócio vem daqui.
   const logic = useHomeLogic();
 
+// console.log("RENDERIZANDO HOME:", { appMode: logic.appMode, temSolicitacao: !!logic.solicitation });
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* A barra de status muda de cor conforme o estado (Verde Online / Vermelho Offline) */}
@@ -46,7 +48,8 @@ const HomeScreen: React.FC = () => {
           ref={logic.mapRef}
           provider={PROVIDER_GOOGLE}
           style={StyleSheet.absoluteFillObject}
-          region={logic.region}
+          initialRegion={logic.region}
+          //region={logic.region}
           showsUserLocation={true}
           showsMyLocationButton={false}
           onRegionChangeComplete={logic.setRegion}
