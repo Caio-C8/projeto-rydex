@@ -6,16 +6,22 @@ import {
   FONT_SIZES,
   BORDERS,
 } from "../../constants/homeStyles";
+import { ResumoDia } from "../../types/api.types"; // Importe o tipo
 
 interface SummaryCardProps {
   isExpanded: boolean;
   toggleExpansion: () => void;
+  data: ResumoDia; // Nova prop de dados
 }
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({
   isExpanded,
   toggleExpansion,
+  data, // Recebe os dados
 }) => {
+  // Formata centavos para Reais (ex: 1500 -> "15,00")
+  const valorFormatado = (data.ganhos / 100).toFixed(2).replace(".", ",");
+
   return (
     <View style={[styles.bottomCardBase, styles.summaryCard]}>
       <View style={styles.summaryHeader}>
@@ -26,25 +32,30 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Mostra o valor resumido mesmo fechado (Opcional, ou mantenha só quando expanded) */}
+      {/* Se quiser mostrar sempre o valor principal, coloque fora do isExpanded */}
+
       {isExpanded && (
         <>
-          <Text style={styles.earningsText}>R$ 0,00</Text>
+          <Text style={styles.earningsText}>R$ {valorFormatado}</Text>
           <Text style={styles.earningsLabel}>Entregas do dia</Text>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statValue}>{data.aceitas}</Text>
               <Text style={styles.statLabel}>Aceitas</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statValue}>{data.finalizadas}</Text>
               <Text style={styles.statLabel}>Finalizadas</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              {/* Recusadas geralmente é local ou requer log específico no backend */}
+              <Text style={styles.statValue}>{data.recusadas}</Text>
               <Text style={styles.statLabel}>Recusadas</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statValue}>{data.canceladas}</Text>
               <Text style={styles.statLabel}>Canceladas</Text>
             </View>
           </View>
@@ -54,7 +65,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   );
 };
 
+// ... estilos (mantém iguais)
 const styles = StyleSheet.create({
+  // ... (copie os estilos que você já tem)
   bottomCardBase: {
     backgroundColor: COLORS.white,
     borderRadius: BORDERS.radiusMedium,

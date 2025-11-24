@@ -1,5 +1,5 @@
-import { router } from "expo-router"; 
-import React, { useState } from "react";
+import { router, useFocusEffect } from "expo-router"; // useFocusEffect ajuda a atualizar ao voltar para a tela
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,23 +9,55 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
-  useColorScheme, // 1. Importado
+  useColorScheme,
+  ActivityIndicator, // Adicionado para feedback visual
 } from "react-native";
 
-// 2. Importado do seu novo theme.ts (subindo dois níveis: ../../)
-import { Colors, FontSizes, Fonts, verticalScale, horizontalScale } from '../../constants/theme';
+// Import dos estilos e temas
+import {
+  Colors,
+  FontSizes,
+  Fonts,
+  verticalScale,
+  horizontalScale,
+} from "../../constants/theme";
 
-// Valor inicial do saldo, pode vir de outro lugar no futuro
-const SALDO_INICIAL = 120.0;
+// Import do Serviço
+import { entregadoresService } from "../../services/entregadores.service";
+import { tratarErroApi } from "../../utils/api-error-handler"; // Se tiver este utilitário, use-o
+
 const VALOR_MINIMO_SAQUE = 20.0;
 
 export default function CarteiraScreen() {
   const [valorSaque, setValorSaque] = useState("");
-  const [saldoAtual, setSaldoAtual] = useState(SALDO_INICIAL);
+  const [saldoAtual, setSaldoAtual] = useState(0); // Começa com 0 até carregar da API
+  const [isLoading, setIsLoading] = useState(false); // Estado para loading do botão
+  const [isFetching, setIsFetching] = useState(true); // Estado para carregamento inicial
 
-  // 3. Pega o tema (light/dark) e as cores corretas
   const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme ?? 'light'];
+  const themeColors = Colors[colorScheme ?? "light"];
+
+  // --- 1. BUSCAR SALDO REAL AO ENTRAR NA TELA ---
+  useFocusEffect(
+    useCallback(() => {
+      carregarDadosCarteira();
+    }, [])
+  );
+
+  const carregarDadosCarteira = async () => {
+    try {
+      setIsFetching(true);
+      const dados = await entregadoresService.buscarMeusDados();
+      // O backend geralmente retorna o saldo em centavos, convertemos para reais
+      // Se o seu backend já retorna em reais, remova a divisão por 100
+      setSaldoAtual(dados.saldo / 100);
+    } catch (error) {
+      console.error("Erro ao buscar saldo:", error);
+      Alert.alert("Erro", "Não foi possível carregar seu saldo.");
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   // Função para formatar o saldo como moeda
   const formatCurrency = (value: number) => {
@@ -35,111 +67,163 @@ export default function CarteiraScreen() {
     });
   };
 
-  // Função para lidar com o saque
-  const handleSaque = () => {
+  // --- 2. FUNÇÃO DE SAQUE INTEGRADA ---
+  const handleSaque = async () => {
+    // Converte "150,50" para 150.50
     const valorNumerico = parseFloat(valorSaque.replace(",", "."));
 
+    // Validações Locais
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
-      Alert.alert(
-        "Valor Inválido",
-        "Por favor, digite um valor numérico válido para o saque."
-      );
+      Alert.alert("Valor Inválido", "Digite um valor numérico válido.");
       return;
     }
 
     if (valorNumerico < VALOR_MINIMO_SAQUE) {
-      router.push("/saque-erro");
-      return;
-    }
-
-    if (valorNumerico > saldoAtual) {
       Alert.alert(
-        "Saldo Insuficiente",
-        "Você não tem saldo suficiente para realizar este saque."
+        "Valor Mínimo",
+        `O valor mínimo para saque é ${formatCurrency(VALOR_MINIMO_SAQUE)}.`
       );
       return;
     }
 
-    console.log("Solicitando saque de:", formatCurrency(valorNumerico));
+    if (valorNumerico > saldoAtual) {
+      Alert.alert("Saldo Insuficiente", "Você não tem saldo suficiente.");
+      return;
+    }
 
-    const sistemaOffline = valorNumerico === 1; // Nosso erro simulado
+    // Início da Integração com API
+    setIsLoading(true);
 
-    if (sistemaOffline) {
-      router.push("/saque-erro");
-    } else {
-      const novoSaldo = saldoAtual - valorNumerico;
-      setSaldoAtual(novoSaldo);
+    try {
+      // A API espera o valor em CENTAVOS (inteiro)
+      const valorCentavos = Math.round(valorNumerico * 100);
+
+      console.log(
+        `💰 Solicitando saque: R$ ${valorNumerico} -> ${valorCentavos} centavos`
+      );
+
+      // Chama o serviço
+      const perfilAtualizado = await entregadoresService.retirarSaldo(
+        valorCentavos
+      );
+
+      // Sucesso! Atualiza o saldo local com a resposta do servidor
+      setSaldoAtual(perfilAtualizado.saldo / 100);
+      setValorSaque(""); // Limpa o campo
+
+      // Redireciona para tela de sucesso
       router.push({
         pathname: "/saque-sucesso",
         params: { valor: valorNumerico },
       });
+    } catch (error: any) {
+      console.error("Erro no saque:", error);
+
+      // Se tiver uma mensagem de erro específica da API, mostre-a
+      const mensagemErro =
+        error.response?.data?.mensagem ||
+        "Não foi possível realizar o saque. Tente novamente.";
+
+      // Se for um erro de "sistema offline" ou regra de negócio grave, redireciona para erro
+      // Caso contrário, mostra um Alert
+      Alert.alert("Falha no Saque", mensagemErro);
+
+      // Opcional: Se quiser manter a tela de erro específica
+      // router.push("/saque-erro");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setValorSaque(""); // Limpa o campo
-  }; // <-- FIM DA FUNÇÃO handleSaque
-
-  // ===================================
-  // O RETURN DA TELA COMEÇA AQUI
-  // ===================================
   return (
-    // 4. Cor de fundo dinâmica aplicada
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: themeColors.appBackground }]}
+    >
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 5. Cor de fundo do card dinâmica */}
-        <View style={[styles.card, { backgroundColor: themeColors.background }]}>
-          {/* 6. Cores e fontes dinâmicas */}
-          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>Sacar Saldo</Text>
-          <Text style={[styles.saldoLabel, { color: themeColors.rydexOrange }]}>Saldo Acumulado</Text>
-          <Text style={[styles.saldoValor, { color: themeColors.rydexOrange }]}>
-            {formatCurrency(saldoAtual)}
+        <View
+          style={[styles.card, { backgroundColor: themeColors.background }]}
+        >
+          <Text style={[styles.title, { color: themeColors.rydexOrange }]}>
+            Sacar Saldo
           </Text>
 
-          <Text style={[styles.inputLabel, { color: themeColors.textGray }]}>Valor para saque</Text>
+          <Text style={[styles.saldoLabel, { color: themeColors.rydexOrange }]}>
+            Saldo Acumulado
+          </Text>
+
+          {/* Exibe loading ou o valor */}
+          {isFetching ? (
+            <ActivityIndicator
+              size="small"
+              color={themeColors.rydexOrange}
+              style={{ marginBottom: 32 }}
+            />
+          ) : (
+            <Text
+              style={[styles.saldoValor, { color: themeColors.rydexOrange }]}
+            >
+              {formatCurrency(saldoAtual)}
+            </Text>
+          )}
+
+          <Text style={[styles.inputLabel, { color: themeColors.textGray }]}>
+            Valor para saque
+          </Text>
+
           <TextInput
             style={[
               styles.textInput,
-              { 
-                borderColor: themeColors.lightGray, 
-                color: themeColors.text 
-              }
+              {
+                borderColor: themeColors.lightGray,
+                color: themeColors.text,
+              },
             ]}
-            placeholder="Preencha o valor"
-            placeholderTextColor={themeColors.textGray} // Cor dinâmica
+            placeholder="R$ 0,00"
+            placeholderTextColor={themeColors.textGray}
             keyboardType="numeric"
             value={valorSaque}
             onChangeText={setValorSaque}
+            editable={!isLoading} // Bloqueia input enquanto carrega
           />
 
-          <TouchableOpacity 
-            style={[styles.button, { backgroundColor: themeColors.rydexOrange }]} 
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: isLoading
+                  ? themeColors.lightGray
+                  : themeColors.rydexOrange,
+              },
+            ]}
             onPress={handleSaque}
+            disabled={isLoading || isFetching}
           >
-            <Text style={[styles.buttonText, { color: themeColors.white }]}>Sacar</Text>
+            {isLoading ? (
+              <ActivityIndicator color={themeColors.white} />
+            ) : (
+              <Text style={[styles.buttonText, { color: themeColors.white }]}>
+                Sacar
+              </Text>
+            )}
           </TouchableOpacity>
 
           <Text style={[styles.infoText, { color: themeColors.textGray }]}>
-            O saque pode ser feito apenas em um dia específico da semana e o
-            valor mínimo é de R$20,00.
+            O valor mínimo é de {formatCurrency(VALOR_MINIMO_SAQUE)}. O
+            processamento pode levar alguns instantes.
           </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-  // ===================================
-  // FIM DO RETURN DA TELA
-  // ===================================
-} // <-- FIM DA FUNÇÃO CarteiraScreen
+}
 
-// ===============================================
-// ESTILOS (ATUALIZADOS COM ESCALA RESPONSIVA)
-// ===============================================
+// ... MANTENHA OS ESTILOS (styles) EXATAMENTE COMO ESTAVAM ...
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // cor de fundo aplicada dinamicamente no JSX
   },
   container: {
     flexGrow: 1,
@@ -150,7 +234,6 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 450,
     alignSelf: "center",
-    // cor de fundo aplicada dinamicamente no JSX
     padding: horizontalScale(24),
     borderRadius: 30,
     alignItems: "center",
@@ -161,24 +244,24 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: FontSizes.titleLarge, // Usa FontSizes
+    fontSize: FontSizes.titleLarge,
     fontWeight: "bold",
     marginBottom: verticalScale(16),
     fontFamily: Fonts.sans,
   },
   saldoLabel: {
-    fontSize: FontSizes.body, // Usa FontSizes
+    fontSize: FontSizes.body,
     marginBottom: verticalScale(4),
     fontFamily: Fonts.sans,
   },
   saldoValor: {
-    fontSize: FontSizes.xlarge, // Usa FontSizes
+    fontSize: FontSizes.xlarge,
     fontWeight: "bold",
     marginBottom: verticalScale(32),
     fontFamily: Fonts.sans,
   },
   inputLabel: {
-    fontSize: FontSizes.body, // Usa FontSizes
+    fontSize: FontSizes.body,
     marginBottom: verticalScale(8),
     alignSelf: "flex-start",
     marginLeft: horizontalScale(4),
@@ -189,7 +272,7 @@ const styles = StyleSheet.create({
     padding: verticalScale(14),
     borderWidth: 1,
     borderRadius: 12,
-    fontSize: FontSizes.body, // Usa FontSizes
+    fontSize: FontSizes.body,
     marginBottom: verticalScale(24),
     textAlign: "left",
     fontFamily: Fonts.sans,
@@ -199,15 +282,17 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(14),
     borderRadius: 12,
     marginBottom: verticalScale(24),
+    height: verticalScale(50), // Altura fixa ajuda no layout do loading
+    justifyContent: "center",
   },
   buttonText: {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: FontSizes.body, // Usa FontSizes
+    fontSize: FontSizes.body,
     fontFamily: Fonts.sans,
   },
   infoText: {
-    fontSize: FontSizes.caption, // Usa FontSizes
+    fontSize: FontSizes.caption,
     textAlign: "center",
     lineHeight: verticalScale(20),
     fontFamily: Fonts.sans,

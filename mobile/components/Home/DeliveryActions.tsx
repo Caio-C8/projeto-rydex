@@ -29,7 +29,28 @@ export const DeliveryActions: React.FC<DeliveryActionsProps> = ({
   let button1 = null;
   let button2 = null;
 
-  if (appMode === "EN_ROUTE_PICKUP") {
+  // 1. PRIMEIRO: Verifica se é para finalizar (Prioridade Alta)
+  if (
+    navInstruction === "Entregar o pedido" ||
+    appMode === "DELIVERY_FINISHED"
+  ) {
+    if (appMode === "DELIVERY_FINISHED") {
+      button1 = (
+        <Text style={styles.finishedText}>ENTREGA FINALIZADA COM SUCESSO!</Text>
+      );
+    } else {
+      button1 = (
+        <TouchableOpacity
+          style={[styles.actionButton, styles.finishButton]}
+          onPress={onFinish}
+        >
+          <Text style={styles.actionButtonText}>FINALIZAR ENTREGA</Text>
+        </TouchableOpacity>
+      );
+    }
+  }
+  // 2. DEPOIS: Verifica os estados de rota
+  else if (appMode === "EN_ROUTE_PICKUP") {
     button1 = (
       <TouchableOpacity
         style={[styles.actionButton, styles.primaryButton]}
@@ -63,26 +84,6 @@ export const DeliveryActions: React.FC<DeliveryActionsProps> = ({
         <Text style={styles.cancelButtonText}>CANCELAR CORRIDA</Text>
       </TouchableOpacity>
     );
-  }
-  // Estado final: Quando a instrução diz para finalizar (pode-se usar um estado específico também)
-  else if (
-    navInstruction === "Entregar o pedido" ||
-    appMode === "DELIVERY_FINISHED"
-  ) {
-    if (appMode === "DELIVERY_FINISHED") {
-      button1 = (
-        <Text style={styles.finishedText}>ENTREGA FINALIZADA COM SUCESSO!</Text>
-      );
-    } else {
-      button1 = (
-        <TouchableOpacity
-          style={[styles.actionButton, styles.finishButton]}
-          onPress={onFinish}
-        >
-          <Text style={styles.actionButtonText}>FINALIZAR ENTREGA</Text>
-        </TouchableOpacity>
-      );
-    }
   }
 
   return (

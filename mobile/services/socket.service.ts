@@ -49,6 +49,10 @@ class SocketService {
     this.socket.on("disconnect", () => {
       console.log("🔌 Socket Desconectado");
     });
+
+    this.socket.onAny((event, ...args) => {
+      console.log(`⚡ [SOCKET DEBUG] Evento recebido: ${event}`, args);
+    });
   }
 
   disconnect() {
