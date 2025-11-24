@@ -4,12 +4,11 @@ import Card from '../../components/ui/Card/Card';
 import { normalizarDinheiro } from '../../utils/normalizar-dinheiro';
 import { authService } from '../../services/authService';
 import { 
-  FaMapMarkerAlt, FaClock, FaBox, FaCalendarAlt, 
+  FaMapMarkerAlt, FaClock, FaCalendarAlt, 
   FaChevronDown, FaChevronUp, FaInfoCircle, FaTimes, FaMotorcycle, FaFilter
 } from 'react-icons/fa';
 import './Historico.css';
 
-// ... (Interfaces mantêm-se iguais)
 interface Solicitacao {
   id: number;
   valor_estimado: number;
@@ -33,8 +32,8 @@ interface GrupoHistorico {
 }
 
 export function Historico() {
-  const [listaCompleta, setListaCompleta] = useState<Solicitacao[]>([]); // Guarda tudo
-  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]); // O que é exibido
+  const [listaCompleta, setListaCompleta] = useState<Solicitacao[]>([]); 
+  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]); 
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
   const [diasExpandidos, setDiasExpandidos] = useState<Record<string, boolean>>({});
@@ -45,10 +44,11 @@ export function Historico() {
   const [filtroStatus, setFiltroStatus] = useState('todos');
   const [filtroValorMin, setFiltroValorMin] = useState('');
   const [filtroValorMax, setFiltroValorMax] = useState('');
-  const [mostrarFiltros, setMostrarFiltros] = useState(false); // Para mobile/toggle
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+  // --- BUSCAR HISTÓRICO ---
   const fetchHistorico = async () => {
     try {
       const token = authService.getToken();
@@ -57,7 +57,6 @@ export function Historico() {
         return;
       }
 
-      // 👇 AQUI ESTÁ A CORREÇÃO: Mudamos de /solicitacoes para /solicitacoes/me
       const response = await axios.get(`${API_URL}/solicitacoes/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -65,8 +64,8 @@ export function Historico() {
       const lista = response.data.dados || response.data;
       const arrayLista = Array.isArray(lista) ? lista : [];
       
-      setListaCompleta(arrayLista); // Guarda a lista bruta
-      aplicarFiltros(arrayLista);   // Aplica filtros iniciais (mostra tudo)
+      setListaCompleta(arrayLista);
+      aplicarFiltros(arrayLista); // Aplica filtros na lista recém-chegada
       setErro('');
       
     } catch (error) {
@@ -90,8 +89,10 @@ export function Historico() {
   // Re-aplica filtros sempre que os critérios ou a lista mudarem
   useEffect(() => {
     aplicarFiltros(listaCompleta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroData, filtroStatus, filtroValorMin, filtroValorMax]);
 
+  // --- LÓGICA DE FILTROS ---
   const aplicarFiltros = (lista: Solicitacao[]) => {
     let filtrada = lista;
 
@@ -105,10 +106,12 @@ export function Historico() {
 
     // 2. Filtro de Status
     if (filtroStatus !== 'todos') {
-      filtrada = filtrada.filter(item => item.status.toLowerCase() === filtroStatus.toLowerCase());
+      filtrada = filtrada.filter(item => 
+        item.status.toLowerCase() === filtroStatus.toLowerCase()
+      );
     }
 
-    // 3. Filtro de Valor Mínimo (converter centavos para reais no input)
+    // 3. Filtro de Valor Mínimo
     if (filtroValorMin) {
       const minCentavos = parseFloat(filtroValorMin) * 100;
       filtrada = filtrada.filter(item => item.valor_estimado >= minCentavos);
@@ -158,12 +161,11 @@ export function Historico() {
       case 'atribuida': case 'aceita': return '#2196F3';
       case 'em_andamento': return '#FF9800';
       case 'concluida': case 'finalizada': return '#4CAF50';
-      case 'cancelada': return '#F44336';
+      case 'cancelada': return '#F44336'; // Vermelho para cancelado
       default: return '#9E9E9E';
     }
   };
 
-  // Lógica para mensagem do Entregador no Modal
   const renderStatusEntregador = (entrega: Solicitacao) => {
     if (entrega.entregador) {
       return (
@@ -175,7 +177,6 @@ export function Historico() {
       );
     }
 
-    // Se não tem entregador, verifica o status
     let mensagem = "Aguardando entregador...";
     let classeExtra = "";
 
@@ -216,7 +217,6 @@ export function Historico() {
           </button>
         </div>
 
-        {/* --- BARRA DE FILTROS --- */}
         {mostrarFiltros && (
           <div className="filtros-container anime-fade-in">
             <div className="filtro-item">
@@ -233,7 +233,7 @@ export function Historico() {
               <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
                 <option value="todos">Todos</option>
                 <option value="pendente">Pendente</option>
-                <option value="atribuida">Em Andamento / Atribuída</option>
+                <option value="atribuida">Em Andamento</option>
                 <option value="finalizada">Finalizada</option>
                 <option value="cancelada">Cancelada</option>
               </select>
@@ -272,7 +272,6 @@ export function Historico() {
         )}
       </div>
 
-      {/* ... (LOADING, ERRO E LISTA MANTÊM-SE IGUAIS) ... */}
       {loading && grupos.length === 0 ? (
         <div className="historico-loading"><p>Carregando suas entregas...</p></div>
       ) : erro ? (
@@ -329,7 +328,6 @@ export function Historico() {
         </div>
       )}
 
-      {/* --- MODAL --- */}
       {entregaSelecionada && (
         <div className="modal-overlay" onClick={() => setEntregaSelecionada(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -352,7 +350,6 @@ export function Historico() {
                 <p className="modal-subtexto">Distância: {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km</p>
               </div>
 
-              {/* Lógica inteligente do Entregador */}
               {renderStatusEntregador(entregaSelecionada)}
 
               <div className="modal-section">

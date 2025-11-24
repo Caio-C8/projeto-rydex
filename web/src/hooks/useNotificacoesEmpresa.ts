@@ -2,34 +2,31 @@ import { useEffect } from "react";
 import io from "socket.io-client";
 import { toast } from "react-toastify";
 
-// VERIFIQUE SE A PORTA ESTÁ CORRETA (Geralmente NestJS roda na 3000, 3001 ou 3333)
+// VERIFIQUE SE A PORTA ESTÁ CORRETA PARA SEU BACKEND
 const SOCKET_URL = "http://localhost:3000";
 
-export const useNotificacoesEmpresa = () => {
+// Aceitamos a função setSolicitacoes como opcional para atualizar a lista na tela
+export const useNotificacoesEmpresa = (
+  setSolicitacoes?: React.Dispatch<React.SetStateAction<any[]>>
+) => {
   useEffect(() => {
     const usuarioJson = localStorage.getItem("usuario");
     const token = localStorage.getItem("token");
 
-    console.log("Hook iniciado via Layout"); // DEBUG
+    console.log("Hook de notificações iniciado.");
 
     if (!usuarioJson || !token) {
-      console.log("Sem usuário ou token no localStorage"); // DEBUG
       return;
     }
 
     const usuario = JSON.parse(usuarioJson);
-    console.log("Usuário lido:", usuario); // DEBUG
 
-    // PROBLEMA COMUM: Verifique se o tipo vem como "EMPRESA", "empresa" ou número 1
-    // O Backend espera enum. Se vier minúsculo, o if falha.
-    // Vamos deixar mais flexível para teste:
+    // Validação flexível para aceitar "EMPRESA" ou "empresa"
     if (usuario.tipo !== "EMPRESA" && usuario.tipo !== "empresa") {
-      console.log("Tipo de usuário ignorado:", usuario.tipo); // DEBUG
       return;
     }
 
-    console.log("Tentando conectar ao Socket em:", SOCKET_URL); // DEBUG
-
+    // Conexão com o Socket
     const socket = io(SOCKET_URL, {
       auth: {
         token: token,
@@ -45,8 +42,9 @@ export const useNotificacoesEmpresa = () => {
       console.error("❌ Erro de conexão Socket:", err.message);
     });
 
+    // --- 1. OUVINTE DE STATUS GERAL (Atribuída, Finalizada, etc) ---
     socket.on("status.entrega", (dados: any) => {
-      console.log("🔔 Notificação recebida no evento status.entrega:", dados);
+      console.log("🔔 Status recebido:", dados);
 
       const { solicitacaoId, status, mensagem, entregadorNome } = dados;
 
@@ -59,6 +57,7 @@ export const useNotificacoesEmpresa = () => {
         draggable: true,
       };
 
+      // Notificações visuais (Toasts)
       switch (status) {
         case "atribuida":
           toast.success(
@@ -77,11 +76,41 @@ export const useNotificacoesEmpresa = () => {
         default:
           toast(mensagem);
       }
+
+      // Atualiza a lista na tela, trocando o status do item correspondente
+      if (setSolicitacoes) {
+        setSolicitacoes((prev) =>
+          prev.map((item) =>
+            item.id === solicitacaoId ? { ...item, status: status } : item
+          )
+        );
+      }
     });
 
+    // --- 2. OUVINTE DE CANCELAMENTO AUTOMÁTICO (TIMEOUT) ---
+    socket.on("solicitacao.cancelada", (cancelada: any) => {
+      console.log("🚫 Cancelamento recebido via socket:", cancelada);
+
+      // Feedback visual imediato
+      toast.error(`⏳ Tempo esgotado! Pedido #${cancelada.id} cancelado.`);
+
+      // Atualiza a lista na tela para ficar vermelha, sem remover o item
+      if (setSolicitacoes) {
+        setSolicitacoes((listaAtual) =>
+          listaAtual.map((item) => {
+            if (item.id === cancelada.id) {
+              return { ...item, status: "cancelada" };
+            }
+            return item;
+          })
+        );
+      }
+    });
+
+    // Limpeza ao desmontar
     return () => {
       console.log("Desconectando socket...");
       socket.disconnect();
     };
-  }, []);
+  }, [setSolicitacoes]); // Dependência importante
 };
