@@ -52,14 +52,14 @@ export interface DadosAlteracaoEmpresa {
 }
 
 export const empresasService = {
-  // --- MÉTODOS DE DADOS DA EMPRESA ---
-
-  async buscarDadosEmpresa(id: number) {
+  async buscarDadosEmpresa() {
     const token = authService.getToken();
-    const response = await axios.get(`${API_URL}/empresas/${id}`, {
+
+    const response = await axios.get(`${API_URL}/empresas/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data.dados || response.data;
+
+    return response.data.dados;
   },
 
   async alterarDados(dados: DadosAlteracaoEmpresa) {

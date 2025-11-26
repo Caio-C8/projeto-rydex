@@ -1,8 +1,12 @@
 .perfil-container {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding-bottom: 80px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.perfil-container .card {
+  width: 800px;
 }
 
 .perfil-header {
@@ -37,7 +41,7 @@
 }
 
 .tag-alterado {
-  color: #FF5722;
+  color: #ff5722;
   font-size: 0.7rem;
   margin-left: 5px;
   text-transform: none;
@@ -62,9 +66,9 @@
 
 .input-perfil.editando {
   background-color: #fff;
-  border: 2px solid #FF5722;
+  border: 2px solid #ff5722;
   box-shadow: 0 4px 15px rgba(255, 87, 34, 0.15);
-  padding-right: 45px; 
+  padding-right: 45px;
 }
 
 .input-perfil:disabled {
@@ -92,11 +96,11 @@
 }
 
 .btn-editar-campo:hover {
-  color: #FF5722;
+  color: #ff5722;
 }
 
 .btn-editar-campo.ativo {
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .perfil-grid {
@@ -124,9 +128,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #E3F2FD; /* Azul bem claro */
-  color: #2196F3;
-  border: 1px solid #BBDEFB;
+  background-color: #e3f2fd; /* Azul bem claro */
+  color: #2196f3;
+  border: 1px solid #bbdefb;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -136,9 +140,9 @@
 }
 
 .btn-buscar-mapa-perfil:hover {
-  background-color: #2196F3;
+  background-color: #2196f3;
   color: white;
-  border-color: #2196F3;
+  border-color: #2196f3;
 }
 
 /* Ações */
@@ -153,7 +157,7 @@
 .btn-cancelar-alteracoes {
   background: none;
   border: none;
-  color: #F44336;
+  color: #f44336;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -171,4 +175,14 @@
 .btn-cancelar-alteracoes:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn-perfil-salvar {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-perfil-salvar button {
+  width: 220px;
 }
