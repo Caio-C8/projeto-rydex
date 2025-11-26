@@ -1,6 +1,9 @@
 .modal-overlay-confirmacao {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 4000; /* Acima de tudo */
   display: flex;
@@ -15,15 +18,21 @@
   max-width: 500px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: popUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
 }
 
 @keyframes popUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .confirmacao-header {
@@ -34,10 +43,18 @@
   align-items: center;
 }
 
-.confirmacao-header h2 { margin: 0; font-size: 1.3rem; color: #333; }
+.confirmacao-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+}
 
 .btn-close {
-  background: none; border: none; font-size: 1.2rem; color: #999; cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
 }
 
 .confirmacao-body {
@@ -55,7 +72,7 @@
 }
 
 .endereco-bloco {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   padding: 15px;
   border-radius: 10px;
   margin-bottom: 20px;
@@ -71,7 +88,9 @@
   gap: 8px;
 }
 
-.icon-laranja { color: #FF5722; }
+.icon-laranja {
+  color: #ff5722;
+}
 
 .subtexto-endereco {
   display: block;
@@ -97,8 +116,16 @@
   text-align: center;
 }
 
-.stat-box.sucesso { background-color: #E8F5E9; border-color: #C8E6C9; color: #2E7D32; }
-.stat-box.erro { background-color: #FFEBEE; border-color: #FFCDD2; color: #C62828; }
+.stat-box.sucesso {
+  background-color: #e8f5e9;
+  border-color: #c8e6c9;
+  color: #2e7d32;
+}
+.stat-box.erro {
+  background-color: #ffebee;
+  border-color: #ffcdd2;
+  color: #c62828;
+}
 
 .label-stat {
   font-size: 0.7rem;
@@ -107,7 +134,9 @@
   margin-bottom: 4px;
 }
 
-.stat-box.sucesso .label-stat { color: #1B5E20; }
+.stat-box.sucesso .label-stat {
+  color: #1b5e20;
+}
 
 .valor-stat {
   font-weight: 700;
@@ -138,7 +167,7 @@
 .valor-total {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #2E7D32; /* Verde Dinheiro */
+  color: #2e7d32; /* Verde Dinheiro */
   letter-spacing: -1px;
   line-height: 1;
 }
@@ -150,16 +179,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
 }
 
 .btn-cancelar {
-  background: none; border: none;
-  color: #666; font-weight: 600; font-size: 0.95rem;
+  background: none;
+  border: none;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   padding: 10px;
 }
 
-.btn-cancelar:hover { color: #333; text-decoration: underline; }
+.btn-cancelar:hover {
+  color: #333;
+  text-decoration: underline;
+}
 
-.btn-confirmar-wrapper { width: 200px; }
+.btn-confirmar-wrapper {
+  width: 200px;
+}
