@@ -1,12 +1,8 @@
-/* --- ESTRUTURA GERAL --- */
 .solicitar-container {
-  padding: 20px;
-  max-width: 900px;
-  margin: 0 auto;
-  padding-bottom: 100px;
-  font-family: 'Inter', sans-serif;
   box-sizing: border-box;
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .solicitar-header {
@@ -17,7 +13,7 @@
 
 .solicitar-titulo {
   font-size: 1.8rem;
-  color: #1A1A1A;
+  color: #1a1a1a;
   font-weight: 800;
   margin: 0 0 5px 0;
 }
@@ -31,6 +27,7 @@
 /* Ajuste do padding do Card */
 .solicitar-form-wrapper .card {
   padding: 30px !important;
+  width: 900px;
 }
 
 /* --- SEÇÕES DO FORMULÁRIO --- */
@@ -58,13 +55,15 @@
   font-weight: 700;
 }
 
-.icon-orange { color: #FF5722; }
+.icon-orange {
+  color: #ff5722;
+}
 
 /* Botão Buscar no Mapa */
 .btn-buscar-mapa {
   background: transparent;
-  border: 1px solid #FF5722;
-  color: #FF5722;
+  border: 1px solid #ff5722;
+  color: #ff5722;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -77,7 +76,7 @@
 }
 
 .btn-buscar-mapa:hover {
-  background-color: #FF5722;
+  background-color: #ff5722;
   color: white;
   transform: translateY(-1px);
   box-shadow: 0 2px 5px rgba(255, 87, 34, 0.2);
@@ -97,16 +96,28 @@
   width: 100%;
 }
 
-.col-cep { flex: 1; }
-.col-cidade { flex: 2; }
-.col-rua { flex: 3; }
-.col-num { flex: 1; }
-.col-half { flex: 1; }
-.col-full { width: 100%; }
+.col-cep {
+  flex: 1;
+}
+.col-cidade {
+  flex: 2;
+}
+.col-rua {
+  flex: 3;
+}
+.col-num {
+  flex: 1;
+}
+.col-half {
+  flex: 1;
+}
+.col-full {
+  width: 100%;
+}
 
 /* --- CHECKBOX DE RETORNO --- */
 .retorno-container {
-  background-color: #FAFAFA;
+  background-color: #fafafa;
   border: 1px solid #eee;
   border-radius: 12px;
   padding: 15px;
@@ -116,8 +127,8 @@
 }
 
 .retorno-container:hover {
-  border-color: #FFCCBC;
-  background-color: #FFF;
+  border-color: #ffccbc;
+  background-color: #fff;
 }
 
 .retorno-header {
@@ -143,8 +154,8 @@
 }
 
 .checkbox-fake.checked {
-  background-color: #FF5722;
-  border-color: #FF5722;
+  background-color: #ff5722;
+  border-color: #ff5722;
 }
 
 .retorno-label strong {
@@ -190,7 +201,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   border: 1px solid #eee;
   padding: 10px 15px;
   border-radius: 10px;
@@ -199,8 +210,13 @@
 }
 
 /* Estados do Cartão */
-.info-stat-card.loading { opacity: 0.7; }
-.info-stat-card.error { background-color: #FFEBEE; border-color: #FFCDD2; }
+.info-stat-card.loading {
+  opacity: 0.7;
+}
+.info-stat-card.error {
+  background-color: #ffebee;
+  border-color: #ffcdd2;
+}
 
 /* Ícone Quadrado */
 .stat-icon-box {
@@ -214,8 +230,14 @@
   flex-shrink: 0;
 }
 
-.stat-icon-box.valor { background-color: #E8F5E9; color: #2E7D32; }
-.stat-icon-box.moto { background-color: #E3F2FD; color: #1565C0; }
+.stat-icon-box.valor {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+.stat-icon-box.moto {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
 
 /* Textos do Cartão */
 .stat-text {
@@ -240,7 +262,7 @@
 }
 
 .stat-value.error-text {
-  color: #D32F2F;
+  color: #d32f2f;
   font-size: 0.9rem;
 }
 
@@ -255,8 +277,8 @@
 /* Banner de Erro (Acima do botão) */
 .error-banner {
   width: 100%;
-  background-color: #FFEBEE;
-  color: #D32F2F;
+  background-color: #ffebee;
+  color: #d32f2f;
   padding: 10px 15px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -264,7 +286,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
-  border: 1px solid #FFCDD2;
+  border: 1px solid #ffcdd2;
   font-weight: 500;
 }
 
@@ -276,18 +298,33 @@
 /* Animações */
 .blink {
   animation: blinker 1s linear infinite;
-  color: #FF9800;
+  color: #ff9800;
 }
 
-@keyframes blinker { 50% { opacity: 0.5; } }
+@keyframes blinker {
+  50% {
+    opacity: 0.5;
+  }
+}
 
 .anime-slide-down {
   animation: slideDown 0.3s ease;
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-solicitar-entrega {
+  display: flex;
+  justify-content: center;
 }
 
 /* Responsividade Mobile */
@@ -301,7 +338,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .info-stats-container {
     flex-direction: row;
     overflow-x: auto; /* Scroll horizontal se não couber na tela */
@@ -312,7 +349,7 @@
     flex: 1;
     min-width: 130px;
   }
-  
+
   .btn-submit-wrapper {
     width: 100%;
   }
