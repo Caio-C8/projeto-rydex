@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Card from '../../components/ui/Card/Card';
-import { normalizarDinheiro } from '../../utils/normalizar-dinheiro';
-import { authService } from '../../services/authService';
-import { 
-  FaMapMarkerAlt, FaClock, FaCalendarAlt, 
-  FaChevronDown, FaChevronUp, FaInfoCircle, FaTimes, FaMotorcycle, FaFilter
-} from 'react-icons/fa';
-import './Historico.css';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Card from "../../components/ui/Card/Card";
+import { normalizarDinheiro } from "../../utils/normalizar-dinheiro";
+import { authService } from "../../services/authService";
+import {
+  FaMapMarkerAlt,
+  FaClock,
+  FaCalendarAlt,
+  FaChevronDown,
+  FaChevronUp,
+  FaInfoCircle,
+  FaTimes,
+  FaMotorcycle,
+  FaFilter,
+} from "react-icons/fa";
+import "./Historico.css";
 
 interface Solicitacao {
   id: number;
@@ -22,8 +29,8 @@ interface Solicitacao {
   observacao?: string;
   descricao_item_retorno?: string;
   item_retorno: boolean;
-  entregador?: { nome: string; placa_veiculo: string; };
-  entrega?: { aceito_em: string; finalizado_em: string; };
+  entregador?: { nome: string; placa_veiculo: string };
+  entrega?: { aceito_em: string; finalizado_em: string };
 }
 
 interface GrupoHistorico {
@@ -32,42 +39,44 @@ interface GrupoHistorico {
 }
 
 export function Historico() {
-  const [listaCompleta, setListaCompleta] = useState<Solicitacao[]>([]); 
-  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]); 
+  const [listaCompleta, setListaCompleta] = useState<Solicitacao[]>([]);
+  const [grupos, setGrupos] = useState<GrupoHistorico[]>([]);
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
-  const [diasExpandidos, setDiasExpandidos] = useState<Record<string, boolean>>({});
-  const [entregaSelecionada, setEntregaSelecionada] = useState<Solicitacao | null>(null);
+  const [erro, setErro] = useState("");
+  const [diasExpandidos, setDiasExpandidos] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [entregaSelecionada, setEntregaSelecionada] =
+    useState<Solicitacao | null>(null);
 
   // --- ESTADOS DOS FILTROS ---
-  const [filtroData, setFiltroData] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('todos');
-  const [filtroValorMin, setFiltroValorMin] = useState('');
-  const [filtroValorMax, setFiltroValorMax] = useState('');
+  const [filtroData, setFiltroData] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroValorMin, setFiltroValorMin] = useState("");
+  const [filtroValorMax, setFiltroValorMax] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // --- BUSCAR HISTÓRICO ---
   const fetchHistorico = async () => {
     try {
       const token = authService.getToken();
       if (!token) {
-        window.location.href = '/'; 
+        window.location.href = "/";
         return;
       }
 
       const response = await axios.get(`${API_URL}/solicitacoes/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const lista = response.data.dados || response.data;
       const arrayLista = Array.isArray(lista) ? lista : [];
-      
+
       setListaCompleta(arrayLista);
       aplicarFiltros(arrayLista); // Aplica filtros na lista recém-chegada
-      setErro('');
-      
+      setErro("");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         authService.logout();
@@ -98,29 +107,29 @@ export function Historico() {
 
     // 1. Filtro de Data
     if (filtroData) {
-      filtrada = filtrada.filter(item => {
-        const dataItem = new Date(item.criado_em).toISOString().split('T')[0];
+      filtrada = filtrada.filter((item) => {
+        const dataItem = new Date(item.criado_em).toISOString().split("T")[0];
         return dataItem === filtroData;
       });
     }
 
     // 2. Filtro de Status
-    if (filtroStatus !== 'todos') {
-      filtrada = filtrada.filter(item => 
-        item.status.toLowerCase() === filtroStatus.toLowerCase()
+    if (filtroStatus !== "todos") {
+      filtrada = filtrada.filter(
+        (item) => item.status.toLowerCase() === filtroStatus.toLowerCase()
       );
     }
 
     // 3. Filtro de Valor Mínimo
     if (filtroValorMin) {
       const minCentavos = parseFloat(filtroValorMin) * 100;
-      filtrada = filtrada.filter(item => item.valor_estimado >= minCentavos);
+      filtrada = filtrada.filter((item) => item.valor_estimado >= minCentavos);
     }
 
     // 4. Filtro de Valor Máximo
     if (filtroValorMax) {
       const maxCentavos = parseFloat(filtroValorMax) * 100;
-      filtrada = filtrada.filter(item => item.valor_estimado <= maxCentavos);
+      filtrada = filtrada.filter((item) => item.valor_estimado <= maxCentavos);
     }
 
     agruparPorData(filtrada);
@@ -131,10 +140,10 @@ export function Historico() {
     const novaExpansao: Record<string, boolean> = { ...diasExpandidos };
     const isPrimeiraCarga = Object.keys(diasExpandidos).length === 0;
 
-    lista.forEach(item => {
+    lista.forEach((item) => {
       const dataObj = new Date(item.criado_em);
-      const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-      
+      const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+
       if (!gruposTemp[dataFormatada]) {
         gruposTemp[dataFormatada] = [];
         if (isPrimeiraCarga) novaExpansao[dataFormatada] = true;
@@ -142,9 +151,9 @@ export function Historico() {
       gruposTemp[dataFormatada].push(item);
     });
 
-    const arrayGrupos = Object.keys(gruposTemp).map(data => ({
+    const arrayGrupos = Object.keys(gruposTemp).map((data) => ({
       data,
-      items: gruposTemp[data]
+      items: gruposTemp[data],
     }));
 
     setGrupos(arrayGrupos);
@@ -152,17 +161,25 @@ export function Historico() {
   };
 
   const toggleDia = (data: string) => {
-    setDiasExpandidos(prev => ({ ...prev, [data]: !prev[data] }));
+    setDiasExpandidos((prev) => ({ ...prev, [data]: !prev[data] }));
   };
 
   const getStatusColor = (status: string) => {
-    switch(status?.toLowerCase()) {
-      case 'pendente': return '#FFC107';
-      case 'atribuida': case 'aceita': return '#2196F3';
-      case 'em_andamento': return '#FF9800';
-      case 'concluida': case 'finalizada': return '#4CAF50';
-      case 'cancelada': return '#F44336'; // Vermelho para cancelado
-      default: return '#9E9E9E';
+    switch (status?.toLowerCase()) {
+      case "pendente":
+        return "#FFC107";
+      case "atribuida":
+      case "aceita":
+        return "#2196F3";
+      case "em_andamento":
+        return "#FF9800";
+      case "concluida":
+      case "finalizada":
+        return "#4CAF50";
+      case "cancelada":
+        return "#F44336"; // Vermelho para cancelado
+      default:
+        return "#9E9E9E";
     }
   };
 
@@ -170,9 +187,13 @@ export function Historico() {
     if (entrega.entregador) {
       return (
         <div className="modal-section entregador-box">
-          <h4 className="modal-label"><FaMotorcycle /> Entregador</h4>
+          <h4 className="modal-label">
+            <FaMotorcycle /> Entregador
+          </h4>
           <p className="modal-texto-bold">{entrega.entregador.nome}</p>
-          <p className="modal-subtexto">Veículo: {entrega.entregador.placa_veiculo}</p>
+          <p className="modal-subtexto">
+            Veículo: {entrega.entregador.placa_veiculo}
+          </p>
         </div>
       );
     }
@@ -180,17 +201,17 @@ export function Historico() {
     let mensagem = "Aguardando entregador...";
     let classeExtra = "";
 
-    switch(entrega.status?.toLowerCase()) {
-      case 'cancelada':
+    switch (entrega.status?.toLowerCase()) {
+      case "cancelada":
         mensagem = "Esta entrega foi cancelada.";
         classeExtra = "aviso-cancelado";
         break;
-      case 'concluida':
-      case 'finalizada':
+      case "concluida":
+      case "finalizada":
         mensagem = "Entrega finalizada.";
         classeExtra = "aviso-sucesso";
         break;
-      case 'pendente':
+      case "pendente":
         mensagem = "Procurando entregadores na região...";
         break;
       default:
@@ -208,9 +229,8 @@ export function Historico() {
     <div className="historico-container">
       <div className="historico-header">
         <div className="header-top">
-          <h1 className="historico-titulo">Histórico de Entregas</h1>
-          <button 
-            className={`btn-filtro ${mostrarFiltros ? 'ativo' : ''}`} 
+          <button
+            className={`btn-filtro ${mostrarFiltros ? "ativo" : ""}`}
             onClick={() => setMostrarFiltros(!mostrarFiltros)}
           >
             <FaFilter /> Filtros
@@ -221,16 +241,19 @@ export function Historico() {
           <div className="filtros-container anime-fade-in">
             <div className="filtro-item">
               <label>Data</label>
-              <input 
-                type="date" 
-                value={filtroData} 
-                onChange={(e) => setFiltroData(e.target.value)} 
+              <input
+                type="date"
+                value={filtroData}
+                onChange={(e) => setFiltroData(e.target.value)}
               />
             </div>
-            
+
             <div className="filtro-item">
               <label>Status</label>
-              <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
+              <select
+                value={filtroStatus}
+                onChange={(e) => setFiltroStatus(e.target.value)}
+              >
                 <option value="todos">Todos</option>
                 <option value="pendente">Pendente</option>
                 <option value="atribuida">Em Andamento</option>
@@ -242,40 +265,49 @@ export function Historico() {
             <div className="filtro-grupo-valor">
               <div className="filtro-item">
                 <label>Valor Mín (R$)</label>
-                <input 
-                  type="number" 
-                  placeholder="0,00" 
-                  value={filtroValorMin} 
-                  onChange={(e) => setFiltroValorMin(e.target.value)} 
+                <input
+                  type="number"
+                  placeholder="0,00"
+                  value={filtroValorMin}
+                  onChange={(e) => setFiltroValorMin(e.target.value)}
                 />
               </div>
               <div className="filtro-item">
                 <label>Valor Máx (R$)</label>
-                <input 
-                  type="number" 
-                  placeholder="100,00" 
-                  value={filtroValorMax} 
-                  onChange={(e) => setFiltroValorMax(e.target.value)} 
+                <input
+                  type="number"
+                  placeholder="100,00"
+                  value={filtroValorMax}
+                  onChange={(e) => setFiltroValorMax(e.target.value)}
                 />
               </div>
             </div>
 
             <div className="filtro-acoes">
-              <button className="btn-limpar" onClick={() => {
-                setFiltroData('');
-                setFiltroStatus('todos');
-                setFiltroValorMin('');
-                setFiltroValorMax('');
-              }}>Limpar Filtros</button>
+              <button
+                className="btn-limpar"
+                onClick={() => {
+                  setFiltroData("");
+                  setFiltroStatus("todos");
+                  setFiltroValorMin("");
+                  setFiltroValorMax("");
+                }}
+              >
+                Limpar Filtros
+              </button>
             </div>
           </div>
         )}
       </div>
 
       {loading && grupos.length === 0 ? (
-        <div className="historico-loading"><p>Carregando suas entregas...</p></div>
+        <div className="historico-loading">
+          <p>Carregando suas entregas...</p>
+        </div>
       ) : erro ? (
-        <div className="historico-erro"><p>{erro}</p></div>
+        <div className="historico-erro">
+          <p>{erro}</p>
+        </div>
       ) : grupos.length === 0 ? (
         <div className="historico-vazio">
           <div className="vazio-icon">📦</div>
@@ -286,35 +318,59 @@ export function Historico() {
         <div className="timeline">
           {grupos.map((grupo) => (
             <div key={grupo.data} className="grupo-dia">
-              <div className="data-separator" onClick={() => toggleDia(grupo.data)}>
+              <div
+                className="data-separator"
+                onClick={() => toggleDia(grupo.data)}
+              >
                 <div className="data-info">
                   <FaCalendarAlt className="calendar-icon" />
                   <span>{grupo.data}</span>
                   <span className="qtd-items">({grupo.items.length})</span>
                 </div>
-                {diasExpandidos[grupo.data] ? <FaChevronUp /> : <FaChevronDown />}
+                {diasExpandidos[grupo.data] ? (
+                  <FaChevronUp />
+                ) : (
+                  <FaChevronDown />
+                )}
               </div>
-              
+
               {diasExpandidos[grupo.data] && (
                 <div className="lista-cards anime-fade-in">
                   {grupo.items.map((entrega) => (
                     <Card key={entrega.id} isPointer={false}>
                       <div className="card-entrega-content">
                         <div className="entrega-header">
-                          <span className="entrega-id">Pedido #{entrega.id}</span>
-                          <span className="entrega-status" style={{ backgroundColor: getStatusColor(entrega.status) }}>
-                            {entrega.status ? entrega.status.toUpperCase().replace('_', ' ') : 'DESCONHECIDO'}
+                          <span className="entrega-id">
+                            Pedido #{entrega.id}
+                          </span>
+                          <span
+                            className="entrega-status"
+                            style={{
+                              backgroundColor: getStatusColor(entrega.status),
+                            }}
+                          >
+                            {entrega.status
+                              ? entrega.status.toUpperCase().replace("_", " ")
+                              : "DESCONHECIDO"}
                           </span>
                         </div>
                         <div className="entrega-info">
                           <div className="info-row">
                             <FaMapMarkerAlt className="icon-laranja" />
-                            <p className="endereco-texto">{entrega.logradouro}, {entrega.numero} - {entrega.bairro}</p>
+                            <p className="endereco-texto">
+                              {entrega.logradouro}, {entrega.numero} -{" "}
+                              {entrega.bairro}
+                            </p>
                           </div>
                         </div>
                         <div className="entrega-footer">
-                          <span className="entrega-valor">{normalizarDinheiro(entrega.valor_estimado)}</span>
-                          <button className="btn-detalhes" onClick={() => setEntregaSelecionada(entrega)}>
+                          <span className="entrega-valor">
+                            {normalizarDinheiro(entrega.valor_estimado)}
+                          </span>
+                          <button
+                            className="btn-detalhes"
+                            onClick={() => setEntregaSelecionada(entrega)}
+                          >
                             <FaInfoCircle /> Detalhes
                           </button>
                         </div>
@@ -329,39 +385,71 @@ export function Historico() {
       )}
 
       {entregaSelecionada && (
-        <div className="modal-overlay" onClick={() => setEntregaSelecionada(null)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setEntregaSelecionada(null)}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Detalhes do Pedido #{entregaSelecionada.id}</h2>
-              <button className="modal-close" onClick={() => setEntregaSelecionada(null)}><FaTimes /></button>
+              <button
+                className="modal-close"
+                onClick={() => setEntregaSelecionada(null)}
+              >
+                <FaTimes />
+              </button>
             </div>
             <div className="modal-body">
               <div className="modal-section destaque">
-                <div className="modal-status-badge" style={{ backgroundColor: getStatusColor(entregaSelecionada.status) }}>
+                <div
+                  className="modal-status-badge"
+                  style={{
+                    backgroundColor: getStatusColor(entregaSelecionada.status),
+                  }}
+                >
                   {entregaSelecionada.status.toUpperCase()}
                 </div>
-                <div className="modal-valor">{normalizarDinheiro(entregaSelecionada.valor_estimado)}</div>
+                <div className="modal-valor">
+                  {normalizarDinheiro(entregaSelecionada.valor_estimado)}
+                </div>
               </div>
-              
+
               <div className="modal-section">
                 <h4 className="modal-label">Endereço de Entrega</h4>
-                <p className="modal-texto">{entregaSelecionada.logradouro}, {entregaSelecionada.numero}</p>
-                <p className="modal-subtexto">{entregaSelecionada.bairro} - {entregaSelecionada.cidade}</p>
-                <p className="modal-subtexto">Distância: {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km</p>
+                <p className="modal-texto">
+                  {entregaSelecionada.logradouro}, {entregaSelecionada.numero}
+                </p>
+                <p className="modal-subtexto">
+                  {entregaSelecionada.bairro} - {entregaSelecionada.cidade}
+                </p>
+                <p className="modal-subtexto">
+                  Distância:{" "}
+                  {(entregaSelecionada.distancia_m / 1000).toFixed(1)} km
+                </p>
               </div>
 
               {renderStatusEntregador(entregaSelecionada)}
 
               <div className="modal-section">
                 <h4 className="modal-label">Observações</h4>
-                <p className="modal-texto">{entregaSelecionada.observacao || "Nenhuma observação."}</p>
+                <p className="modal-texto">
+                  {entregaSelecionada.observacao || "Nenhuma observação."}
+                </p>
                 {entregaSelecionada.item_retorno && (
-                  <div className="retorno-box"><strong>⚠️ Item de Retorno:</strong> {entregaSelecionada.descricao_item_retorno}</div>
+                  <div className="retorno-box">
+                    <strong>⚠️ Item de Retorno:</strong>{" "}
+                    {entregaSelecionada.descricao_item_retorno}
+                  </div>
                 )}
               </div>
               <div className="modal-section horarios">
                 <div className="horario-item">
-                  <span>Criado em:</span> <strong>{new Date(entregaSelecionada.criado_em).toLocaleString('pt-BR')}</strong>
+                  <span>Criado em:</span>{" "}
+                  <strong>
+                    {new Date(entregaSelecionada.criado_em).toLocaleString(
+                      "pt-BR"
+                    )}
+                  </strong>
                 </div>
               </div>
             </div>

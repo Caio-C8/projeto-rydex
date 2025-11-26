@@ -2,13 +2,12 @@
 
 /* --- ESTRUTURA PRINCIPAL --- */
 .historico-container {
-  padding: 20px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   margin: 0;
   padding-bottom: 100px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /* --- CABEÇALHO --- */
@@ -28,7 +27,7 @@
 
 .historico-titulo {
   font-size: 1.8rem;
-  color: #1A1A1A;
+  color: #1a1a1a;
   font-weight: 700;
   letter-spacing: -0.5px;
   margin: 0;
@@ -40,25 +39,25 @@
   align-items: center;
   gap: 8px;
   background-color: #fff;
-  border: 1px solid #E0E0E0;
+  border: 1px solid #e0e0e0;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   color: #555;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
 }
 
 .btn-filtro:hover {
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   transform: translateY(-1px);
 }
 
 .btn-filtro.ativo {
-  background-color: #FFF3E0;
-  color: #FF5722;
-  border-color: #FF5722;
+  background-color: #fff3e0;
+  color: #ff5722;
+  border-color: #ff5722;
 }
 
 /* --- ÁREA DE FILTROS (EXPANDÍVEL) --- */
@@ -66,7 +65,7 @@
   background-color: #fff;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid #eee;
   margin-top: 20px;
   display: grid;
@@ -89,18 +88,20 @@
   letter-spacing: 0.5px;
 }
 
-.filtro-item input, .filtro-item select {
+.filtro-item input,
+.filtro-item select {
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 0.95rem;
   outline: none;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
   transition: border 0.2s;
 }
 
-.filtro-item input:focus, .filtro-item select:focus {
-  border-color: #FF5722;
+.filtro-item input:focus,
+.filtro-item select:focus {
+  border-color: #ff5722;
   background-color: #fff;
   box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
 }
@@ -127,11 +128,12 @@
 }
 
 .btn-limpar:hover {
-  color: #FF5722;
+  color: #ff5722;
 }
 
 /* --- LOADING E MENSAGENS --- */
-.historico-loading, .historico-erro {
+.historico-loading,
+.historico-erro {
   text-align: center;
   padding: 60px 20px;
   color: #666;
@@ -139,8 +141,8 @@
 }
 
 .historico-erro {
-  color: #D32F2F;
-  background-color: #FFEBEE;
+  color: #d32f2f;
+  background-color: #ffebee;
   border-radius: 8px;
   margin-top: 20px;
 }
@@ -149,9 +151,9 @@
   text-align: center;
   padding: 80px 20px;
   color: #888;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
   border-radius: 16px;
-  border: 2px dashed #E0E0E0;
+  border: 2px dashed #e0e0e0;
   margin-top: 20px;
 }
 
@@ -173,8 +175,8 @@
   background-color: #fff;
   padding: 14px 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #F0F0F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 15px;
@@ -182,7 +184,7 @@
 }
 
 .data-separator:hover {
-  border-color: #FFCCBC;
+  border-color: #ffccbc;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(255, 87, 34, 0.1);
 }
@@ -200,13 +202,13 @@
   font-size: 0.8rem;
   color: #999;
   font-weight: 400;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   padding: 2px 8px;
   border-radius: 10px;
 }
 
 .calendar-icon {
-  color: #FF5722;
+  color: #ff5722;
 }
 
 /* --- CARD DE ENTREGA --- */
@@ -218,7 +220,7 @@
   width: 100%;
 }
 
-.lista-cards > div { 
+.lista-cards > div {
   width: 100%;
 }
 
@@ -239,7 +241,7 @@
 
 .entrega-id {
   font-weight: 700;
-  color: #FF5722;
+  color: #ff5722;
   font-size: 1rem;
   letter-spacing: 0.5px;
 }
@@ -252,7 +254,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Miolo do Card */
@@ -269,14 +271,19 @@
   color: #444;
 }
 
-.icon-laranja, .icon-cinza {
-  margin-top: 3px; 
+.icon-laranja,
+.icon-cinza {
+  margin-top: 3px;
   min-width: 18px;
   font-size: 1.1rem;
 }
 
-.icon-laranja { color: #FF5722; }
-.icon-cinza { color: #9E9E9E; }
+.icon-laranja {
+  color: #ff5722;
+}
+.icon-cinza {
+  color: #9e9e9e;
+}
 
 .endereco-texto {
   font-size: 0.95rem;
@@ -298,7 +305,7 @@
 .entrega-valor {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #2C3E50;
+  color: #2c3e50;
   letter-spacing: -0.5px;
 }
 
@@ -306,9 +313,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #FFF3E0;
+  background-color: #fff3e0;
   border: 1px solid transparent;
-  color: #E64A19;
+  color: #e64a19;
   padding: 8px 16px;
   border-radius: 25px;
   font-size: 0.85rem;
@@ -318,7 +325,7 @@
 }
 
 .btn-detalhes:hover {
-  background-color: #FF5722;
+  background-color: #ff5722;
   color: white;
   box-shadow: 0 4px 10px rgba(255, 87, 34, 0.2);
   transform: translateY(-1px);
@@ -329,8 +336,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- MODAL (ESTILO CLÁSSICO) --- */
@@ -354,14 +367,20 @@
   width: 100%;
   max-width: 500px;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-header {
@@ -388,7 +407,7 @@
 }
 
 .modal-close:hover {
-  color: #FF5722;
+  color: #ff5722;
 }
 
 .modal-body {
@@ -425,7 +444,7 @@
 .modal-valor {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .modal-label {
@@ -464,8 +483,8 @@
 
 .retorno-box {
   margin-top: 10px;
-  background-color: #FFF8E1;
-  color: #F57C00;
+  background-color: #fff8e1;
+  color: #f57c00;
   padding: 8px;
   border-radius: 4px;
   font-size: 0.9rem;
@@ -489,17 +508,17 @@
 }
 
 .modal-aviso.aviso-cancelado {
-  color: #D32F2F;
-  background-color: #FFEBEE;
-  border: 1px solid #FFCDD2;
+  color: #d32f2f;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
   font-style: normal;
   font-weight: 500;
 }
 
 .modal-aviso.aviso-sucesso {
-  color: #388E3C;
-  background-color: #E8F5E9;
-  border: 1px solid #C8E6C9;
+  color: #388e3c;
+  background-color: #e8f5e9;
+  border: 1px solid #c8e6c9;
   font-style: normal;
   font-weight: 500;
 }
@@ -509,15 +528,15 @@
   .historico-container {
     padding: 15px;
   }
-  
+
   .filtros-container {
     grid-template-columns: 1fr;
   }
-  
+
   .entrega-valor {
     font-size: 1.2rem;
   }
-  
+
   .btn-detalhes {
     padding: 6px 12px;
     font-size: 0.8rem;
