@@ -45,7 +45,7 @@ const SideBar: React.FC<SideBarProps> = ({ isExpandido, setIsExpandido }) => {
 
         <NavLink to="/historico" className={getNavLinkClass}>
           <FontAwesomeIcon icon={faClockRotateLeft} />
-          {isExpandido && <span className="icon-texto">Históico</span>}
+          {isExpandido && <span className="icon-texto">Histórico</span>}
         </NavLink>
 
         <NavLink to="/solicitar-entrega" className={getNavLinkClass}>

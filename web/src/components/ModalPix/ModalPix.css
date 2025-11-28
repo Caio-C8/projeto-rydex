@@ -25,8 +25,14 @@
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-header-pix {
@@ -46,7 +52,7 @@
 }
 
 .pix-subtitulo {
-  color: #6B7280;
+  color: #6b7280;
   font-size: 0.95rem;
   margin: 0;
 }
@@ -57,7 +63,7 @@
   right: 20px;
   background: transparent;
   border: none;
-  color: #9CA3AF;
+  color: #9ca3af;
   font-size: 1.2rem;
   cursor: pointer;
   padding: 5px;
@@ -65,7 +71,7 @@
 }
 
 .btn-fechar:hover {
-  color: #EF4444;
+  color: #ef4444;
 }
 
 /* GRID */
@@ -77,7 +83,7 @@
 
 /* --- COLUNA ESQUERDA --- */
 .coluna-destaque {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   padding: 40px 30px;
   display: flex;
   flex-direction: column;
@@ -91,8 +97,8 @@
   background: white;
   padding: 15px;
   border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
   margin-bottom: 5px;
 }
 
@@ -104,20 +110,20 @@
 
 /* 👇 AQUI ESTÁ A CÁPSULA VERDE 👇 */
 .pix-valor-pill {
-  background-color: #E8F5E9; /* Fundo verde bem clarinho */
-  color: #1B5E20; /* Texto verde escuro */
+  background-color: #e8f5e9; /* Fundo verde bem clarinho */
+  color: #1b5e20; /* Texto verde escuro */
   font-weight: 700;
   padding: 10px 24px;
   border-radius: 50px; /* Borda totalmente redonda */
   font-size: 1.1rem;
   letter-spacing: 0.5px;
-  border: 1px solid #C8E6C9;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid #c8e6c9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .scan-hint {
   font-size: 0.85rem;
-  color: #6B7280;
+  color: #6b7280;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -147,16 +153,17 @@
   display: flex;
   align-items: center;
   text-align: center;
-  color: #9CA3AF;
+  color: #9ca3af;
   font-size: 0.8rem;
   font-weight: 600;
   margin: 25px 0;
 }
 
-.divisoria::before, .divisoria::after {
-  content: '';
+.divisoria::before,
+.divisoria::after {
+  content: "";
   flex: 1;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .divisoria span {
@@ -174,7 +181,7 @@
 .input-wrapper-pix {
   display: flex;
   align-items: center;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 5px;
   background-color: #fff;
@@ -182,7 +189,7 @@
 }
 
 .input-wrapper-pix:focus-within {
-  border-color: #4CAF50;
+  border-color: #4caf50;
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
@@ -191,14 +198,13 @@
   border: none;
   outline: none;
   padding: 10px 12px;
-  font-family: 'Courier New', monospace;
   font-size: 0.9rem;
-  color: #4B5563;
+  color: #4b5563;
   background: transparent;
 }
 
 .btn-copiar-icon {
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
   border: none;
   border-radius: 6px;
   width: 42px;
@@ -207,17 +213,17 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #6B7280;
+  color: #6b7280;
   transition: all 0.2s;
 }
 
 .btn-copiar-icon:hover {
-  background-color: #E5E7EB;
+  background-color: #e5e7eb;
   color: #111827;
 }
 
 .btn-copiar-icon.sucesso {
-  background-color: #D1FAE5;
+  background-color: #d1fae5;
   color: #059669;
 }
 
@@ -239,7 +245,7 @@
 .seguranca-badge {
   text-align: center;
   font-size: 0.8rem;
-  color: #9CA3AF;
+  color: #9ca3af;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,7 +257,7 @@
   .pix-layout-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .coluna-destaque {
     padding: 25px;
     border-right: none;
@@ -261,7 +267,7 @@
   .coluna-acoes {
     padding: 25px;
   }
-  
+
   .modal-pix-content {
     padding: 0;
     max-height: 90vh;
