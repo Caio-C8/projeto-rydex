@@ -1,9 +1,7 @@
 .inicio-container {
-  padding: 20px;
   width: 100%;
   height: 100%;
   position: relative;
-  font-family: 'Inter', sans-serif;
   box-sizing: border-box;
 }
 
@@ -11,7 +9,7 @@
   font-size: 1.2rem;
   color: #333;
   margin-bottom: 20px;
-  border-left: 4px solid #FF5722;
+  border-left: 4px solid #ff5722;
   padding-left: 10px;
 }
 
@@ -39,13 +37,13 @@
 
 .badge-id {
   font-weight: 700;
-  color: #FF5722;
-  
-  white-space: nowrap;       
-  overflow: hidden;          
-  text-overflow: ellipsis;   
-  max-width: 60%;            
-  display: block;          
+  color: #ff5722;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+  display: block;
 }
 
 .badge-status {
@@ -80,8 +78,12 @@
   color: #333;
 }
 
-.icon-laranja { color: #FF5722; }
-.icon-cinza { color: #999; }
+.icon-laranja {
+  color: #ff5722;
+}
+.icon-cinza {
+  color: #999;
+}
 
 /* --- EMPTY STATE (CONVITE) --- */
 .empty-state-convite {
@@ -90,7 +92,6 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin-top: 60px;
   animation: fadeIn 0.5s ease;
 }
 
@@ -105,7 +106,7 @@
 
 .titulo-convite {
   font-size: 1.5rem;
-  color: #1A1A1A;
+  color: #1a1a1a;
   margin-bottom: 40px;
   max-width: 300px;
   line-height: 1.4;
@@ -117,12 +118,12 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  
+
   /* Posição Fixa para acompanhar o botão */
   position: fixed;
   bottom: 100px;
   right: 35px;
-  
+
   max-width: 150px;
   z-index: 90;
   pointer-events: none; /* Permite clicar através da seta */
@@ -134,13 +135,13 @@
   background: #fff;
   padding: 8px 12px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
 /* Triângulo do balão */
 .texto-ajuda::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -6px;
   left: 50%;
@@ -152,15 +153,20 @@
 
 .seta-indicativa {
   font-size: 2.5rem;
-  color: #FF5722;
+  color: #ff5722;
   transform: rotate(45deg);
   animation: bounce 2s infinite ease-in-out;
   filter: drop-shadow(0 2px 4px rgba(255, 87, 34, 0.3));
 }
 
 @keyframes bounce {
-  0%, 100% { transform: rotate(45deg) translate(0, 0); }
-  50% { transform: rotate(45deg) translate(10px, 10px); }
+  0%,
+  100% {
+    transform: rotate(45deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(45deg) translate(10px, 10px);
+  }
 }
 
 /* --- BOTÃO FLUTUANTE (A BOLINHA) --- */
@@ -171,7 +177,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%; /* Garante que é redondo */
-  background-color: #FF5722;
+  background-color: #ff5722;
   color: white;
   border: none;
   box-shadow: 0 4px 15px rgba(255, 87, 34, 0.4);
@@ -186,7 +192,7 @@
 
 .fab-adicionar:hover {
   transform: scale(1.1);
-  background-color: #F4511E;
+  background-color: #f4511e;
 }
 
 .fab-adicionar:active {
@@ -194,8 +200,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Ajustes Mobile */
@@ -204,12 +214,12 @@
     right: 25px;
     bottom: 95px;
   }
-  
+
   .texto-ajuda {
     font-size: 0.8rem;
     padding: 6px 10px;
   }
-  
+
   .seta-indicativa {
     font-size: 2rem;
   }
